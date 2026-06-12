@@ -1,0 +1,38 @@
+import type { Metadata } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { ThemeProvider } from 'next-themes';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { CartDrawer } from '@/components/shop/CartDrawer';
+
+export const metadata: Metadata = {
+  title: 'MoBax — Mobile Accessories',
+  description: 'Premium mobile accessories in Georgia — cases, chargers, cables and more',
+};
+
+interface LocaleLayoutProps {
+  children: React.ReactNode;
+  params: { locale: string };
+}
+
+export default async function LocaleLayout({ children, params: { locale } }: LocaleLayoutProps) {
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body className="min-h-screen bg-background-light text-[#111827] antialiased dark:bg-background-dark dark:text-[#F1F5F9] font-sans">
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <CartDrawer />
+          </ThemeProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}

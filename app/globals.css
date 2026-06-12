@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@font-face {
+  font-family: 'BPG Nino Mtavruli';
+  src: url('/fonts/bpg-nino-mtavruli.woff2') format('woff2'),
+       url('/fonts/bpg-nino-mtavruli.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BPG Nino Mtavruli';
+  src: url('/fonts/bpg-nino-mtavruli-bold.woff2') format('woff2'),
+       url('/fonts/bpg-nino-mtavruli-bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --background: #FAFAF8;
+    --foreground: #111827;
+    --surface: #FFFFFF;
+    --primary: #1E2D5A;
+    --accent: #F5A623;
+    --text-secondary: #6B7280;
+    --border: #E5E7EB;
+    --success: #16A34A;
+    --error: #DC2626;
+  }
+
+  .dark {
+    --background: #0F1624;
+    --foreground: #F1F5F9;
+    --surface: #1A2540;
+    --primary: #1E2D5A;
+    --accent: #F5A623;
+    --text-secondary: #6B7280;
+    --border: #2A3A5C;
+    --success: #16A34A;
+    --error: #DC2626;
+  }
+
+  * {
+    @apply border-border-light dark:border-border-dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+.font-georgian {
+  font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
+}
+
+[lang='ka'] {
+  font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
+  font-weight: 400;
+}
+
+html[lang='ka'] body {
+  font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
+}
+
+[lang='ka'] h1,
+[lang='ka'] h2,
+[lang='ka'] h3,
+[lang='ka'] h4,
+[lang='ka'] .font-display {
+  font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
