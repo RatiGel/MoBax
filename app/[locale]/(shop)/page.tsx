@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones } from 'lucide-react';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { BeforeAfterSlider } from '@/components/shop/BeforeAfterSlider';
+import { HeroProtectorAnimation } from '@/components/shop/HeroProtectorAnimation';
 import { getParentCategories, getFeaturedProducts } from '@/lib/mock-data';
 
 interface HomePageProps {
@@ -38,7 +39,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-28">
+        <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-8 py-28">
           <div className="max-w-xl">
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] text-left">
               {t('heroTitle')}
@@ -61,6 +62,10 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
                 {t('heroBrowse')}
               </Link>
             </div>
+          </div>
+
+          <div className="hidden lg:block">
+            <HeroProtectorAnimation />
           </div>
         </div>
       </section>

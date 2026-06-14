@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/shop/CartDrawer';
+import { SessionProvider } from '@/components/SessionProvider';
 
 const locales = ['en', 'ka'];
 
@@ -33,16 +34,18 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen bg-background-light text-[#111827] antialiased dark:bg-background-dark dark:text-[#F1F5F9] font-sans">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="flex min-h-screen flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <CartDrawer />
-          </ThemeProvider>
-        </NextIntlClientProvider>
+        <SessionProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <div className="flex min-h-screen flex-col">
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <CartDrawer />
+            </ThemeProvider>
+          </NextIntlClientProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -10,8 +10,8 @@
 | Phase | Scope | Status |
 |-------|-------|--------|
 | 1 | Frontend foundation | ✅ Done |
-| 2 | Database + API routes | ⬜ |
-| 3 | Authentication | ⬜ |
+| 2 | Database + API routes | ✅ Done (MongoDB + Mongoose) |
+| 3 | Authentication | ✅ Done (NextAuth v5 Credentials) |
 | 4 | File uploads + media | ⬜ |
 | 5 | Order management | ⬜ |
 | 6 | Payment integration | ⬜ |
