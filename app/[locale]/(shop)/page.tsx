@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones } from 'lucide-react';
@@ -17,6 +18,7 @@ export async function generateMetadata({ params: { locale } }: HomePageProps) {
 }
 
 export default function HomePage({ params: { locale } }: HomePageProps) {
+  setRequestLocale(locale);
   const t = useTranslations('home');
   const featured = getFeaturedProducts();
   const parentCategories = getParentCategories();

@@ -1,10 +1,17 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import { ThemeProvider } from 'next-themes';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/shop/CartDrawer';
+
+const locales = ['en', 'ka'];
+
+export function generateStaticParams() {
+  return locales.map((locale) => ({ locale }));
+}
 
 export const metadata: Metadata = {
   title: 'MoBax — Mobile Accessories',
@@ -17,12 +24,16 @@ interface LocaleLayoutProps {
 }
 
 export default async function LocaleLayout({ children, params: { locale } }: LocaleLayoutProps) {
+  if (!locales.includes(locale)) notFound();
+
+  setRequestLocale(locale);
+
   const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen bg-background-light text-[#111827] antialiased dark:bg-background-dark dark:text-[#F1F5F9] font-sans">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <div className="flex min-h-screen flex-col">
               <Navbar />

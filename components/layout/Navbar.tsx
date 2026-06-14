@@ -14,6 +14,7 @@ export function Navbar() {
   const locale = useLocale();
   const t = useTranslations('nav');
   const tCat = useTranslations('categories');
+  const tHome = useTranslations('home');
   const [announcementClosed, setAnnouncementClosed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
@@ -38,7 +39,7 @@ export function Navbar() {
               href={`/${locale}/products`}
               className="underline underline-offset-2 hover:text-accent transition-colors"
             >
-              {locale === 'ka' ? 'იყიდე' : 'Shop now'}
+              {tHome('heroShop')}
             </Link>
           </p>
           <button
