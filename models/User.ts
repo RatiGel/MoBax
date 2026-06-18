@@ -1,6 +1,12 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type UserRole = 'CUSTOMER' | 'ADMIN';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'STORE_MANAGER'
+  | 'CONTENT_EDITOR'
+  | 'CUSTOMER';
+
+export const ADMIN_ROLES: UserRole[] = ['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR'];
 
 export interface IUser extends Document {
   email: string;
@@ -8,6 +14,7 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   role: UserRole;
+  isBlocked: boolean;
   googleId?: string;
   image?: string;
   createdAt: Date;
@@ -20,7 +27,12 @@ const UserSchema = new Schema<IUser>(
     passwordHash: { type: String },
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
-    role: { type: String, enum: ['CUSTOMER', 'ADMIN'], default: 'CUSTOMER' },
+    role: {
+      type: String,
+      enum: ['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR', 'CUSTOMER'],
+      default: 'CUSTOMER',
+    },
+    isBlocked: { type: Boolean, default: false },
     googleId: { type: String, sparse: true, unique: true },
     image: { type: String },
   },

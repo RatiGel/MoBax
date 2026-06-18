@@ -6,8 +6,25 @@ const defaultLocale = 'en';
 
 const protectedPaths = ['/checkout', '/account'];
 
+const ADMIN_ROLES = ['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR'];
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+
+  // Admin panel: non-locale, internal. Guard before locale logic.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    // Public admin routes (setup via invite token) must stay reachable.
+    if (pathname.startsWith('/admin/setup')) return;
+
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    const role = token?.role as string | undefined;
+    if (!token || !role || !ADMIN_ROLES.includes(role)) {
+      const loginUrl = new URL('/en/login', req.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return;
+  }
 
   // Locale redirect
   const pathnameHasLocale = locales.some(

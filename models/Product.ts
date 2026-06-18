@@ -1,5 +1,11 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
+export interface IProductVariant {
+  color?: string;
+  modelCompat?: string;
+  size?: string;
+}
+
 export interface IProduct extends Document {
   slug: string;
   nameEn: string;
@@ -8,10 +14,15 @@ export interface IProduct extends Document {
   descriptionKa: string;
   price: number;
   originalPrice?: number;
+  salePrice?: number;
+  salePriceStart?: Date;
+  salePriceEnd?: Date;
   sku: string;
   stock: number;
   categorySlug: string;
   brand: string;
+  tags: string[];
+  variants: IProductVariant[];
   images: string[];
   isActive: boolean;
   isFeatured: boolean;
@@ -32,10 +43,24 @@ const ProductSchema = new Schema<IProduct>(
     descriptionKa: { type: String, default: '' },
     price: { type: Number, required: true },
     originalPrice: { type: Number },
+    salePrice: { type: Number },
+    salePriceStart: { type: Date },
+    salePriceEnd: { type: Date },
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
     categorySlug: { type: String, required: true },
     brand: { type: String, required: true },
+    tags: [{ type: String }],
+    variants: [
+      new Schema<IProductVariant>(
+        {
+          color: { type: String },
+          modelCompat: { type: String },
+          size: { type: String },
+        },
+        { _id: false }
+      ),
+    ],
     images: [{ type: String }],
     isActive: { type: Boolean, default: true },
     isFeatured: { type: Boolean, default: false },
@@ -51,6 +76,8 @@ ProductSchema.index({ categorySlug: 1 });
 ProductSchema.index({ brand: 1 });
 ProductSchema.index({ isFeatured: 1 });
 ProductSchema.index({ isActive: 1 });
+ProductSchema.index({ stock: 1 });
+ProductSchema.index({ tags: 1 });
 
 const Product: Model<IProduct> =
   (mongoose.models.Product as Model<IProduct>) ||

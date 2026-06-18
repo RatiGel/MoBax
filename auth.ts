@@ -20,6 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         await connectDB();
         const user = await User.findOne({ email: parsed.data.email });
         if (!user || !user.passwordHash) return null;
+        if (user.isBlocked) return null;
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!valid) return null;
@@ -40,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         await connectDB();
         const existing = await User.findOne({ email: user.email });
         if (existing) {
+          if (existing.isBlocked) return false;
           // Link Google ID if not already linked
           if (!existing.googleId) {
             existing.googleId = account.providerAccountId;
@@ -47,7 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             await existing.save();
           }
           user.id = existing._id.toString();
-          (user as { role?: string }).role = existing.role;
+          user.role = existing.role;
         } else {
           // Create new user from Google profile
           const nameParts = (user.name ?? '').split(' ');
@@ -62,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             role: 'CUSTOMER',
           });
           user.id = newUser._id.toString();
-          (user as { role?: string }).role = 'CUSTOMER';
+          user.role = 'CUSTOMER';
         }
       }
       return true;
@@ -70,14 +72,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as { role?: string }).role;
+        token.role = user.role;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string;
+        session.user.id = token.id ?? '';
+        session.user.role = token.role ?? 'CUSTOMER';
       }
       return session;
     },
