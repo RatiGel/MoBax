@@ -32,6 +32,21 @@ export function isAdminRole(role?: UserRole | null): boolean {
   return !!role && ADMIN_ROLES.includes(role);
 }
 
+/** Email always allowed to see the admin panel, regardless of role. */
+export const OWNER_EMAIL = 'ratige12@gmail.com';
+
+/**
+ * Whether the admin-panel entry point should be shown / accessible.
+ * Allowed for: the owner email, or anyone with the CONTENT_EDITOR role.
+ */
+export function canSeeAdminPanel(
+  email?: string | null,
+  role?: UserRole | null,
+): boolean {
+  if (email && email.toLowerCase() === OWNER_EMAIL) return true;
+  return role === 'CONTENT_EDITOR';
+}
+
 export function canAccessModule(role: UserRole | undefined | null, mod: AdminModule): boolean {
   if (!role) return false;
   return ROLE_MODULES[role]?.includes(mod) ?? false;

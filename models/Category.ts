@@ -8,7 +8,7 @@ export interface ICategory extends Document {
   descriptionKa: string;
   icon: string;
   image: string;
-  parentSlug?: string;
+  parentSlug?: string | null;
   isActive: boolean;
   productCount: number;
 }

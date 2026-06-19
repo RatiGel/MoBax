@@ -4,11 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { ShoppingCart, Search, X, Menu, ChevronDown, User } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { ShoppingCart, X, Menu, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { ThemeToggle } from './ThemeToggle';
+import { AccountMenu } from './AccountMenu';
+import { SearchBar } from '@/components/shop/SearchBar';
 import { useCartStore } from '@/lib/store';
 import { getParentCategories } from '@/lib/mock-data';
+import { canSeeAdminPanel } from '@/lib/rbac';
+import type { UserRole } from '@/models/User';
 
 export function Navbar() {
   const locale = useLocale();
@@ -20,6 +25,12 @@ export function Navbar() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { getItemCount, openCart } = useCartStore();
   const itemCount = getItemCount();
+  const { data: session } = useSession();
+  const isAuthed = !!session?.user;
+  const isAdmin = canSeeAdminPanel(
+    session?.user?.email,
+    session?.user?.role as UserRole | undefined,
+  );
   const parentCategories = getParentCategories();
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '?');
@@ -127,15 +138,13 @@ export function Navbar() {
               </div>
             </nav>
 
+            {/* Search (desktop) */}
+            <div className="hidden md:block w-full max-w-xs">
+              <SearchBar />
+            </div>
+
             {/* Right Actions */}
             <div className="flex items-center gap-1">
-              <button
-                className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-
               <LocaleSwitcher />
               <ThemeToggle />
 
@@ -153,13 +162,7 @@ export function Navbar() {
               </button>
 
               <div className="hidden md:flex items-center ml-1">
-                <Link
-                  href={`/${locale}/login`}
-                  className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-                  aria-label={t('login')}
-                >
-                  <User className="h-5 w-5" />
-                </Link>
+                <AccountMenu />
               </div>
 
               {/* Mobile hamburger */}
@@ -179,6 +182,11 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white dark:bg-surface-dark border-b border-neutral-200 dark:border-border-dark animate-fade-in">
           <div className="px-4 py-6 space-y-1">
+            <div className="mb-4">
+              <div className="rounded-full bg-primary dark:bg-surface-dark p-px">
+                <SearchBar onNavigate={() => setMobileOpen(false)} />
+              </div>
+            </div>
             <Link
               href={`/${locale}`}
               className="block py-3 text-sm font-medium text-neutral-800 dark:text-neutral-200 border-b border-neutral-100 dark:border-neutral-800"
@@ -208,21 +216,45 @@ export function Navbar() {
                 </Link>
               ))}
             </div>
-            <div className="flex gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-              <Link
-                href={`/${locale}/login`}
-                className="flex-1 py-2.5 text-center text-xs font-semibold uppercase tracking-widest border border-primary dark:border-accent text-primary dark:text-accent hover:bg-accent/10 dark:hover:bg-primary transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('login')}
-              </Link>
-              <Link
-                href={`/${locale}/register`}
-                className="flex-1 py-2.5 text-center text-xs font-semibold uppercase tracking-widest bg-primary dark:bg-accent text-white dark:text-primary hover:bg-primary-dark dark:hover:bg-accent-dark transition-colors"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('register')}
-              </Link>
+            <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 space-y-3">
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center justify-center gap-2 py-2.5 text-xs font-semibold uppercase tracking-widest bg-accent text-primary hover:bg-accent-dark transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  {locale === 'ka' ? 'ადმინ პანელი' : 'Admin panel'}
+                </Link>
+              )}
+              {isAuthed ? (
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    signOut({ callbackUrl: `/${locale}` });
+                  }}
+                  className="w-full py-2.5 text-center text-xs font-semibold uppercase tracking-widest border border-error text-error hover:bg-error/10 transition-colors"
+                >
+                  {locale === 'ka' ? 'გასვლა' : 'Sign out'}
+                </button>
+              ) : (
+                <div className="flex gap-3">
+                  <Link
+                    href={`/${locale}/login`}
+                    className="flex-1 py-2.5 text-center text-xs font-semibold uppercase tracking-widest border border-primary dark:border-accent text-primary dark:text-accent hover:bg-accent/10 dark:hover:bg-primary transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {t('login')}
+                  </Link>
+                  <Link
+                    href={`/${locale}/register`}
+                    className="flex-1 py-2.5 text-center text-xs font-semibold uppercase tracking-widest bg-primary dark:bg-accent text-white dark:text-primary hover:bg-primary-dark dark:hover:bg-accent-dark transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {t('register')}
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

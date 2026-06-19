@@ -12,13 +12,13 @@
 | 1 | Frontend foundation | ✅ Done |
 | 2 | Database + API routes | ✅ Done (MongoDB + Mongoose) |
 | 3 | Authentication | ✅ Done (NextAuth v5 Credentials) |
-| 4 | File uploads + media | ⬜ |
-| 5 | Order management | ⬜ |
-| 6 | Payment integration | ⬜ |
-| 7 | Admin panel | ⬜ |
-| 8 | Search + Reviews | ⬜ |
-| 9 | Email + Notifications | ⬜ |
-| 10 | Deployment + CI/CD | ⬜ |
+| 4 | File uploads + media | ✅ Cloudinary upload (needs API keys to go live) |
+| 5 | Order management | ✅ stock reserve, guest tracking, CSV export, bulk + per-order status |
+| 6 | Payment integration | 🟡 COD live; Stripe/TBC/BOG stubbed behind env + webhook scaffold |
+| 7 | Admin panel | ✅ all 10 modules (products, categories, brands, orders, customers, pricing, content, team, settings, reviews) |
+| 8 | Search + Reviews | ✅ regex search + navbar bar; reviews w/ moderation + verified purchase |
+| 9 | Email + Notifications | ✅ Resend + React Email (needs RESEND_API_KEY to send) |
+| 10 | Deployment + CI/CD | 🟡 GitHub Actions CI added; Vercel env/domain still manual |
 
 ---
 

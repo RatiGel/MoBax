@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import { RegisterSchema } from '@/lib/validations';
+import { sendEmail } from '@/lib/email/send';
+import Welcome from '@/lib/email/templates/Welcome';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +31,13 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await User.create({ firstName, lastName, email, passwordHash });
+
+    // Fire-and-forget welcome email. Never block or fail registration.
+    void sendEmail({
+      to: user.email,
+      subject: 'Welcome to MoBax',
+      react: Welcome({ firstName: user.firstName }),
+    });
 
     return NextResponse.json(
       {

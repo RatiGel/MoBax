@@ -177,5 +177,30 @@
     "back": "Back",
     "next": "Next",
     "currency": "GEL"
+  },
+  "search": {
+    "placeholder": "Search products...",
+    "seeAll": "See all results",
+    "noResults": "No products found",
+    "resultsFor": "Results for \"{query}\"",
+    "title": "Search",
+    "prompt": "Type to search for products"
+  },
+  "reviews": {
+    "title": "Customer Reviews",
+    "noReviews": "No reviews yet. Be the first to review this product.",
+    "writeReview": "Write a review",
+    "ratingLabel": "Your rating",
+    "reviewTitle": "Title",
+    "reviewTitlePlaceholder": "Sum up your experience",
+    "reviewBody": "Review",
+    "reviewBodyPlaceholder": "What did you like or dislike?",
+    "submit": "Submit review",
+    "submitting": "Submitting...",
+    "loginPrompt": "Please sign in to write a review.",
+    "signIn": "Sign in",
+    "pendingNotice": "Thanks! Your review was submitted and will appear after approval.",
+    "verified": "Verified purchase",
+    "basedOn": "Based on {count} reviews"
   }
 }

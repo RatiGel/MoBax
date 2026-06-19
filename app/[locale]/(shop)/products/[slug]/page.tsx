@@ -9,6 +9,7 @@ import { ShoppingCart, Minus, Plus, CheckCircle, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { StarRating } from '@/components/shop/StarRating';
 import { ProductCard } from '@/components/shop/ProductCard';
+import { ReviewSection } from '@/components/shop/ReviewSection';
 import { getProductBySlug, getRelatedProducts } from '@/lib/mock-data';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
@@ -216,6 +217,9 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews */}
+      <ReviewSection productSlug={product.slug} />
 
       {/* Related Products */}
       {related.length > 0 && (

@@ -10,6 +10,7 @@ import {
   FileText,
   Settings,
   UserCog,
+  Star,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,7 +24,9 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, module: 'analytics' },
   { label: 'Products', href: '/admin/products', icon: Package, module: 'products' },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'products' },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree, module: 'categories' },
+  { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'categories' },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders' },
   { label: 'Customers', href: '/admin/customers', icon: Users, module: 'customers' },
   { label: 'Pricing & Promotions', href: '/admin/pricing', icon: Tag, module: 'pricing' },

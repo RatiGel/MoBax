@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build-time placeholders so Next can compile without real secrets.
+          # Real values live in Vercel project env (preview + production).
+          MONGODB_URI: mongodb://localhost:27017/mobax-ci
+          NEXTAUTH_SECRET: ci-placeholder-secret-not-used-at-runtime
+          NEXTAUTH_URL: http://localhost:3000
