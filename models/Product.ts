@@ -6,7 +6,7 @@ export interface IProductVariant {
   size?: string;
 }
 
-export interface IProduct extends Document {
+export interface IProduct extends Document<string> {
   slug: string;
   nameEn: string;
   nameKa: string;
