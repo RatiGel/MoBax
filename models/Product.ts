@@ -36,6 +36,9 @@ export interface IProduct extends Document {
 
 const ProductSchema = new Schema<IProduct>(
   {
+    // String _id so seeded products keep their stable catalog id (e.g. "p1").
+    // The storefront/cart reference products by this id; orders store it verbatim.
+    _id: { type: String },
     slug: { type: String, required: true, unique: true },
     nameEn: { type: String, required: true },
     nameKa: { type: String, required: true },

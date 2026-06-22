@@ -19,7 +19,7 @@ export const OrderAddressSchema = z.object({
   phone: z.string().min(1),
   address: z.string().min(1),
   city: z.string().min(1),
-  zipCode: z.string().min(1),
+  zipCode: z.string().default(''),
   country: z.string().min(1),
 });
 
@@ -32,7 +32,7 @@ export const CreateOrderSchema = z.object({
   ).min(1),
   address: OrderAddressSchema,
   guestEmail: z.string().email().optional(),
-  paymentMethod: z.enum(['COD', 'STRIPE', 'TBC', 'BOG']).default('COD'),
+  paymentMethod: z.enum(['FLITT']).default('FLITT'),
 });
 
 const ProductVariantSchema = z.object({

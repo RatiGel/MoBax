@@ -71,6 +71,7 @@ async function seed() {
     // ~1 in 5 low or zero stock, rest healthy
     const stock = !p.inStock ? 0 : i % 5 === 0 ? Math.floor(Math.random() * 6) : 20 + ((i * 7) % 80);
     return {
+      _id: p.id,
       slug: p.slug,
       nameEn: p.nameEn,
       nameKa: p.nameKa,

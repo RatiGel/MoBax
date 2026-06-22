@@ -21,21 +21,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { role, name, email } = session.user;
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background-light text-[#111827] antialiased dark:bg-background-dark dark:text-[#F1F5F9] font-sans">
-        <SessionProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="flex h-screen overflow-hidden">
-              <Sidebar role={role} />
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <Header role={role} name={name ?? 'Admin'} email={email ?? ''} />
-                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
-              </div>
-            </div>
-            <Toaster />
-          </ThemeProvider>
-        </SessionProvider>
-      </body>
-    </html>
+    <SessionProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar role={role} />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Header role={role} name={name ?? 'Admin'} email={email ?? ''} />
+            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
+          </div>
+        </div>
+        <Toaster />
+      </ThemeProvider>
+    </SessionProvider>
   );
 }

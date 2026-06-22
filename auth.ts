@@ -6,7 +6,10 @@ import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import { LoginSchema } from '@/lib/validations';
 
+const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: authSecret,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,

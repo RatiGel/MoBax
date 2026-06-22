@@ -124,9 +124,9 @@ export async function POST(req: NextRequest) {
       throw createErr;
     }
 
-    // Initiate payment for gateway methods. COD is immediate (pay on delivery).
-    let payment: Awaited<ReturnType<typeof initiatePayment>> = { immediate: true };
-    if (paymentMethod !== 'COD') {
+    // Initiate Flitt hosted checkout. Returns a redirect URL for the buyer.
+    let payment: Awaited<ReturnType<typeof initiatePayment>> = {};
+    {
       const origin = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
       try {
         payment = await initiatePayment({

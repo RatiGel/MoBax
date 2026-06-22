@@ -17,7 +17,8 @@ export default function CheckoutPage() {
   const total = getTotal();
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [ordered, setOrdered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
     address: '', city: '', zipCode: '', country: 'Georgia',
@@ -41,22 +42,54 @@ export default function CheckoutPage() {
     return Object.keys(errs).length === 0;
   }
 
-  function handlePlaceOrder() {
-    clearCart();
-    setOrdered(true);
-  }
+  async function handlePlaceOrder() {
+    if (submitting) return;
+    setSubmitting(true);
+    setPayError(null);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+          address: {
+            firstName: form.firstName,
+            lastName: form.lastName,
+            email: form.email,
+            phone: form.phone,
+            address: form.address,
+            city: form.city,
+            zipCode: form.zipCode,
+            country: form.country,
+          },
+          guestEmail: form.email,
+          paymentMethod: 'FLITT',
+        }),
+      });
+      const data = await res.json();
 
-  if (ordered) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <div className="text-6xl mb-6">🎉</div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white mb-3">Order Placed!</h1>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-8">{t('paymentNote')}</p>
-        <Button asChild>
-          <Link href={`/${locale}`}>Back to Home</Link>
-        </Button>
-      </div>
-    );
+      if (!res.ok) {
+        setPayError(data?.error || 'Could not place order. Please try again.');
+        return;
+      }
+      // Gateway couldn't start — order exists but stays PENDING.
+      if (data?.paymentError) {
+        setPayError(data.paymentError);
+        return;
+      }
+      // Redirect the buyer to Flitt hosted checkout.
+      if (data?.payment?.redirectUrl) {
+        clearCart();
+        window.location.href = data.payment.redirectUrl as string;
+        return;
+      }
+      // No redirect URL returned — unexpected for Flitt.
+      setPayError('Payment could not be started. Please try again.');
+    } catch {
+      setPayError('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (items.length === 0) {
@@ -130,13 +163,28 @@ export default function CheckoutPage() {
                 <p className="font-medium text-accent-dark dark:text-accent-light">{t('paymentPlaceholder')}</p>
                 <p className="text-sm text-accent-dark dark:text-accent">{t('paymentNote')}</p>
               </div>
+              {payError && (
+                <p className="mt-4 rounded-lg border border-error/40 bg-error/10 p-3 text-sm text-error">
+                  {payError}
+                </p>
+              )}
               <div className="flex gap-3 mt-6">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="flex-1"
+                  disabled={submitting}
+                >
                   {t('backStep')}
                 </Button>
-                <Button className="flex-1" size="lg" onClick={handlePlaceOrder}>
+                <Button
+                  className="flex-1"
+                  size="lg"
+                  onClick={handlePlaceOrder}
+                  disabled={submitting}
+                >
                   <Lock className="mr-2 h-4 w-4" />
-                  {t('placeOrder')}
+                  {submitting ? '…' : t('placeOrder')}
                 </Button>
               </div>
             </div>

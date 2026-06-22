@@ -32,21 +32,17 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className="min-h-screen bg-background-light text-[#111827] antialiased dark:bg-background-dark dark:text-[#F1F5F9] font-sans">
-        <SessionProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <div className="flex min-h-screen flex-col">
-                <Navbar />
-                <main className="flex-1">{children}</main>
-                <Footer />
-              </div>
-              <CartDrawer />
-            </ThemeProvider>
-          </NextIntlClientProvider>
-        </SessionProvider>
-      </body>
-    </html>
+    <SessionProvider>
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+          <CartDrawer />
+        </ThemeProvider>
+      </NextIntlClientProvider>
+    </SessionProvider>
   );
 }
