@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/shop/CartDrawer';
+import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
 
 const locales = ['en', 'ka'];
@@ -41,6 +42,7 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
             <Footer />
           </div>
           <CartDrawer />
+          <ChatAssistant />
         </ThemeProvider>
       </NextIntlClientProvider>
     </SessionProvider>

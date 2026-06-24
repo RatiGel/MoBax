@@ -16,6 +16,8 @@
     "heroBrowse": "კატეგორიები",
     "categoriesTitle": "კატეგორიით ძიება",
     "featuredTitle": "გამორჩეული პროდუქტები",
+    "popularTitle": "პოპულარული",
+    "newArrivalsTitle": "ახალი ჩამოსული",
     "featuredSubtitle": "შერჩეული ბესტსელერები",
     "trustTitle": "რატომ MoBax?",
     "trust1Title": "სწრაფი მიწოდება",
@@ -107,6 +109,7 @@
     "backStep": "უკან",
     "placeOrder": "შეკვეთის განთავსება",
     "orderSummary": "შეკვეთის შეჯამება",
+    "total": "სულ",
     "paymentPlaceholder": "გადახდის ინტეგრაცია მალე",
     "paymentNote": "შეკვეთა დადასტურდება და ჩვენ დაგიკავშირდებით გადახდის დეტალებისთვის"
   },
@@ -131,6 +134,7 @@
   },
   "categories": {
     "all": "ყველა კატეგორია",
+    "most-popular": "პოპულარული",
     "phone-protection": "ტელეფონის დაცვა",
     "screen-shields": "ეკრანის დამცავები",
     "protection-films": "დამცავი ფილმები",

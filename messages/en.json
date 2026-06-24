@@ -16,6 +16,8 @@
     "heroBrowse": "Browse Categories",
     "categoriesTitle": "Shop by Category",
     "featuredTitle": "Featured Products",
+    "popularTitle": "Most Popular",
+    "newArrivalsTitle": "New Arrivals",
     "featuredSubtitle": "Handpicked top-selling accessories",
     "trustTitle": "Why Choose MoBax?",
     "trust1Title": "Fast Delivery",
@@ -107,6 +109,7 @@
     "backStep": "Back",
     "placeOrder": "Place Order",
     "orderSummary": "Order Summary",
+    "total": "Total",
     "paymentPlaceholder": "Payment integration coming soon",
     "paymentNote": "Your order will be confirmed and we'll contact you for payment details"
   },
@@ -131,6 +134,7 @@
   },
   "categories": {
     "all": "All Categories",
+    "most-popular": "Most Popular",
     "phone-protection": "Phone Protection",
     "screen-shields": "Screen Shields",
     "protection-films": "Protection Films",

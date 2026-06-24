@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const locales = ['en', 'ka'];
-const defaultLocale = 'en';
+const defaultLocale = 'ka';
 
 const protectedPaths = ['/checkout', '/account'];
 

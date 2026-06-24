@@ -1,5 +1,6 @@
 export type CategorySlug =
   // ── parents ──
+  | 'most-popular'
   | 'phone-protection'
   | 'chargers'
   | 'headphones-speakers'
@@ -67,6 +68,13 @@ export interface Product {
 export const categories: Category[] = [
   // ── Parent categories ──────────────────────────────────────
   {
+    id: 'p0', slug: 'most-popular',
+    nameEn: 'Most Popular', nameKa: 'პოპულარული',
+    icon: '🔥',
+    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop',
+    productCount: 8,
+  },
+  {
     id: 'p1', slug: 'phone-protection',
     nameEn: 'Phone Protection', nameKa: 'ტელეფონის დაცვა',
     icon: '🛡️',
@@ -77,7 +85,7 @@ export const categories: Category[] = [
     id: 'p2', slug: 'chargers',
     nameEn: 'Chargers', nameKa: 'დამტენები',
     icon: '⚡',
-    image: 'https://images.unsplash.com/photo-1609592861685-f600d88c9b4f?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=300&fit=crop',
     productCount: 54,
   },
   {
@@ -274,7 +282,7 @@ export const products: Product[] = [
     category: 'adapters',
     brand: 'Samsung',
     images: [
-      'https://images.unsplash.com/photo-1609592861685-f600d88c9b4f?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop',
     ],
     inStock: true,
     isFeatured: true,
@@ -353,7 +361,7 @@ export const products: Product[] = [
     category: 'screen-shields',
     brand: 'MoBax',
     images: [
-      'https://images.unsplash.com/photo-1560393462-dc9ad7e5e86d?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=600&fit=crop',
     ],
     inStock: true,
     rating: 4.7,
@@ -431,7 +439,7 @@ export const products: Product[] = [
     category: 'charger-complect',
     brand: 'Baseus',
     images: [
-      'https://images.unsplash.com/photo-1609592861685-f600d88c9b4f?w=600&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=600&h=600&fit=crop',
     ],
     inStock: false,
     rating: 4.7,
@@ -550,7 +558,279 @@ export const products: Product[] = [
       'Hands-free': 'Yes',
     },
   },
+
+  // ── Brand seed products ────────────────────────────────────
+  // Apple
+  {
+    id: '13',
+    slug: 'apple-airpods-pro-2',
+    nameEn: 'Apple AirPods Pro (2nd gen)',
+    nameKa: 'Apple AirPods Pro (მე-2 თაობა)',
+    descriptionEn: 'Active noise cancellation, adaptive transparency and USB-C charging case. Original Apple.',
+    descriptionKa: 'აქტიური ხმაურის ჩახშობა, ადაპტური გამჭვირვალობა და USB-C ქეისი. ორიგინალი Apple.',
+    price: 249.99,
+    category: 'wireless-headphones',
+    brand: 'Apple',
+    images: ['https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&h=600&fit=crop'],
+    inStock: true,
+    isNew: true,
+    isFeatured: true,
+    rating: 4.9,
+    reviewCount: 421,
+    sku: 'APL-APP2-USBC',
+    specs: { Chip: 'H2', 'Noise Cancellation': 'Active', Case: 'USB-C MagSafe', Compatibility: 'iPhone, iPad' },
+  },
+  // Google
+  {
+    id: '14',
+    slug: 'pixel-8-pro-clear-case',
+    nameEn: 'Pixel 8 Pro Clear Case',
+    nameKa: 'Pixel 8 Pro გამჭვირვალე ქეისი',
+    descriptionEn: 'Slim shock-absorbing clear case engineered for the Google Pixel 8 Pro.',
+    descriptionKa: 'თხელი დარტყმაგამძლე გამჭვირვალე ქეისი Google Pixel 8 Pro-სთვის.',
+    price: 27.99,
+    category: 'phone-cases',
+    brand: 'MoBax',
+    images: ['https://images.unsplash.com/photo-1592890288564-76628a30a657?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.5,
+    reviewCount: 58,
+    sku: 'MB-PX8P-CLR',
+    specs: { Material: 'TPU', Compatibility: 'Google Pixel 8 Pro', Thickness: '1.1mm' },
+  },
+  {
+    id: '15',
+    slug: 'google-pixel-buds-pro',
+    nameEn: 'Google Pixel Buds Pro',
+    nameKa: 'Google Pixel Buds Pro',
+    descriptionEn: 'Original Google wireless earbuds with active noise cancellation and Silent Seal.',
+    descriptionKa: 'ორიგინალი Google უსადენო ყურსასმენები ხმაურის ჩახშობით.',
+    price: 199.99,
+    category: 'wireless-headphones',
+    brand: 'Google',
+    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop'],
+    inStock: true,
+    isFeatured: true,
+    rating: 4.6,
+    reviewCount: 143,
+    sku: 'GGL-PXB-PRO',
+    specs: { Bluetooth: '5.3', 'Noise Cancellation': 'Active', Compatibility: 'Pixel, Android' },
+  },
+  // Xiaomi
+  {
+    id: '16',
+    slug: 'xiaomi-67w-charger',
+    nameEn: 'Xiaomi 67W Turbo Charger',
+    nameKa: 'Xiaomi 67W Turbo დამტენი',
+    descriptionEn: 'Original Xiaomi 67W charger with HyperCharge support for Redmi and POCO devices.',
+    descriptionKa: 'ორიგინალი Xiaomi 67W დამტენი HyperCharge მხარდაჭერით Redmi და POCO-სთვის.',
+    price: 34.99,
+    category: 'adapters',
+    brand: 'Xiaomi',
+    images: ['https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&h=600&fit=crop'],
+    inStock: true,
+    isNew: true,
+    rating: 4.4,
+    reviewCount: 76,
+    sku: 'XMI-67W-TRB',
+    specs: { Power: '67W', Technology: 'HyperCharge', Compatibility: 'Xiaomi, Redmi, POCO' },
+  },
+  {
+    id: '17',
+    slug: 'redmi-note-13-tempered-glass',
+    nameEn: 'Redmi Note 13 Tempered Glass',
+    nameKa: 'Redmi Note 13 დამცავი მინა',
+    descriptionEn: '9H tempered glass screen protector cut precisely for the Xiaomi Redmi Note 13.',
+    descriptionKa: '9H დამცავი მინა ზუსტად მორგებული Xiaomi Redmi Note 13-ზე.',
+    price: 9.99,
+    category: 'screen-shields',
+    brand: 'MoBax',
+    images: ['https://images.unsplash.com/photo-1578319439584-104c94d37305?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.3,
+    reviewCount: 92,
+    sku: 'MB-RN13-GLS',
+    specs: { Hardness: '9H', Compatibility: 'Xiaomi Redmi Note 13' },
+  },
+  // Hoco
+  {
+    id: '18',
+    slug: 'hoco-x88-usb-c-cable',
+    nameEn: 'Hoco X88 USB-C Cable 1m',
+    nameKa: 'Hoco X88 USB-C კაბელი 1მ',
+    descriptionEn: 'Hoco braided 60W USB-C cable with fast-charge support and reinforced connectors.',
+    descriptionKa: 'Hoco გაწნული 60W USB-C კაბელი სწრაფი დატენვით.',
+    price: 7.99,
+    category: 'cables',
+    brand: 'Hoco',
+    images: ['https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop'],
+    inStock: true,
+    isFeatured: true,
+    rating: 4.2,
+    reviewCount: 187,
+    sku: 'HOC-X88-1M',
+    specs: { Length: '1m', 'Power Delivery': '60W', Compatibility: 'Universal USB-C' },
+  },
+  {
+    id: '19',
+    slug: 'hoco-bx-power-bank-10000',
+    nameEn: 'Hoco 10000mAh Power Bank',
+    nameKa: 'Hoco 10000mAh დამტენი ბატარეა',
+    descriptionEn: 'Compact Hoco 10000mAh power bank with dual output and 22.5W fast charging.',
+    descriptionKa: 'კომპაქტური Hoco 10000mAh დამტენი ორმაგი გამოსასვლელით.',
+    price: 24.99,
+    category: 'adapters',
+    brand: 'Hoco',
+    images: ['https://images.unsplash.com/photo-1631176093617-63490a3d785a?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.4,
+    reviewCount: 64,
+    sku: 'HOC-PB-10K',
+    specs: { Capacity: '10000mAh', Output: '22.5W', Ports: 'USB-A + USB-C' },
+  },
+  // Borofone
+  {
+    id: '20',
+    slug: 'borofone-bd1-earphones',
+    nameEn: 'Borofone BD1 Wired Earphones',
+    nameKa: 'Borofone BD1 სადენიანი ყურსასმენები',
+    descriptionEn: 'Borofone in-ear wired earphones with mic and 3.5mm jack. Clear, balanced sound.',
+    descriptionKa: 'Borofone სადენიანი ყურსასმენები მიკროფონით და 3.5მმ ჯეკით.',
+    price: 5.99,
+    category: 'wired-headphones',
+    brand: 'Borofone',
+    images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.0,
+    reviewCount: 211,
+    sku: 'BOR-BD1-WRD',
+    specs: { Connector: '3.5mm', Mic: 'Yes', Compatibility: 'Universal 3.5mm' },
+  },
+  {
+    id: '21',
+    slug: 'borofone-bn1-car-charger',
+    nameEn: 'Borofone BN1 Car Charger',
+    nameKa: 'Borofone BN1 ავტო დამტენი',
+    descriptionEn: 'Dual-USB Borofone car charger with smart current distribution and LED indicator.',
+    descriptionKa: 'ორმაგი USB Borofone ავტო დამტენი LED ინდიკატორით.',
+    price: 8.99,
+    category: 'car-chargers',
+    brand: 'Borofone',
+    images: ['https://images.unsplash.com/photo-1617886322207-6f504e7472c5?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.1,
+    reviewCount: 53,
+    sku: 'BOR-BN1-CAR',
+    specs: { Output: '2.4A', Ports: '2x USB-A', Compatibility: 'Universal 12V' },
+  },
+  // Marshall
+  {
+    id: '22',
+    slug: 'marshall-emberton-ii',
+    nameEn: 'Marshall Emberton II Speaker',
+    nameKa: 'Marshall Emberton II დინამიკი',
+    descriptionEn: 'Portable Marshall Bluetooth speaker with 30+ hours playtime and IP67 water resistance.',
+    descriptionKa: 'პორტატული Marshall Bluetooth დინამიკი 30+ საათი მუშაობით.',
+    price: 169.99,
+    category: 'bluetooth-speakers',
+    brand: 'Marshall',
+    images: ['https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&fit=crop'],
+    inStock: true,
+    isFeatured: true,
+    rating: 4.8,
+    reviewCount: 167,
+    sku: 'MSH-EMB-II',
+    specs: { Bluetooth: '5.1', Battery: '30h', 'Water Resistance': 'IP67' },
+  },
+  {
+    id: '23',
+    slug: 'marshall-major-iv',
+    nameEn: 'Marshall Major IV Headphones',
+    nameKa: 'Marshall Major IV ყურსასმენები',
+    descriptionEn: 'Iconic Marshall on-ear headphones with 80+ hours wireless playtime and wireless charging.',
+    descriptionKa: 'Marshall on-ear ყურსასმენები 80+ საათი უსადენო მუშაობით.',
+    price: 149.99,
+    category: 'wireless-headphones',
+    brand: 'Marshall',
+    images: ['https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop'],
+    inStock: true,
+    rating: 4.7,
+    reviewCount: 98,
+    sku: 'MSH-MAJ-IV',
+    specs: { Bluetooth: '5.0', Battery: '80h', 'Charging': 'Wireless' },
+  },
+  // JBL (extra besides existing)
+  {
+    id: '24',
+    slug: 'jbl-tune-510bt',
+    nameEn: 'JBL Tune 510BT Headphones',
+    nameKa: 'JBL Tune 510BT ყურსასმენები',
+    descriptionEn: 'JBL Pure Bass wireless on-ear headphones with 40 hours battery and fast charging.',
+    descriptionKa: 'JBL Pure Bass უსადენო ყურსასმენები 40 საათი ბატარეით.',
+    price: 49.99,
+    category: 'wireless-headphones',
+    brand: 'JBL',
+    images: ['https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=600&fit=crop'],
+    inStock: true,
+    isFeatured: true,
+    rating: 4.5,
+    reviewCount: 276,
+    sku: 'JBL-T510-BT',
+    specs: { Bluetooth: '5.0', Battery: '40h', Sound: 'Pure Bass' },
+  },
 ];
+
+// ── Brands ───────────────────────────────────────────────────
+// `device` brands are phone makers — selecting one returns products made by
+// the brand AND third-party accessories compatible with its devices.
+// `maker` brands are accessory manufacturers — match on the product's brand only.
+export interface Brand {
+  slug: string;
+  name: string;
+  type: 'device' | 'maker';
+  // extra terms (besides `name`) to look for in specs.Compatibility for device brands
+  compatTerms?: string[];
+}
+
+export const brands: Brand[] = [
+  { slug: 'apple', name: 'Apple', type: 'device', compatTerms: ['iPhone', 'iPad', 'AirPods', 'MagSafe', 'Apple'] },
+  { slug: 'samsung', name: 'Samsung', type: 'device', compatTerms: ['Galaxy', 'Samsung'] },
+  { slug: 'google', name: 'Google', type: 'device', compatTerms: ['Pixel', 'Google'] },
+  { slug: 'xiaomi', name: 'Xiaomi', type: 'device', compatTerms: ['Xiaomi', 'Redmi', 'POCO', 'Mi '] },
+  { slug: 'hoco', name: 'Hoco', type: 'maker' },
+  { slug: 'borofone', name: 'Borofone', type: 'maker' },
+  { slug: 'marshall', name: 'Marshall', type: 'maker' },
+  { slug: 'jbl', name: 'JBL', type: 'maker' },
+];
+
+export function getBrandBySlug(slug: string): Brand | undefined {
+  return brands.find((b) => b.slug === slug);
+}
+
+/**
+ * Products associated with a brand.
+ * - maker brand → products manufactured by that brand
+ * - device brand → products made by the brand OR compatible with its devices
+ */
+export function getProductsByBrand(slug: string): Product[] {
+  const brand = getBrandBySlug(slug);
+  if (!brand) return [];
+
+  const nameMatch = (p: Product) =>
+    p.brand.toLowerCase() === brand.name.toLowerCase();
+
+  if (brand.type === 'maker') {
+    return products.filter(nameMatch);
+  }
+
+  // device brand: maker OR compatibility match (case-insensitive substring)
+  const terms = [brand.name, ...(brand.compatTerms ?? [])].map((t) => t.toLowerCase());
+  return products.filter((p) => {
+    if (nameMatch(p)) return true;
+    const compat = (p.specs?.Compatibility ?? '').toLowerCase();
+    return terms.some((t) => compat.includes(t));
+  });
+}
 
 export function getProductsByCategory(slug: CategorySlug): Product[] {
   const sub = getSubcategories(slug);
@@ -563,6 +843,73 @@ export function getProductsByCategory(slug: CategorySlug): Product[] {
 
 export function getFeaturedProducts(): Product[] {
   return products.filter((p) => p.isFeatured);
+}
+
+// Free-text product search for the AI assistant. Scores each product by how many
+// of the supplied keyword tokens it matches across name/description/specs/brand,
+// optionally constrained to a category. Returns best matches, highest score first.
+export interface ProductSearchQuery {
+  keywords?: string[];
+  category?: CategorySlug;
+  maxPrice?: number;
+  minPrice?: number;
+}
+
+export function searchProducts(query: ProductSearchQuery, limit = 6): Product[] {
+  const tokens = (query.keywords ?? [])
+    .flatMap((k) => k.toLowerCase().split(/\s+/))
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1);
+
+  let pool = [...products];
+
+  if (query.category) {
+    const subs = getSubcategories(query.category);
+    if (subs.length > 0) {
+      const subSlugs = subs.map((s) => s.slug);
+      pool = pool.filter((p) => subSlugs.includes(p.category));
+    } else {
+      pool = pool.filter((p) => p.category === query.category);
+    }
+  }
+  if (typeof query.maxPrice === 'number') pool = pool.filter((p) => p.price <= query.maxPrice!);
+  if (typeof query.minPrice === 'number') pool = pool.filter((p) => p.price >= query.minPrice!);
+
+  if (tokens.length === 0) {
+    // No keywords — fall back to popularity within the (possibly category-filtered) pool.
+    return pool.sort((a, b) => b.reviewCount * b.rating - a.reviewCount * a.rating).slice(0, limit);
+  }
+
+  const haystack = (p: Product) =>
+    [
+      p.nameEn, p.nameKa, p.descriptionEn, p.descriptionKa, p.brand,
+      ...Object.values(p.specs),
+    ]
+      .join(' ')
+      .toLowerCase();
+
+  const scored = pool
+    .map((p) => {
+      const text = haystack(p);
+      const score = tokens.reduce((s, t) => (text.includes(t) ? s + 1 : s), 0);
+      return { p, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || b.p.reviewCount - a.p.reviewCount);
+
+  return scored.slice(0, limit).map((x) => x.p);
+}
+
+// Popularity score: review volume weighted by rating. Highest = most popular.
+export function getPopularProducts(limit = 8): Product[] {
+  return [...products]
+    .sort((a, b) => b.reviewCount * b.rating - a.reviewCount * a.rating)
+    .slice(0, limit);
+}
+
+// Newest = last entries in the product array (append-order = arrival-order).
+export function getNewArrivals(limit = 8): Product[] {
+  return [...products].slice(-limit).reverse();
 }
 
 export function getProductBySlug(slug: string): Product | undefined {
