@@ -8,6 +8,7 @@ import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
+import { HtmlLang } from '@/components/HtmlLang';
 
 const locales = ['en', 'ka'];
 
@@ -34,6 +35,7 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
 
   return (
     <SessionProvider>
+      <HtmlLang locale={locale} />
       <NextIntlClientProvider locale={locale} messages={messages}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="flex min-h-screen flex-col">

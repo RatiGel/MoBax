@@ -6,3 +6,7 @@ node_modules
 !.env.example
 .vercel
 *.tsbuildinfo
+
+# Local tooling (Claude Code / impeccable)
+.claude/
+.impeccable/

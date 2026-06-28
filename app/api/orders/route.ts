@@ -6,6 +6,7 @@ import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { CreateOrderSchema } from '@/lib/validations';
 import { auth } from '@/auth';
 import { initiatePayment } from '@/lib/payments';
+import { getShippingCost } from '@/lib/shipping';
 import { sendEmail } from '@/lib/email/send';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import AdminNewOrder from '@/lib/email/templates/AdminNewOrder';
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
       (sum, item) => sum + item.priceSnapshot * item.quantity,
       0
     );
-    const shippingCost = subtotal >= 50 ? 0 : 5;
+    const shippingCost = getShippingCost(subtotal);
     const total = subtotal + shippingCost;
 
     // Reserve stock with guarded atomic decrements (stock >= qty), so two

@@ -74,6 +74,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   }
+
+  // Expose the current pathname so the root layout can set <html lang>
+  // server-side (no client flash of the wrong locale's font).
+  const res = NextResponse.next();
+  res.headers.set('x-pathname', pathname);
+  return res;
 }
 
 export const config = {

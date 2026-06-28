@@ -32,35 +32,35 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/${locale}/products/${product.slug}`} className="group block">
-      <div className="bg-white dark:bg-surface-dark">
-        {/* Image container */}
-        <div className="relative overflow-hidden bg-neutral-100 dark:bg-neutral-900 aspect-square">
+      <div>
+        {/* Image container — product floats on cloud */}
+        <div className="relative overflow-hidden rounded-2xl bg-cloud-light dark:bg-cloud-dark aspect-square transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-ink/5">
           <Image
             src={product.images[0]}
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
 
           {/* Badges */}
           <div className="absolute left-3 top-3 flex flex-col gap-1.5">
             {product.isNew && (
-              <span className="bg-accent text-primary text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-1">
+              <span className="bg-ink/90 text-white text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-full backdrop-blur">
                 {t('new')}
               </span>
             )}
             {hasDiscount && (
-              <span className="bg-accent text-primary text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-1">
-                -{discountPct}%
+              <span className="bg-cobalt text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+                −{discountPct}%
               </span>
             )}
           </div>
 
           {/* Out of stock overlay */}
           {!product.inStock && (
-            <div className="absolute inset-0 flex items-end bg-white/30 dark:bg-black/40">
-              <div className="w-full bg-neutral-950/80 py-2.5 text-center">
+            <div className="absolute inset-0 flex items-end bg-paper/40 dark:bg-ink/50 backdrop-blur-[1px]">
+              <div className="w-full bg-ink/85 py-2.5 text-center">
                 <span className="text-white text-[10px] font-semibold uppercase tracking-[0.2em]">
                   {t('outOfStock')}
                 </span>
@@ -73,7 +73,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={handleAddToCart}
               aria-label={t('addToCart')}
-              className="absolute bottom-0 left-0 right-0 bg-primary dark:bg-accent text-white dark:text-primary text-[10px] font-bold uppercase tracking-[0.2em] py-3 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
+              className="absolute bottom-3 left-3 right-3 bg-ink/90 dark:bg-white/90 text-white dark:text-ink text-xs font-semibold py-2.5 rounded-full opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur hover:bg-cobalt dark:hover:bg-cobalt hover:text-white motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
               {t('addToCart')}
@@ -82,26 +82,26 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Card body */}
-        <div className="pt-4 pb-5 px-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-neutral-400 mb-1.5">
+        <div className="pt-3.5 pb-5 px-0.5">
+          <p className="text-[11px] font-medium tracking-wide text-graphite mb-1">
             {product.brand}
           </p>
-          <h3 className="text-sm font-medium text-primary dark:text-neutral-100 line-clamp-2 leading-5 mb-2.5">
+          <h3 className="text-sm font-medium text-ink dark:text-neutral-100 line-clamp-2 leading-snug mb-2">
             {name}
           </h3>
 
-          <div className="flex items-center gap-1 mb-3">
-            <Star className="h-3 w-3 fill-accent text-accent flex-shrink-0" />
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">{product.rating}</span>
-            <span className="text-xs text-neutral-400">({product.reviewCount})</span>
+          <div className="flex items-center gap-1 mb-2.5">
+            <Star className="h-3 w-3 fill-ink text-ink dark:fill-white dark:text-white flex-shrink-0" />
+            <span className="text-xs font-medium text-graphite">{product.rating}</span>
+            <span className="text-xs text-graphite/70">({product.reviewCount})</span>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold text-accent">
+            <span className="text-base font-semibold text-ink dark:text-white tabular-nums">
               {formatPrice(product.price)}
             </span>
             {hasDiscount && (
-              <span className="text-sm text-neutral-400 line-through">
+              <span className="text-sm text-graphite/70 line-through tabular-nums">
                 {formatPrice(product.originalPrice!)}
               </span>
             )}

@@ -89,8 +89,8 @@ function OrderTrackingInner() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-display text-2xl font-semibold mb-1">Track your order</h1>
-      <p className="text-sm text-neutral-500 mb-8">Order #{id.slice(-8).toUpperCase()}</p>
+      <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-1">Track your order</h1>
+      <p className="text-sm text-graphite mb-8">Order #{id.slice(-8).toUpperCase()}</p>
 
       {!order && (
         <form
@@ -105,16 +105,16 @@ function OrderTrackingInner() {
             placeholder="Email used on the order"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="sm:max-w-xs"
+            className="sm:max-w-xs rounded-xl"
           />
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" className="rounded-full font-semibold" disabled={loading}>
             {loading ? 'Looking up…' : 'Find order'}
           </Button>
         </form>
       )}
 
       {tried && error && (
-        <div className="rounded-lg border border-error/30 bg-error/5 p-4 text-sm text-error">
+        <div className="rounded-xl border border-error/30 bg-error/5 p-4 text-sm text-error">
           {error}. Check the email matches the one used at checkout.
         </div>
       )}
@@ -123,11 +123,11 @@ function OrderTrackingInner() {
         <div className="space-y-8">
           {/* Status timeline */}
           {cancelled ? (
-            <div className="flex items-center gap-3 rounded-lg border border-error/30 bg-error/5 p-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-error/30 bg-error/5 p-4">
               <XCircle className="h-6 w-6 text-error" />
               <div>
-                <p className="font-medium">Order {order.status.toLowerCase()}</p>
-                <p className="text-sm text-neutral-500">
+                <p className="font-medium text-ink dark:text-white">Order {order.status.toLowerCase()}</p>
+                <p className="text-sm text-graphite">
                   Payment: {order.paymentStatus.toLowerCase()}
                 </p>
               </div>
@@ -142,14 +142,14 @@ function OrderTrackingInner() {
                     <span
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${
                         done
-                          ? 'bg-primary text-white dark:bg-accent dark:text-primary'
-                          : 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800'
+                          ? 'bg-cobalt text-white'
+                          : 'bg-cloud-light text-graphite dark:bg-cloud-dark'
                       }`}
                     >
                       <Icon className="h-5 w-5" />
                     </span>
                     <span
-                      className={`mt-2 text-xs ${done ? 'font-medium' : 'text-neutral-400'}`}
+                      className={`mt-2 text-xs ${done ? 'font-medium text-ink dark:text-white' : 'text-graphite'}`}
                     >
                       {step.charAt(0) + step.slice(1).toLowerCase()}
                     </span>
@@ -160,31 +160,31 @@ function OrderTrackingInner() {
           )}
 
           {order.trackingNumber && (
-            <div className="rounded-lg border border-border-light dark:border-border-dark p-4 text-sm">
-              <span className="text-neutral-500">Tracking number: </span>
-              <span className="font-medium">{order.trackingNumber}</span>
+            <div className="rounded-2xl border border-border-light dark:border-border-dark p-4 text-sm">
+              <span className="text-graphite">Tracking number: </span>
+              <span className="font-medium text-ink dark:text-white">{order.trackingNumber}</span>
             </div>
           )}
 
           {/* Items */}
-          <div className="rounded-lg border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark">
+          <div className="rounded-2xl border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
             {order.items.map((item, i) => (
               <div key={i} className="flex items-center gap-3 p-4">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-12 w-12 rounded object-cover" />
+                  <img src={item.image} alt="" className="h-12 w-12 rounded-xl object-cover" />
                 ) : (
-                  <span className="flex h-12 w-12 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-cloud-light dark:bg-cloud-dark text-graphite">
                     <Package className="h-5 w-5" />
                   </span>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{item.nameSnapshot}</p>
-                  <p className="text-sm text-neutral-500">
+                  <p className="font-medium truncate text-ink dark:text-white">{item.nameSnapshot}</p>
+                  <p className="text-sm text-graphite">
                     {item.quantity} × {formatPrice(item.priceSnapshot)}
                   </p>
                 </div>
-                <span className="font-medium">
+                <span className="font-medium text-ink dark:text-white tabular-nums">
                   {formatPrice(item.priceSnapshot * item.quantity)}
                 </span>
               </div>
@@ -198,11 +198,11 @@ function OrderTrackingInner() {
               label="Shipping"
               value={order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost)}
             />
-            <div className="flex justify-between border-t border-border-light dark:border-border-dark pt-2 text-base font-semibold">
+            <div className="flex justify-between border-t border-border-light dark:border-border-dark pt-2 text-base font-semibold text-ink dark:text-white">
               <span>Total</span>
-              <span>{formatPrice(order.total)}</span>
+              <span className="tabular-nums">{formatPrice(order.total)}</span>
             </div>
-            <p className="pt-2 text-neutral-500">
+            <p className="pt-2 text-graphite">
               Payment: {order.paymentMethod} · {order.paymentStatus.toLowerCase()}
             </p>
           </div>
@@ -214,9 +214,9 @@ function OrderTrackingInner() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-neutral-600 dark:text-neutral-300">
+    <div className="flex justify-between text-graphite">
       <span>{label}</span>
-      <span>{value}</span>
+      <span className="tabular-nums">{value}</span>
     </div>
   );
 }
