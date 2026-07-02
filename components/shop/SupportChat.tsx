@@ -108,7 +108,9 @@ export function SupportChat({ active }: { active: boolean }) {
           aria-hidden
         />
         <span className="text-xs text-graphite">
-          {online === null ? t('hours') : online ? t('online') : t('offline')} · {t('hours')}
+          {online === null
+            ? t('hours')
+            : `${online ? t('online') : t('offline')} · ${t('hours')}`}
         </span>
       </div>
 

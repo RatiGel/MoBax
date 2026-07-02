@@ -35,8 +35,6 @@ export function ChatAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const t = {
-    title: 'Mobi',
-    subtitle: isKa ? 'AI შოპინგ-კონსულტანტი' : 'AI shopping helper',
     greeting: isKa
       ? 'გამარჯობა! რას ეძებთ? მაგ: "მაქვს iPhone 14, მინდა ვარდისფერი ქეისი".'
       : 'Hi! What are you looking for? e.g. "I have an iPhone 14 and want a pink case."',

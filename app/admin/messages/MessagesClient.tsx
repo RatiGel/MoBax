@@ -46,11 +46,13 @@ function formatTime(iso: string): string {
 export function MessagesClient() {
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [thread, setThread] = useState<ThreadData | null>(null);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasLoadedRef = useRef(false);
 
   const loadList = useCallback(async () => {
     try {
@@ -58,8 +60,14 @@ export function MessagesClient() {
         '/api/admin/support'
       );
       setConversations(data.conversations);
-    } catch {
-      /* silent on poll */
+      setLoadError(null);
+      hasLoadedRef.current = true;
+    } catch (e) {
+      // Only surface an error if we've never successfully loaded — later
+      // poll failures stay silent so a live inbox doesn't flash an error.
+      if (!hasLoadedRef.current) {
+        setLoadError(e instanceof Error ? e.message : 'Failed to load conversations');
+      }
     } finally {
       setLoading(false);
     }
@@ -142,6 +150,13 @@ export function MessagesClient() {
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+        </div>
+      ) : loadError ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3">
+          <p className="text-sm text-red-500">{loadError}</p>
+          <Button variant="outline" size="sm" onClick={() => { setLoading(true); loadList(); }}>
+            Retry
+          </Button>
         </div>
       ) : conversations.length === 0 ? (
         <EmptyState
