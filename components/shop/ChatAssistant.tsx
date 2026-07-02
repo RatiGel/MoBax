@@ -32,7 +32,7 @@ export function ChatAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const t = {
-    title: isKa ? 'MoBax დამხმარე' : 'MoBax Assistant',
+    title: 'Mobi',
     subtitle: isKa ? 'AI შოპინგ-კონსულტანტი' : 'AI shopping helper',
     greeting: isKa
       ? 'გამარჯობა! რას ეძებთ? მაგ: "მაქვს iPhone 14, მინდა ვარდისფერი ქეისი".'

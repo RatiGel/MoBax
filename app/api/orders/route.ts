@@ -6,7 +6,7 @@ import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { CreateOrderSchema } from '@/lib/validations';
 import { auth } from '@/auth';
 import { initiatePayment } from '@/lib/payments';
-import { getShippingCost } from '@/lib/shipping';
+import { getDeliveryFee, getRegionForCity, isMethodValid } from '@/lib/shipping';
 import { sendEmail } from '@/lib/email/send';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import AdminNewOrder from '@/lib/email/templates/AdminNewOrder';
@@ -42,7 +42,19 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const session = await auth();
-    const { items, address, guestEmail, paymentMethod } = parsed.data;
+    const { items, address, guestEmail, paymentMethod, deliveryMethod } = parsed.data;
+
+    // Re-derive region from the chosen city and re-validate the method server-side:
+    // pickup is always allowed; instant/nextday require a Tbilisi address; regional
+    // requires a non-Tbilisi one; instant also requires the 08:00–18:00 (non-Sunday)
+    // window. Never trust the client's claimed fee.
+    const region = getRegionForCity(address.city);
+    if (!isMethodValid(deliveryMethod, region, new Date())) {
+      return NextResponse.json(
+        { error: 'Selected delivery method is not available for this address.' },
+        { status: 400 }
+      );
+    }
 
     const productIds = items.map((i) => i.productId);
     const dbProducts = await Product.find({ _id: { $in: productIds }, isActive: true });
@@ -77,7 +89,9 @@ export async function POST(req: NextRequest) {
       (sum, item) => sum + item.priceSnapshot * item.quantity,
       0
     );
-    const shippingCost = getShippingCost(subtotal);
+    // Shipping fee is courier-collected (paid in cash on delivery), so it is
+    // recorded on the order but NOT included in the online gateway charge below.
+    const shippingCost = getDeliveryFee(deliveryMethod, address.city);
     const total = subtotal + shippingCost;
 
     // Reserve stock with guarded atomic decrements (stock >= qty), so two
@@ -113,6 +127,7 @@ export async function POST(req: NextRequest) {
         paymentMethod,
         subtotal,
         shippingCost,
+        deliveryMethod,
         total,
         addressSnapshot: address,
         items: orderItems,
@@ -134,7 +149,8 @@ export async function POST(req: NextRequest) {
           method: paymentMethod,
           orderId: String(order._id),
           orderNumber: order.orderNumber,
-          amount: total,
+          // Online charge = products only; the delivery fee is paid to the courier.
+          amount: subtotal,
           successUrl: `${origin}/api/payments/success?orderId=${order._id}`,
           failUrl: `${origin}/api/payments/fail?orderId=${order._id}`,
         });
@@ -165,6 +181,8 @@ export async function POST(req: NextRequest) {
           orderNumber: order.orderNumber,
           customerName,
           items: orderItems,
+          subtotal,
+          shippingCost,
           total,
         }),
       });

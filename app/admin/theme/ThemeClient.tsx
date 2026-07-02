@@ -18,10 +18,12 @@ interface Theme {
   announcement: string;
 }
 
-// Defaults mirror the live design tokens (tailwind.config.ts navy/amber).
+// Must mirror THEME_DEFAULTS in lib/theme.ts and the static tokens in
+// globals.css — primary navy + cobalt accent. "Reset to defaults" pushes these,
+// so a mismatch would recolor the live store on reset.
 const DEFAULTS: Theme = {
   primary: '#1E2D5A',
-  accent: '#F5A623',
+  accent: '#2E5BFF',
   storeName: 'MoBax',
   logoUrl: '',
   announcement: '',
@@ -128,7 +130,7 @@ export function ThemeClient() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Colors</CardTitle>
-              <CardDescription>Primary (navy) and accent (amber) brand tokens.</CardDescription>
+              <CardDescription>Primary (headers, buttons) and accent (links, highlights) brand colors. These recolor the live storefront.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ColorField
@@ -183,8 +185,9 @@ export function ThemeClient() {
                 </div>
               </div>
               <p className="mt-3 text-xs text-neutral-500">
-                Saved to store settings. Wiring these tokens into the live storefront CSS is a
-                follow-up; today they persist and preview here.
+                Changes go live on the storefront after saving — primary &amp; accent recolor the
+                site, and store name, logo and announcement update the header. Hard-refresh the
+                store to see them.
               </p>
             </CardContent>
           </Card>

@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
       {
         role: 'system',
         content:
-          `You are MoBax's friendly shopping assistant for a mobile-accessories store in Georgia.\n` +
+          `You are Mobi, MoBax's friendly shopping assistant for a mobile-accessories store in Georgia.\n` +
           (locale === 'ka'
             ? `Reply in Georgian.`
             : `Reply in English.`) +

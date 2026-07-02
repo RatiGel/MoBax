@@ -19,6 +19,8 @@ export const OrderAddressSchema = z.object({
   phone: z.string().min(1),
   address: z.string().min(1),
   city: z.string().min(1),
+  // Town/village name — required only when city is "other" (see CreateOrderSchema).
+  regionName: z.string().default(''),
   zipCode: z.string().default(''),
   country: z.string().min(1),
 });
@@ -33,6 +35,17 @@ export const CreateOrderSchema = z.object({
   address: OrderAddressSchema,
   guestEmail: z.string().email().optional(),
   paymentMethod: z.enum(['FLITT']).default('FLITT'),
+  deliveryMethod: z.enum(['pickup', 'instant', 'nextday', 'regional']),
+}).superRefine((data, ctx) => {
+  // "Other region" has no fixed town in the dropdown — require the buyer to name
+  // it so the courier can actually deliver. Only matters for regional delivery.
+  if (data.deliveryMethod === 'regional' && data.address.city === 'other' && !data.address.regionName.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['address', 'regionName'],
+      message: 'Enter your town or village',
+    });
+  }
 });
 
 const ProductVariantSchema = z.object({

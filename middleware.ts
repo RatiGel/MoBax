@@ -39,7 +39,6 @@ export async function middleware(req: NextRequest) {
 
     const token = await getAuthToken(req);
     const role = token?.role as string | undefined;
-    console.log('[mw/admin]', { path: pathname, hasToken: !!token, role, email: token?.email, keys: token ? Object.keys(token) : [] });
     if (!token || !role || !ADMIN_ROLES.includes(role)) {
       const loginUrl = new URL('/en/login', req.url);
       loginUrl.searchParams.set('callbackUrl', pathname);

@@ -40,12 +40,14 @@ export interface IOrder extends Document {
   notes?: string;
   subtotal: number;
   shippingCost: number;
+  deliveryMethod: 'pickup' | 'instant' | 'nextday' | 'regional';
   total: number;
   addressSnapshot: {
     firstName: string;
     lastName: string;
     address: string;
     city: string;
+    regionName?: string;
     zipCode: string;
     country: string;
     phone: string;
@@ -86,12 +88,18 @@ const OrderSchema = new Schema<IOrder>(
     notes: { type: String },
     subtotal: { type: Number, required: true },
     shippingCost: { type: Number, default: 0 },
+    deliveryMethod: {
+      type: String,
+      enum: ['pickup', 'instant', 'nextday', 'regional'],
+      default: 'pickup',
+    },
     total: { type: Number, required: true },
     addressSnapshot: {
       firstName: String,
       lastName: String,
       address: String,
       city: String,
+      regionName: String,
       zipCode: String,
       country: String,
       phone: String,

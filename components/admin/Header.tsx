@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { NAV_ITEMS } from './nav-config';
+import { NAV_ITEMS, NAV_GROUP_ORDER } from './nav-config';
 import { canAccessModule } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
 
@@ -43,6 +43,17 @@ export function Header({ role, name, email }: HeaderProps) {
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 
+  // Current page label for the desktop header (longest matching href wins, so
+  // /admin/products/new still resolves to "Products").
+  const current = [...items]
+    .filter((i) => isActive(i.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
+  const groupedMobile = NAV_GROUP_ORDER.map((group) => ({
+    group,
+    items: items.filter((i) => i.group === group),
+  })).filter((g) => g.items.length > 0);
+
   return (
     <header className="flex items-center justify-between h-16 px-4 border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
       {/* Mobile nav */}
@@ -57,32 +68,49 @@ export function Header({ role, name, email }: HeaderProps) {
             <div className="h-16 flex items-center px-4 border-b border-border-light dark:border-border-dark font-display text-lg font-semibold text-primary dark:text-white">
               MoBax Admin
             </div>
-            <nav className="p-2 space-y-1">
-              {items.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
-                      isActive(item.href)
-                        ? 'bg-primary text-white dark:bg-accent dark:text-primary'
-                        : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <nav className="p-2 overflow-y-auto">
+              {groupedMobile.map(({ group, items: groupItems }, gi) => (
+                <div key={group} className={cn(gi > 0 && 'mt-4')}>
+                  <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                    {group}
+                  </p>
+                  <div className="space-y-0.5">
+                    {groupItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMobileOpen(false)}
+                          aria-current={active ? 'page' : undefined}
+                          className={cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
+                            active
+                              ? 'bg-primary/10 text-primary dark:bg-accent/15 dark:text-accent'
+                              : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                          )}
+                        >
+                          <Icon className="h-[18px] w-[18px]" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </SheetContent>
         </Sheet>
       </div>
 
-      <div className="hidden md:block" />
+      <div className="hidden md:block">
+        {current && (
+          <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+            {current.label}
+          </span>
+        )}
+      </div>
 
       <div className="flex items-center gap-2">
         <Button

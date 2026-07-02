@@ -12,6 +12,11 @@ export interface OrderConfirmationProps {
   orderNumber: string;
   customerName: string;
   items: OrderConfirmationItem[];
+  /** Products only — the amount charged to the card online. */
+  subtotal: number;
+  /** Courier-collected delivery fee, paid in cash on delivery. 0 = pickup/free. */
+  shippingCost: number;
+  /** subtotal + shippingCost — total order value across both channels. */
   total: number;
 }
 
@@ -19,6 +24,8 @@ export default function OrderConfirmation({
   orderNumber,
   customerName,
   items,
+  subtotal,
+  shippingCost,
   total,
 }: OrderConfirmationProps) {
   return (
@@ -42,9 +49,22 @@ export default function OrderConfirmation({
 
       <Hr style={s.hr} />
 
-      <Text style={{ ...s.text, fontSize: 17 }}>
-        Total: <strong>${total.toFixed(2)}</strong>
-      </Text>
+      {shippingCost > 0 ? (
+        <>
+          <Text style={{ ...s.text, fontSize: 17 }}>
+            Paid online now: <strong>${subtotal.toFixed(2)}</strong>
+          </Text>
+          <Text style={s.text}>
+            Pay to courier on delivery (cash):{' '}
+            <strong>${shippingCost.toFixed(2)}</strong>
+          </Text>
+          <Text style={s.muted}>Total order value ${total.toFixed(2)}.</Text>
+        </>
+      ) : (
+        <Text style={{ ...s.text, fontSize: 17 }}>
+          Total: <strong>${total.toFixed(2)}</strong>
+        </Text>
+      )}
 
       <Text style={s.muted}>
         We&apos;ll send another email once your order ships.

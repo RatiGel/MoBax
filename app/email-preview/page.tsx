@@ -22,7 +22,9 @@ export default function EmailPreviewPage() {
           { nameSnapshot: 'Clear Phone Case', quantity: 2, priceSnapshot: 19.99 },
           { nameSnapshot: 'USB-C Fast Charger', quantity: 1, priceSnapshot: 24.99 },
         ],
-        total: 64.97,
+        subtotal: 64.97,
+        shippingCost: 15,
+        total: 79.97,
       }),
     },
     {

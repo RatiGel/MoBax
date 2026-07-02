@@ -15,7 +15,13 @@ import { getParentCategories, brands } from '@/lib/mock-data';
 import { canSeeAdminPanel } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
 
-export function Navbar() {
+export interface NavbarBranding {
+  storeName: string;
+  logoUrl: string;
+  announcement: string;
+}
+
+export function Navbar({ branding }: { branding?: NavbarBranding }) {
   const locale = useLocale();
   const t = useTranslations('nav');
   const tCat = useTranslations('categories');
@@ -43,15 +49,26 @@ export function Navbar() {
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '?');
 
+  // Branding from the admin Theme page (falls back to the built-in MoBax brand).
+  const storeName = branding?.storeName?.trim() || 'MoBax';
+  const logoUrl = branding?.logoUrl?.trim() || '';
+  // Split the wordmark so the trailing syllable picks up the accent color
+  // (e.g. "Mo" + "Bax"). Used only when no logo image is set.
+  const logoHead = storeName.length > 2 ? storeName.slice(0, -3) : storeName;
+  const logoTail = storeName.length > 2 ? storeName.slice(-3) : '';
+  const announcement = branding?.announcement?.trim() || '';
+
   return (
     <header className="sticky top-0 z-50">
       {/* Announcement Bar */}
       {!announcementClosed && (
         <div className="bg-ink text-white text-xs py-2.5 px-4 text-center relative dark:bg-cloud-dark">
           <p className="pr-8">
-            {locale === 'ka'
-              ? 'უფასო მიწოდება ₾100-ზე მეტი შეკვეთებზე თბილისში'
-              : 'Free shipping on orders over ₾100 in Tbilisi'}
+            {announcement
+              ? announcement
+              : locale === 'ka'
+                ? 'უფასო მიწოდება ₾100-ზე მეტი შეკვეთებზე თბილისში'
+                : 'Free shipping on orders over ₾100 in Tbilisi'}
             {' · '}
             <Link
               href={`/${locale}/products`}
@@ -75,14 +92,17 @@ export function Navbar() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-[68px] items-center justify-between gap-6">
 
-            {/* Logo */}
+            {/* Logo — admin logo image if set, else the wordmark */}
             <Link href={`/${locale}`} className="flex-shrink-0 flex items-center group">
-              <span className="font-display text-2xl font-semibold text-ink dark:text-white tracking-display">
-                Mo
-              </span>
-              <span className="font-display text-2xl font-semibold text-cobalt dark:text-cobalt-dark tracking-display">
-                Bax
-              </span>
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt={storeName} className="h-8 w-auto max-w-[160px] object-contain" />
+              ) : (
+                <span className="font-display text-2xl font-semibold tracking-display">
+                  <span className="text-ink dark:text-white">{logoHead}</span>
+                  <span className="text-cobalt dark:text-cobalt-dark">{logoTail}</span>
+                </span>
+              )}
             </Link>
 
             {/* Desktop Nav */}
