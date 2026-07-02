@@ -11,6 +11,7 @@ import {
   Settings,
   UserCog,
   Star,
+  MessageSquare,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders', group: 'Sales' },
   { label: 'Customers', href: '/admin/customers', icon: Users, module: 'customers', group: 'Sales' },
+  { label: 'Messages', href: '/admin/messages', icon: MessageSquare, module: 'support', group: 'Sales' },
   { label: 'Pricing & Promotions', href: '/admin/pricing', icon: Tag, module: 'pricing', group: 'Sales' },
 
   { label: 'Theme', href: '/admin/theme', icon: Palette, module: 'theme', group: 'Storefront' },

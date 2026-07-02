@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { NAV_ITEMS, NAV_GROUP_ORDER, type NavGroup } from './nav-config';
 import { canAccessModule } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
+import { UnreadMessagesBadge } from './UnreadMessagesBadge';
 
 export function Sidebar({ role }: { role: UserRole }) {
   const pathname = usePathname();
@@ -72,6 +73,7 @@ export function Sidebar({ role }: { role: UserRole }) {
                   />
                   <Icon className={cn('h-[18px] w-[18px] shrink-0', active && 'text-primary dark:text-accent')} />
                   {!collapsed && <span className="truncate">{item.label}</span>}
+                  {!collapsed && item.href === '/admin/messages' && <UnreadMessagesBadge />}
                 </Link>
               );
             })}
