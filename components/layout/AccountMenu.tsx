@@ -32,7 +32,7 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
       <Link
         href={`/${locale}/login`}
         onClick={onNavigate}
-        className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+        className="h-10 w-10 flex items-center justify-center text-ink/70 hover:text-cobalt dark:text-white/80 dark:hover:text-white transition-colors"
         aria-label={ka ? 'შესვლა' : 'Log in'}
       >
         <User className="h-5 w-5" />
