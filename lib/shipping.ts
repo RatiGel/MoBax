@@ -45,6 +45,7 @@ export const CITIES: {
 }[] = [
   { value: 'tbilisi', region: 'tbilisi', labelEn: 'Tbilisi', labelKa: 'თბილისი' },
   { value: 'rustavi', region: 'region', labelEn: 'Rustavi', labelKa: 'რუსთავი', regionalFee: 8 },
+  { value: 'mtskheta', region: 'region', labelEn: 'Mtskheta', labelKa: 'მცხეთა', regionalFee: 8 },
   { value: 'batumi', region: 'region', labelEn: 'Batumi', labelKa: 'ბათუმი', regionalFee: 10 },
   { value: 'kutaisi', region: 'region', labelEn: 'Kutaisi', labelKa: 'ქუთაისი', regionalFee: 10 },
   { value: 'gori', region: 'region', labelEn: 'Gori', labelKa: 'გორი', regionalFee: 10 },
@@ -63,6 +64,18 @@ export function getRegionForCity(cityValue: string): Region {
 }
 
 /**
+ * Cities where in-store Pickup is offered. Tbilisi (store location) plus the two
+ * nearby towns the courier hub serves for counter collection. Every other region
+ * city gets delivery only — no pickup.
+ */
+export const PICKUP_CITIES = new Set(['tbilisi', 'rustavi', 'mtskheta']);
+
+/** Whether in-store Pickup is offered for a city. */
+export function isPickupAvailable(cityValue: string): boolean {
+  return PICKUP_CITIES.has(cityValue);
+}
+
+/**
  * Regional Delivery fee (GEL) for a city. Unknown cities fall back to the
  * remote-tier default — the conservative (higher) fee.
  */
@@ -71,11 +84,36 @@ export function getRegionalFee(cityValue: string): number {
 }
 
 /**
- * Methods available for a region. Pickup is always offered. Tbilisi adds
- * Instant + Next-day; other regions add Regional. Order = display order.
+ * Methods available for a city. Tbilisi offers pickup + instant + nextday.
+ * Region cities offer regional delivery, plus pickup only where the counter is
+ * reachable (Rustavi, Mtskheta — see `PICKUP_CITIES`). Order = display order.
  */
-export function getDeliveryMethods(region: Region): DeliveryMethod[] {
-  return region === 'tbilisi' ? ['pickup', 'instant', 'nextday'] : ['pickup', 'regional'];
+export function getDeliveryMethods(cityValue: string): DeliveryMethod[] {
+  if (getRegionForCity(cityValue) === 'tbilisi') return ['instant', 'nextday', 'pickup'];
+  return isPickupAvailable(cityValue) ? ['regional', 'pickup'] : ['regional'];
+}
+
+/**
+ * Order subtotal (GEL) at/above which Next-Day delivery is free in Tbilisi —
+ * matches the storefront banner ("Free shipping on orders over ₾100 in Tbilisi").
+ */
+export const FREE_NEXTDAY_THRESHOLD = 100;
+
+/**
+ * Whether the free-shipping promo applies to a method: Next-Day in Tbilisi once
+ * the product subtotal reaches the threshold. Instant (same-day premium) and
+ * regional delivery are never waived.
+ */
+export function isFreeShippingEligible(
+  method: DeliveryMethod,
+  cityValue: string,
+  subtotal: number
+): boolean {
+  return (
+    method === 'nextday' &&
+    getRegionForCity(cityValue) === 'tbilisi' &&
+    subtotal >= FREE_NEXTDAY_THRESHOLD
+  );
 }
 
 /**
@@ -92,9 +130,18 @@ export function isInstantAvailable(now: Date): boolean {
 /**
  * Fee for a method. Used by both the UI display and the server total. Regional
  * delivery varies per city, so pass `cityValue` — without it the regional fee
- * falls back to the remote-tier default. Other methods ignore the city.
+ * falls back to the remote-tier default. Pass `subtotal` to apply the free
+ * Next-Day promo in Tbilisi (see `isFreeShippingEligible`); omit it and no
+ * waiver is applied. Instant and pickup are unaffected by subtotal.
  */
-export function getDeliveryFee(method: DeliveryMethod, cityValue?: string): number {
+export function getDeliveryFee(
+  method: DeliveryMethod,
+  cityValue?: string,
+  subtotal?: number
+): number {
+  if (subtotal !== undefined && isFreeShippingEligible(method, cityValue ?? '', subtotal)) {
+    return 0;
+  }
   if (method === 'regional') return getRegionalFee(cityValue ?? '');
   return DELIVERY_FEES[method] ?? 0;
 }
@@ -104,8 +151,8 @@ export function getDeliveryFee(method: DeliveryMethod, cityValue?: string): numb
  * server against a client sending e.g. `regional` for a Tbilisi address, or
  * `instant` outside its window.
  */
-export function isMethodValid(method: DeliveryMethod, region: Region, now: Date): boolean {
-  if (!getDeliveryMethods(region).includes(method)) return false;
+export function isMethodValid(method: DeliveryMethod, cityValue: string, now: Date): boolean {
+  if (!getDeliveryMethods(cityValue).includes(method)) return false;
   if (method === 'instant') return isInstantAvailable(now);
   return true;
 }

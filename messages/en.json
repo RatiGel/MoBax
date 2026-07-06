@@ -103,7 +103,12 @@
     "freeShippingProgress": "Add {amount} more for free shipping",
     "shipping": "Shipping",
     "free": "Free",
-    "secureCheckout": "Secure checkout"
+    "secureCheckout": "Secure checkout",
+    "selectAll": "Select all",
+    "totalCost": "Total cost",
+    "totalDiscount": "Total discount",
+    "orderTotal": "Order Total",
+    "selectItemsToCheckout": "Select at least one item to checkout"
   },
   "checkout": {
     "title": "Checkout",
@@ -184,7 +189,17 @@
     "errAddress": "Enter your street address",
     "errCity": "Enter your city",
     "placeholderEmail": "you@example.com",
-    "placeholderPhone": "+995 5XX XX XX XX"
+    "placeholderPhone": "+995 5XX XX XX XX",
+    "checkoutOrder": "Checkout order",
+    "itemCount": "{count} item",
+    "itemCountPlural": "{count} items",
+    "products": "Products",
+    "deliveryCost": "Delivery cost",
+    "totalCost": "Total cost",
+    "totalDiscount": "Total discount",
+    "orderTotal": "Order Total",
+    "placeOrderConsent": "By placing an order you agree to our terms & conditions",
+    "chooseCityForDelivery": "Choose your city to see delivery options"
   },
   "auth": {
     "login": "Login",

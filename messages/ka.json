@@ -103,7 +103,12 @@
     "freeShippingProgress": "დაამატეთ კიდევ {amount} უფასო მიწოდებისთვის",
     "shipping": "მიწოდება",
     "free": "უფასო",
-    "secureCheckout": "უსაფრთხო გადახდა"
+    "secureCheckout": "უსაფრთხო გადახდა",
+    "selectAll": "ყველას მონიშვნა",
+    "totalCost": "საერთო ღირებულება",
+    "totalDiscount": "სულ ფასდაკლება",
+    "orderTotal": "შეკვეთის ჯამი",
+    "selectItemsToCheckout": "გადასახდელად აირჩიეთ მინიმუმ ერთი ნივთი"
   },
   "checkout": {
     "title": "შეკვეთის გაფორმება",
@@ -184,7 +189,17 @@
     "errAddress": "შეიყვანეთ ქუჩის მისამართი",
     "errCity": "შეიყვანეთ ქალაქი",
     "placeholderEmail": "you@example.com",
-    "placeholderPhone": "+995 5XX XX XX XX"
+    "placeholderPhone": "+995 5XX XX XX XX",
+    "checkoutOrder": "შეკვეთის გაფორმება",
+    "itemCount": "{count} ცალი",
+    "itemCountPlural": "{count} ცალი",
+    "products": "პროდუქტები",
+    "deliveryCost": "მიწოდების ღირებულება",
+    "totalCost": "საერთო ღირებულება",
+    "totalDiscount": "სულ ფასდაკლება",
+    "orderTotal": "შეკვეთის ჯამი",
+    "placeOrderConsent": "შეკვეთის განთავსებით ეთანხმებით წესებსა და პირობებს",
+    "chooseCityForDelivery": "აირჩიეთ ქალაქი მიწოდების ვარიანტების სანახავად"
   },
   "auth": {
     "login": "შესვლა",

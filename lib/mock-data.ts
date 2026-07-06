@@ -762,7 +762,7 @@ export const products: Product[] = [
   // JBL (extra besides existing)
   {
     id: '24',
-    slug: 'jbl-tune-510bt',
+    slug: 'jbl-tune-510bt-classic',
     nameEn: 'JBL Tune 510BT Headphones',
     nameKa: 'JBL Tune 510BT ყურსასმენები',
     descriptionEn: 'JBL Pure Bass wireless on-ear headphones with 40 hours battery and fast charging.',

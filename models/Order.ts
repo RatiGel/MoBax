@@ -45,6 +45,7 @@ export interface IOrder extends Document {
   addressSnapshot: {
     firstName: string;
     lastName: string;
+    email?: string;
     address: string;
     city: string;
     regionName?: string;
@@ -97,6 +98,7 @@ const OrderSchema = new Schema<IOrder>(
     addressSnapshot: {
       firstName: String,
       lastName: String,
+      email: String,
       address: String,
       city: String,
       regionName: String,

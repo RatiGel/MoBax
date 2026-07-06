@@ -2,10 +2,12 @@
 
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { Package, CheckCircle2, Truck, Clock, XCircle } from 'lucide-react';
+import { useLocale } from 'next-intl';
+import { Package, CheckCircle2, Truck, Clock, XCircle, MapPin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatPrice } from '@/lib/utils';
+import { STORE_LOCATION } from '@/lib/store-location';
 
 type OrderItem = {
   productId: string;
@@ -20,6 +22,7 @@ type TrackedOrder = {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  deliveryMethod?: 'pickup' | 'instant' | 'nextday' | 'regional';
   trackingNumber?: string;
   subtotal: number;
   shippingCost: number;
@@ -48,7 +51,10 @@ export default function OrderTrackingPage() {
 function OrderTrackingInner() {
   const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isKa = locale === 'ka';
   const queryEmail = searchParams.get('email') ?? '';
+  const justPaid = searchParams.get('paid') === '1';
 
   const [email, setEmail] = useState(queryEmail);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
@@ -89,8 +95,33 @@ function OrderTrackingInner() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-1">Track your order</h1>
-      <p className="text-sm text-graphite mb-8">Order #{id.slice(-8).toUpperCase()}</p>
+      {justPaid ? (
+        <div className="mb-8 flex flex-col items-center gap-3 rounded-2xl border border-success/30 bg-success/5 px-6 py-10 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
+            <CheckCircle2 className="h-9 w-9" />
+          </span>
+          <h1 className="font-display font-semibold tracking-display text-2xl text-ink dark:text-white">
+            {isKa ? 'შეკვეთა მიღებულია' : 'Order received'}
+          </h1>
+          <p className="max-w-md text-sm text-graphite">
+            {isKa
+              ? 'თქვენი გადახდა წარმატებით დასრულდა. შეკვეთა მუშავდება — დეტალები გამოგიგზავნით ელფოსტაზე.'
+              : "Your payment went through and your order is being processed. We've emailed you the details."}
+          </p>
+          <p className="text-xs text-graphite">
+            {isKa ? 'შეკვეთა' : 'Order'} #{id.slice(-8).toUpperCase()}
+          </p>
+        </div>
+      ) : (
+        <>
+          <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-1">
+            {isKa ? 'შეკვეთის თვალყურის დევნება' : 'Track your order'}
+          </h1>
+          <p className="text-sm text-graphite mb-8">
+            {isKa ? 'შეკვეთა' : 'Order'} #{id.slice(-8).toUpperCase()}
+          </p>
+        </>
+      )}
 
       {!order && (
         <form
@@ -121,8 +152,10 @@ function OrderTrackingInner() {
 
       {order && (
         <div className="space-y-8">
-          {/* Status timeline */}
-          {cancelled ? (
+          {/* Status timeline — hidden on the post-payment success view (the
+              "Order received" hero already conveys the state); shown on the
+              track-order lookup so returning buyers see progress. */}
+          {!justPaid && (cancelled ? (
             <div className="flex items-center gap-3 rounded-2xl border border-error/30 bg-error/5 p-4">
               <XCircle className="h-6 w-6 text-error" />
               <div>
@@ -157,12 +190,51 @@ function OrderTrackingInner() {
                 );
               })}
             </ol>
-          )}
+          ))}
 
           {order.trackingNumber && (
             <div className="rounded-2xl border border-border-light dark:border-border-dark p-4 text-sm">
               <span className="text-graphite">Tracking number: </span>
               <span className="font-medium text-ink dark:text-white">{order.trackingNumber}</span>
+            </div>
+          )}
+
+          {/* Store pickup — where and when to collect, plus a map to open in Maps. */}
+          {order.deliveryMethod === 'pickup' && (
+            <div className="overflow-hidden rounded-2xl border border-border-light dark:border-border-dark">
+              <div className="flex items-start justify-between gap-3 p-5">
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                  <div>
+                    <p className="font-medium text-ink dark:text-white">
+                      {isKa ? 'აიღეთ ჩვენი მაღაზიიდან' : 'Pick up from our store'}
+                    </p>
+                    <p className="text-sm text-graphite">
+                      {isKa ? STORE_LOCATION.addressKa : STORE_LOCATION.addressEn}
+                    </p>
+                    <p className="mt-1 text-[11px] text-error">
+                      {isKa ? STORE_LOCATION.hoursKa : STORE_LOCATION.hoursEn}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={STORE_LOCATION.mapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex shrink-0 items-center gap-1 text-sm font-semibold text-cobalt hover:underline dark:text-cobalt-dark"
+                >
+                  {isKa ? 'გახსენით რუკაზე' : 'Open in Maps'}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+              <iframe
+                title={isKa ? 'მაღაზიის მდებარეობა' : 'Store location'}
+                src={STORE_LOCATION.embedSrc}
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className="h-64 w-full border-0"
+              />
             </div>
           )}
 

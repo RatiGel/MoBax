@@ -1,18 +1,40 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
 
 export default function CartPage() {
   const locale = useLocale();
   const t = useTranslations('cart');
-  const { items, removeItem, updateQuantity, getTotal } = useCartStore();
-  const total = getTotal();
+  const { items, removeItem, updateQuantity } = useCartStore();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [initialized, setInitialized] = useState(false);
+
+  // Default: all items selected. Prune selection as items leave the cart;
+  // auto-select freshly added items.
+  useEffect(() => {
+    setSelected((prev) => {
+      const ids = new Set(items.map((i) => i.product.id));
+      if (!initialized) {
+        setInitialized(true);
+        return ids;
+      }
+      const next = new Set(Array.from(prev).filter((id) => ids.has(id)));
+      items.forEach((i) => {
+        if (!prev.has(i.product.id)) next.add(i.product.id);
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
 
   if (items.length === 0) {
     return (
@@ -27,29 +49,99 @@ export default function CartPage() {
     );
   }
 
+  const allSelected = selected.size === items.length;
+
+  function toggleAll() {
+    setSelected(allSelected ? new Set() : new Set(items.map((i) => i.product.id)));
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function removeSelected() {
+    selected.forEach((id) => removeItem(id));
+    setSelected(new Set());
+  }
+
+  const selectedItems = items.filter((i) => selected.has(i.product.id));
+  const totalCost = selectedItems.reduce(
+    (sum, i) => sum + (i.product.originalPrice ?? i.product.price) * i.quantity,
+    0
+  );
+  const orderTotal = selectedItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const totalDiscount = totalCost - orderTotal;
+
+  function handleCheckout(e: React.MouseEvent) {
+    if (selectedItems.length === 0) {
+      e.preventDefault();
+      toast.error(t('selectItemsToCheckout'));
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-8">{t('title')}</h1>
+      <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-8">
+        {t('title')}{' '}
+        <span className="text-graphite text-xl font-normal">({t('items', { count: items.length })})</span>
+      </h1>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-border-light bg-surface-light px-4 py-3 dark:border-border-dark dark:bg-surface-dark">
+            <Checkbox checked={allSelected} onCheckedChange={toggleAll} id="select-all" />
+            <label htmlFor="select-all" className="text-sm font-medium text-ink dark:text-white cursor-pointer">
+              {t('selectAll')}
+            </label>
+            {selected.size > 0 && (
+              <button
+                onClick={removeSelected}
+                className="ml-auto flex items-center gap-1.5 text-sm text-graphite hover:text-error transition-colors"
+              >
+                <Trash2 className="h-4 w-4" /> {t('remove')}
+              </button>
+            )}
+          </div>
+
           {items.map((item) => {
             const name = locale === 'ka' ? item.product.nameKa : item.product.nameEn;
+            const isSelected = selected.has(item.product.id);
+            const hasDiscount =
+              item.product.originalPrice && item.product.originalPrice > item.product.price;
             return (
               <div
                 key={item.product.id}
                 className="flex gap-4 rounded-2xl border border-border-light bg-surface-light p-4 dark:border-border-dark dark:bg-surface-dark"
               >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleOne(item.product.id)}
+                  className="mt-1 self-start"
+                />
                 <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-cloud-light dark:bg-cloud-dark">
                   <Image src={item.product.images[0]} alt={name} fill className="object-cover" />
                 </div>
                 <div className="flex flex-1 flex-col gap-2">
-                  <Link
-                    href={`/${locale}/products/${item.product.slug}`}
-                    className="font-medium text-ink dark:text-white hover:text-cobalt dark:hover:text-cobalt-dark line-clamp-2 transition-colors"
-                  >
-                    {name}
-                  </Link>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/${locale}/products/${item.product.slug}`}
+                      className="font-medium text-ink dark:text-white hover:text-cobalt dark:hover:text-cobalt-dark line-clamp-2 transition-colors"
+                    >
+                      {name}
+                    </Link>
+                    <button
+                      onClick={() => removeItem(item.product.id)}
+                      className="text-graphite hover:text-error p-1 transition-colors flex-shrink-0"
+                      aria-label={t('remove')}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                   <p className="text-sm text-graphite">{item.product.brand}</p>
                   <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center border border-border-light dark:border-border-dark rounded-full overflow-hidden">
@@ -67,16 +159,15 @@ export default function CartPage() {
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-ink dark:text-white tabular-nums">
+                    <div className="flex items-center gap-2">
+                      {hasDiscount && (
+                        <span className="text-sm text-graphite line-through tabular-nums">
+                          {formatPrice(item.product.originalPrice! * item.quantity)}
+                        </span>
+                      )}
+                      <span className="font-semibold text-cobalt dark:text-cobalt-dark tabular-nums">
                         {formatPrice(item.product.price * item.quantity)}
                       </span>
-                      <button
-                        onClick={() => removeItem(item.product.id)}
-                        className="text-graphite hover:text-error p-1 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -90,25 +181,34 @@ export default function CartPage() {
           <h2 className="font-display font-semibold text-lg text-ink dark:text-white mb-4">
             {locale === 'ka' ? 'შეკვეთის შეჯამება' : 'Order summary'}
           </h2>
+          <div className="flex justify-between text-sm mb-4 pb-4 border-b border-border-light dark:border-border-dark">
+            <span className="text-graphite">{t('items', { count: selectedItems.length })}</span>
+          </div>
           <div className="space-y-2 mb-4">
-            {items.map((item) => {
-              const name = locale === 'ka' ? item.product.nameKa : item.product.nameEn;
-              return (
-                <div key={item.product.id} className="flex justify-between text-sm">
-                  <span className="text-graphite truncate max-w-[160px]">
-                    {name} × {item.quantity}
-                  </span>
-                  <span className="font-medium text-ink dark:text-white tabular-nums">{formatPrice(item.product.price * item.quantity)}</span>
-                </div>
-              );
-            })}
+            <div className="flex justify-between text-sm">
+              <span className="text-graphite">{t('totalCost')}:</span>
+              <span className="font-medium text-ink dark:text-white tabular-nums">{formatPrice(totalCost)}</span>
+            </div>
+            {totalDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-graphite">{t('totalDiscount')}:</span>
+                <span className="font-medium text-error tabular-nums">-{formatPrice(totalDiscount)}</span>
+              </div>
+            )}
           </div>
           <div className="border-t border-border-light dark:border-border-dark pt-4 flex justify-between font-bold text-lg">
-            <span className="text-ink dark:text-white">{t('total')}</span>
-            <span className="text-ink dark:text-white tabular-nums">{formatPrice(total)}</span>
+            <span className="text-ink dark:text-white">{t('orderTotal')}</span>
+            <span className="text-ink dark:text-white tabular-nums">{formatPrice(orderTotal)}</span>
           </div>
-          <Button className="w-full mt-6 rounded-full font-semibold" size="lg" asChild>
-            <Link href={`/${locale}/checkout`}>{t('checkout')}</Link>
+          <Button
+            className="w-full mt-6 rounded-full font-semibold"
+            size="lg"
+            disabled={selectedItems.length === 0}
+            asChild
+          >
+            <Link href={`/${locale}/checkout`} onClick={handleCheckout}>
+              {t('checkout')}
+            </Link>
           </Button>
           <Button variant="outline" className="w-full mt-2 rounded-full font-semibold" asChild>
             <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>

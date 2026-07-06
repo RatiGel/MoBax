@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, FolderTree, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { SingleImageUploader } from '@/components/admin/SingleImageUploader';
 import { DataTable, type Column } from '@/components/admin/DataTable';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
@@ -336,12 +337,15 @@ export function CategoriesClient() {
             </Field>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Image URL">
-                <Input
-                  value={values.image}
-                  onChange={(e) => set('image', e.target.value)}
-                  placeholder="https://…"
-                />
+              <Field label="Image">
+                <div className="space-y-2">
+                  <SingleImageUploader value={values.image} onChange={(url) => set('image', url)} />
+                  <Input
+                    value={values.image}
+                    onChange={(e) => set('image', e.target.value)}
+                    placeholder="or paste an image URL"
+                  />
+                </div>
               </Field>
               <Field label="Icon" hint="Icon name or class">
                 <Input value={values.icon} onChange={(e) => set('icon', e.target.value)} />

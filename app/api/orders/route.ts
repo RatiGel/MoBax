@@ -6,9 +6,8 @@ import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { CreateOrderSchema } from '@/lib/validations';
 import { auth } from '@/auth';
 import { initiatePayment } from '@/lib/payments';
-import { getDeliveryFee, getRegionForCity, isMethodValid } from '@/lib/shipping';
+import { getDeliveryFee, isMethodValid } from '@/lib/shipping';
 import { sendEmail } from '@/lib/email/send';
-import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import AdminNewOrder from '@/lib/email/templates/AdminNewOrder';
 
 /**
@@ -44,12 +43,11 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     const { items, address, guestEmail, paymentMethod, deliveryMethod } = parsed.data;
 
-    // Re-derive region from the chosen city and re-validate the method server-side:
-    // pickup is always allowed; instant/nextday require a Tbilisi address; regional
-    // requires a non-Tbilisi one; instant also requires the 08:00–18:00 (non-Sunday)
-    // window. Never trust the client's claimed fee.
-    const region = getRegionForCity(address.city);
-    if (!isMethodValid(deliveryMethod, region, new Date())) {
+    // Re-validate the method server-side from the chosen city: instant/nextday
+    // require a Tbilisi address; regional a non-Tbilisi one; pickup only where the
+    // counter is reachable (Tbilisi/Rustavi/Mtskheta); instant also requires the
+    // 08:00–18:00 (non-Sunday) window. Never trust the client's claimed fee.
+    if (!isMethodValid(deliveryMethod, address.city, new Date())) {
       return NextResponse.json(
         { error: 'Selected delivery method is not available for this address.' },
         { status: 400 }
@@ -91,7 +89,9 @@ export async function POST(req: NextRequest) {
     );
     // Shipping fee is courier-collected (paid in cash on delivery), so it is
     // recorded on the order but NOT included in the online gateway charge below.
-    const shippingCost = getDeliveryFee(deliveryMethod, address.city);
+    // Pass subtotal so Next-Day in Tbilisi is waived above the free-shipping
+    // threshold — re-derived server-side from DB prices, never trusting the client.
+    const shippingCost = getDeliveryFee(deliveryMethod, address.city, subtotal);
     const total = subtotal + shippingCost;
 
     // Reserve stock with guarded atomic decrements (stock >= qty), so two
@@ -170,23 +170,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Fire-and-forget notifications. Never block or fail the order response.
+    // The customer confirmation is sent AFTER payment succeeds (see
+    // app/api/payments/success/route.ts), not here at creation — an unpaid order
+    // should not get a "confirmed" email. Admin is notified now so the team sees
+    // the incoming order immediately.
     const customerEmail = session?.user?.email || order.guestEmail || address.email;
-    const customerName = address.firstName || session?.user?.name || 'there';
-
-    if (customerEmail) {
-      void sendEmail({
-        to: customerEmail,
-        subject: `Order ${order.orderNumber} confirmed`,
-        react: OrderConfirmation({
-          orderNumber: order.orderNumber,
-          customerName,
-          items: orderItems,
-          subtotal,
-          shippingCost,
-          total,
-        }),
-      });
-    }
 
     void resolveAdminEmail().then((adminEmail) => {
       if (!adminEmail) return;

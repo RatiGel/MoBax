@@ -4,7 +4,9 @@ import { getToken } from 'next-auth/jwt';
 const locales = ['en', 'ka'];
 const defaultLocale = 'ka';
 
-const protectedPaths = ['/checkout', '/account'];
+// Checkout supports guest orders (login is a nudge, not a gate), so it is NOT
+// protected — only account pages require a session.
+const protectedPaths = ['/account'];
 
 const ADMIN_ROLES = ['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR'];
 
