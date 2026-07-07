@@ -6,8 +6,8 @@ import { useLocale } from 'next-intl';
 import { Package, CheckCircle2, Truck, Clock, XCircle, MapPin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatPrice } from '@/lib/utils';
 import { STORE_LOCATION } from '@/lib/store-location';
+import { OrderSummary } from '@/components/shop/OrderSummary';
 
 type OrderItem = {
   productId: string;
@@ -238,57 +238,17 @@ function OrderTrackingInner() {
             </div>
           )}
 
-          {/* Items */}
-          <div className="rounded-2xl border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
-            {order.items.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-4">
-                {item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-12 w-12 rounded-xl object-cover" />
-                ) : (
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-cloud-light dark:bg-cloud-dark text-graphite">
-                    <Package className="h-5 w-5" />
-                  </span>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-ink dark:text-white">{item.nameSnapshot}</p>
-                  <p className="text-sm text-graphite">
-                    {item.quantity} × {formatPrice(item.priceSnapshot)}
-                  </p>
-                </div>
-                <span className="font-medium text-ink dark:text-white tabular-nums">
-                  {formatPrice(item.priceSnapshot * item.quantity)}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Totals */}
-          <div className="space-y-1 text-sm">
-            <Row label="Subtotal" value={formatPrice(order.subtotal)} />
-            <Row
-              label="Shipping"
-              value={order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost)}
-            />
-            <div className="flex justify-between border-t border-border-light dark:border-border-dark pt-2 text-base font-semibold text-ink dark:text-white">
-              <span>Total</span>
-              <span className="tabular-nums">{formatPrice(order.total)}</span>
-            </div>
-            <p className="pt-2 text-graphite">
-              Payment: {order.paymentMethod} · {order.paymentStatus.toLowerCase()}
-            </p>
-          </div>
+          {/* Items + totals */}
+          <OrderSummary
+            items={order.items}
+            subtotal={order.subtotal}
+            shippingCost={order.shippingCost}
+            total={order.total}
+            paymentMethod={order.paymentMethod}
+            paymentStatus={order.paymentStatus}
+          />
         </div>
       )}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between text-graphite">
-      <span>{label}</span>
-      <span className="tabular-nums">{value}</span>
     </div>
   );
 }
