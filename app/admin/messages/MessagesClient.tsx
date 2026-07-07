@@ -97,6 +97,15 @@ export function MessagesClient() {
     return () => clearInterval(id);
   }, [loadList, loadThread, selectedId]);
 
+  // Deep-link: ?c=<id> (e.g. from a Telegram support alert) auto-opens a thread.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('c');
+    if (id) {
+      setSelectedId(id);
+      loadThread(id);
+    }
+  }, [loadThread]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [thread?.messages.length]);

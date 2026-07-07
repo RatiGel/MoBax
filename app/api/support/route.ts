@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { connectDB } from '@/lib/mongodb';
 import { isSupportOnline } from '@/lib/support-hours';
+import { sendTelegramSupportMessage } from '@/lib/telegram';
 import Conversation from '@/models/Conversation';
 import SupportMessage from '@/models/SupportMessage';
 import User from '@/models/User';
@@ -74,7 +75,9 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const user = await User.findById(session.user.id).select('isBlocked').lean();
+    const user = await User.findById(session.user.id)
+      .select('isBlocked firstName lastName email')
+      .lean();
     if (!user || user.isBlocked) {
       return NextResponse.json({ error: 'Account is blocked' }, { status: 403 });
     }
@@ -98,6 +101,16 @@ export async function POST(req: NextRequest) {
       senderId: session.user.id,
       senderRole: 'customer',
       body,
+    });
+
+    // Forward to the team's Telegram chat (fire-and-forget, never blocks send).
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+    const customerName =
+      [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email || 'Customer';
+    void sendTelegramSupportMessage({
+      customerName,
+      body,
+      adminUrl: `${origin}/admin/messages?c=${conversation._id}`,
     });
 
     return NextResponse.json(

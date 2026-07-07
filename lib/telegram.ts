@@ -1,9 +1,9 @@
 /**
- * Telegram order notifications. Sends a short "paid order" summary to a chat
- * via the Bot API. Configured by two env vars — TELEGRAM_BOT_TOKEN and
- * TELEGRAM_CHAT_ID — and a silent no-op if either is missing, so an
- * unconfigured deployment never breaks the order flow. Mirrors the
- * fire-and-forget, never-throw contract of lib/email/send.ts.
+ * Telegram team notifications — paid orders and incoming support messages —
+ * sent to a chat via the Bot API. Configured by two env vars —
+ * TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID — and a silent no-op if either is
+ * missing, so an unconfigured deployment never breaks the order or support
+ * flow. Mirrors the fire-and-forget, never-throw contract of lib/email/send.ts.
  */
 
 interface OrderNotificationInput {
@@ -60,5 +60,52 @@ export async function sendTelegramOrderNotification(
     }
   } catch (err) {
     console.warn('[telegram] sendMessage error', err);
+  }
+}
+
+interface SupportMessageInput {
+  /** Display name of the customer who sent the message. */
+  customerName: string;
+  /** Full message body (already capped at 2000 chars by the route). */
+  body: string;
+  /** Absolute URL that deep-links to the conversation in the admin panel. */
+  adminUrl: string;
+}
+
+/**
+ * Forward an incoming customer support message to the configured Telegram
+ * chat, with a deep-link to the conversation in the admin panel. Same
+ * no-op-if-unconfigured, never-throw contract as
+ * sendTelegramOrderNotification — safe to fire-and-forget with `void`.
+ */
+export async function sendTelegramSupportMessage(
+  input: SupportMessageInput,
+): Promise<void> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return; // Not configured — skip.
+
+  const text =
+    `💬 <b>New support message from ${escapeHtml(input.customerName)}</b>\n\n` +
+    `${escapeHtml(input.body)}\n\n` +
+    `<a href="${escapeHtml(input.adminUrl)}">Open in admin</a>`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+      }),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '');
+      console.warn(`[telegram] support sendMessage failed: ${res.status} ${detail}`);
+    }
+  } catch (err) {
+    console.warn('[telegram] support sendMessage error', err);
   }
 }
