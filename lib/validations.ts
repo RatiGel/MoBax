@@ -25,6 +25,35 @@ export const OrderAddressSchema = z.object({
   country: z.string().min(1),
 });
 
+// Profile saved address — same shape as OrderAddressSchema minus email.
+// Optional fields use .default('') so a partially-filled address still saves.
+export const ProfileAddressSchema = z.object({
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
+  phone: z.string().min(1),
+  address: z.string().min(1),
+  city: z.string().min(1),
+  regionName: z.string().default(''),
+  zipCode: z.string().default(''),
+  country: z.string().min(1),
+});
+
+export const UpdateProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  // null clears the saved address; omitted leaves it unchanged (handled in route).
+  address: ProfileAddressSchema.nullable().optional(),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export type ProfileAddress = z.infer<typeof ProfileAddressSchema>;
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
 export const CreateOrderSchema = z.object({
   items: z.array(
     z.object({
