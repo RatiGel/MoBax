@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
@@ -144,6 +144,37 @@ export default function CheckoutPage() {
     if (value !== 'other') setForm((prev) => ({ ...prev, regionName: '' }));
     setDeliveryMethod(null);
   }
+
+  // Prefill from the signed-in user's saved profile address (one-time).
+  useEffect(() => {
+    if (!session?.user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/account/profile');
+        if (!res.ok) return;
+        const data = await res.json();
+        const a = data.address;
+        if (!a || cancelled) return;
+        const knownCity = CITIES.some((c) => c.value === a.city) ? a.city : '';
+        setForm((prev) => ({
+          ...prev,
+          firstName: prev.firstName || a.firstName || '',
+          lastName: prev.lastName || a.lastName || '',
+          phone: prev.phone || a.phone || '',
+          address: prev.address || a.address || '',
+          city: prev.city || knownCity,
+          regionName: prev.regionName || a.regionName || '',
+          zipCode: prev.zipCode || a.zipCode || '',
+          country: prev.country || a.country || 'Georgia',
+        }));
+      } catch {
+        // Non-fatal: checkout works without prefill.
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user]);
 
   function validate() {
     const errs: Record<string, string> = {};
