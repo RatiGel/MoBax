@@ -10,6 +10,34 @@ import { getDeliveryFee, isMethodValid } from '@/lib/shipping';
 import { sendEmail } from '@/lib/email/send';
 import AdminNewOrder from '@/lib/email/templates/AdminNewOrder';
 
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'You must be signed in' }, { status: 401 });
+  }
+
+  await connectDB();
+  const orders = await Order.find({ userId: session.user.id })
+    .sort('-createdAt')
+    .select('orderNumber status paymentStatus total createdAt items')
+    .lean();
+
+  const list = orders.map((o) => ({
+    _id: String(o._id),
+    orderNumber: o.orderNumber,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    total: o.total,
+    createdAt: o.createdAt,
+    itemCount: o.items?.length ?? 0,
+    firstImage: o.items?.[0]?.image ?? '',
+  }));
+
+  return NextResponse.json({ orders: list });
+}
+
 /**
  * Resolve the admin notification recipient: ADMIN_EMAIL env first, then the
  * NOTIFICATIONS setting's adminEmail. Returns null if neither is set.
