@@ -12,6 +12,7 @@ import {
   UserCog,
   Star,
   MessageSquare,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -43,6 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   { label: 'Theme', href: '/admin/theme', icon: Palette, module: 'theme', group: 'Storefront' },
   { label: 'Content', href: '/admin/content', icon: FileText, module: 'content', group: 'Storefront' },
+  { label: 'Services', href: '/admin/services', icon: Wrench, module: 'content', group: 'Storefront' },
 
   { label: 'Team', href: '/admin/team', icon: UserCog, module: 'team', group: 'Admin' },
   { label: 'Settings', href: '/admin/settings', icon: Settings, module: 'settings', group: 'Admin' },
