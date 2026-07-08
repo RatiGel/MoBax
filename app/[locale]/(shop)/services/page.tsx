@@ -38,15 +38,7 @@ export default async function ServicesPage({ params: { locale } }: Props) {
   const t = await getTranslations('services');
   const [services, page] = await Promise.all([getActiveServices(), getServicePage()]);
 
-  const heading = isKa ? page.headingKa : page.headingEn;
-  const intro = isKa ? page.introKa : page.introEn;
   const address = isKa ? page.addressKa : page.addressEn;
-
-  const stats = [
-    { value: '5+', label: isKa ? 'წლიანი გამოცდილება' : 'Years of experience' },
-    { value: '10k+', label: isKa ? 'დამუშავებული მოწყობილობა' : 'Devices serviced' },
-    { value: '4.9', label: isKa ? 'საშუალო შეფასება' : 'Average rating' },
-  ];
 
   const steps = [
     {
@@ -96,57 +88,8 @@ export default async function ServicesPage({ params: { locale } }: Props) {
 
   return (
     <div className="bg-paper dark:bg-ink">
-      {/* ── Hero (compact, text-only) ────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -top-32 right-0 h-[460px] w-[460px] rounded-full bg-cobalt/10 blur-3xl dark:bg-cobalt-dark/10" />
-        <div className="relative mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 lg:px-8 lg:py-20">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border-light px-3.5 py-1.5 text-xs font-medium text-graphite dark:border-border-dark">
-            <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
-            {isKa ? 'ფილმის დაფენის სერვისი · თბილისი' : 'Film application service · Tbilisi'}
-          </span>
-          <h1 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-display text-ink dark:text-white sm:text-5xl lg:text-6xl">
-            {heading}
-          </h1>
-          {intro && (
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-graphite">{intro}</p>
-          )}
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="#services"
-              className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-ink"
-            >
-              {t('sectionServices')}
-            </a>
-            {directionsHref && (
-              <a
-                href={directionsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-border-light px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-cloud-light dark:border-border-dark dark:text-white dark:hover:bg-cloud-dark"
-              >
-                {t('getDirections')}
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            )}
-          </div>
-
-          {/* Stats */}
-          <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-6 border-t border-border-light pt-8 dark:border-border-dark">
-            {stats.map((s) => (
-              <div key={s.label}>
-                <dt className="font-display text-3xl font-semibold text-cobalt dark:text-cobalt-dark">
-                  {s.value}
-                </dt>
-                <dd className="mt-1 text-xs leading-snug text-graphite">{s.label}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
       {/* ── Services grid ────────────────────────────────── */}
-      <section id="services" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-6 pb-20 sm:px-6 lg:px-8">
+      <section id="services" className="mx-auto max-w-7xl scroll-mt-24 px-4 pt-16 pb-20 sm:px-6 lg:px-8">
         <div className="mb-10 max-w-2xl">
           <h2 className="font-display text-3xl font-semibold tracking-display text-ink dark:text-white">
             {t('sectionServices')}
