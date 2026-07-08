@@ -71,6 +71,11 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link href={`/${locale}/services`} className="text-sm hover:text-white transition-colors">
+                  {locale === 'ka' ? 'სერვისები' : 'Services'}
+                </Link>
+              </li>
             </ul>
           </div>
 

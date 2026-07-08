@@ -205,6 +205,18 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
                   </div>
                 )}
               </div>
+
+              {/* Services */}
+              <Link
+                href={`/${locale}/services`}
+                className={`py-6 text-sm font-medium transition-colors ${
+                  isActive(`/${locale}/services`)
+                    ? 'text-ink dark:text-white'
+                    : 'text-graphite hover:text-ink dark:hover:text-white'
+                }`}
+              >
+                {locale === 'ka' ? 'სერვისები' : 'Services'}
+              </Link>
             </nav>
 
             {/* Search (desktop) */}
@@ -267,6 +279,13 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
               onClick={() => setMobileOpen(false)}
             >
               {locale === 'ka' ? 'ყველა პროდუქტი' : 'All products'}
+            </Link>
+            <Link
+              href={`/${locale}/services`}
+              className="block py-3 text-sm font-medium text-ink dark:text-neutral-200 border-b border-border-light dark:border-border-dark"
+              onClick={() => setMobileOpen(false)}
+            >
+              {locale === 'ka' ? 'სერვისები' : 'Services'}
             </Link>
             <div className="pt-3 pb-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-graphite mb-2 px-0">
