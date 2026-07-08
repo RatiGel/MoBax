@@ -10,7 +10,7 @@ import {
   Hand,
   BadgeCheck,
 } from 'lucide-react';
-import { getActiveServices, getServicePage } from '@/lib/services-data';
+import { getActiveServices, getServicePage, getActiveCatalogProducts } from '@/lib/services-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,11 @@ export default async function ServicesPage({ params: { locale } }: Props) {
   setRequestLocale(locale);
   const isKa = locale === 'ka';
   const t = await getTranslations('services');
-  const [services, page] = await Promise.all([getActiveServices(), getServicePage()]);
+  const [services, page, catalog] = await Promise.all([
+    getActiveServices(),
+    getServicePage(),
+    getActiveCatalogProducts(),
+  ]);
 
   const address = isKa ? page.addressKa : page.addressEn;
 
@@ -143,6 +147,50 @@ export default async function ServicesPage({ params: { locale } }: Props) {
           ))}
         </div>
       </section>
+
+      {/* ── Product catalog ──────────────────────────────── */}
+      {catalog.length > 0 && (
+        <section className="border-t border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="mb-10 max-w-2xl">
+              <h2 className="font-display text-3xl font-semibold tracking-display text-ink dark:text-white">
+                {t('sectionCatalog')}
+              </h2>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {catalog.map((c, i) => {
+                const name = isKa ? c.nameKa : c.nameEn;
+                const desc = isKa ? c.descriptionKa : c.descriptionEn;
+                const img = c.images[0] || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length];
+                return (
+                  <article
+                    key={c._id}
+                    className="group overflow-hidden rounded-3xl border border-border-light bg-paper transition-shadow hover:shadow-xl hover:shadow-ink/5 dark:border-border-dark dark:bg-ink"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <Image
+                        src={img}
+                        alt={name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <h3 className="font-display text-lg font-semibold text-ink dark:text-white">{name}</h3>
+                      {desc && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-graphite">{desc}</p>}
+                      <p className="mt-3 font-semibold text-cobalt dark:text-cobalt-dark">
+                        {t('startsFrom', { price: c.priceFrom })}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Process ──────────────────────────────────────── */}
       <section className="border-y border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark">

@@ -363,6 +363,8 @@
     "sectionServices": "ჩვენი სერვისები",
     "sectionLocation": "სად გვიპოვით",
     "getDirections": "მარშრუტის ნახვა",
-    "noServices": "სერვისები მალე დაემატება."
+    "noServices": "სერვისები მალე დაემატება.",
+    "sectionCatalog": "პროდუქტების კატალოგი",
+    "startsFrom": "იწყება {price} ₾-დან"
   }
 }

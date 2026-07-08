@@ -308,3 +308,22 @@ export type LoginInput = z.infer<typeof LoginSchema>;
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;
 export type CreateProductInput = z.infer<typeof CreateProductSchema>;
 export type UpdateProductInput = z.infer<typeof UpdateProductSchema>;
+
+// --- Catalog products (storefront services page catalog) admin ---
+
+export const CreateCatalogProductSchema = z.object({
+  nameEn: z.string().min(1, 'English name is required').max(160),
+  nameKa: z.string().min(1, 'Georgian name is required').max(160),
+  descriptionEn: z.string().max(5000).default(''),
+  descriptionKa: z.string().max(5000).default(''),
+  images: z.array(z.string().url('Each image must be a valid URL')).default([]),
+  priceFrom: z.coerce.number().min(0, 'Price must be 0 or more'),
+  order: z.coerce.number().int().default(0),
+  isActive: z.boolean().default(true),
+});
+
+// All fields optional on update; same constraints when present.
+export const UpdateCatalogProductSchema = CreateCatalogProductSchema.partial();
+
+export type CreateCatalogProductInput = z.infer<typeof CreateCatalogProductSchema>;
+export type UpdateCatalogProductInput = z.infer<typeof UpdateCatalogProductSchema>;

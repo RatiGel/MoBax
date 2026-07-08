@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/mongodb';
 import Service from '@/models/Service';
 import ServicePage from '@/models/ServicePage';
+import CatalogProduct from '@/models/CatalogProduct';
 
 export type ServiceView = {
   _id: string;
@@ -59,4 +60,32 @@ export async function getServicePage(): Promise<ServicePageView> {
     addressEn: doc.addressEn,
     addressKa: doc.addressKa,
   };
+}
+
+export type CatalogProductView = {
+  _id: string;
+  nameEn: string;
+  nameKa: string;
+  descriptionEn: string;
+  descriptionKa: string;
+  images: string[];
+  priceFrom: number;
+  order: number;
+};
+
+export async function getActiveCatalogProducts(): Promise<CatalogProductView[]> {
+  await connectDB();
+  const docs = await CatalogProduct.find({ isActive: true })
+    .sort({ order: 1, createdAt: 1 })
+    .lean();
+  return docs.map((d) => ({
+    _id: String(d._id),
+    nameEn: d.nameEn,
+    nameKa: d.nameKa,
+    descriptionEn: d.descriptionEn,
+    descriptionKa: d.descriptionKa,
+    images: d.images ?? [],
+    priceFrom: d.priceFrom,
+    order: d.order,
+  }));
 }

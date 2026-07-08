@@ -363,6 +363,8 @@
     "sectionServices": "Our Services",
     "sectionLocation": "Where to find us",
     "getDirections": "Get directions",
-    "noServices": "Services coming soon."
+    "noServices": "Services coming soon.",
+    "sectionCatalog": "Product catalog",
+    "startsFrom": "Starts from {price} ₾"
   }
 }
