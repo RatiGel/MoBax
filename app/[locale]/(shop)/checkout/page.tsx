@@ -18,6 +18,7 @@ import {
   Check,
   ExternalLink,
   Info,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,7 @@ export default function CheckoutPage() {
   const isKa = locale === 'ka';
   const t = useTranslations('checkout');
   const { data: session } = useSession();
-  const { items, getTotal, clearCart } = useCartStore();
+  const { items, getTotal, clearCart, removeItem } = useCartStore();
 
   const subtotal = getTotal();
 
@@ -89,7 +90,7 @@ export default function CheckoutPage() {
   const [payError, setPayError] = useState<string | null>(null);
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: session?.user?.email ?? '', phone: '',
-    address: '', city: '', regionName: '', zipCode: '', country: 'Georgia',
+    address: '', city: '', regionName: '', idNumber: '', country: 'Georgia',
   });
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -165,7 +166,7 @@ export default function CheckoutPage() {
           address: prev.address || a.address || '',
           city: prev.city || knownCity,
           regionName: prev.regionName || a.regionName || '',
-          zipCode: prev.zipCode || a.zipCode || '',
+          idNumber: prev.idNumber || a.idNumber || '',
           country: prev.country || a.country || 'Georgia',
         }));
       } catch {
@@ -183,6 +184,7 @@ export default function CheckoutPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t('errEmail');
     if (!form.phone.trim()) errs.phone = t('errPhone');
     if (!form.address.trim()) errs.address = t('errAddress');
+    if (!form.idNumber.trim()) errs.idNumber = t('errIdNumber');
     if (!form.city) errs.city = t('errCitySelect');
     if (!methodUsable) errs.deliveryMethod = t('errDeliveryMethod');
     if (form.city === 'other' && effectiveMethod === 'regional' && !form.regionName.trim()) {
@@ -190,7 +192,7 @@ export default function CheckoutPage() {
     }
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
-      const first = ['firstName', 'lastName', 'email', 'phone', 'address', 'city'].find((f) => errs[f]);
+      const first = ['firstName', 'lastName', 'email', 'phone', 'address', 'idNumber', 'city'].find((f) => errs[f]);
       if (first) document.getElementById(`field-${first}`)?.focus();
       return false;
     }
@@ -216,7 +218,7 @@ export default function CheckoutPage() {
             address: form.address,
             city: form.city,
             regionName: form.regionName,
-            zipCode: form.zipCode,
+            idNumber: form.idNumber,
             country: form.country,
           },
           guestEmail: form.email,
@@ -264,7 +266,7 @@ export default function CheckoutPage() {
     { field: 'phone', label: t('phone'), type: 'tel', inputMode: 'tel' as const, autoComplete: 'tel', placeholder: t('placeholderPhone') },
     { field: 'email', label: t('email'), type: 'email', inputMode: 'email' as const, autoComplete: 'email', placeholder: t('placeholderEmail') },
     { field: 'address', label: t('address'), colSpan: true, autoComplete: 'street-address' },
-    { field: 'zipCode', label: t('zipCodeOptional'), inputMode: 'numeric' as const, autoComplete: 'postal-code' },
+    { field: 'idNumber', label: t('idNumber'), inputMode: 'numeric' as const, autoComplete: 'off' },
   ];
 
   const trustItems = [
@@ -505,6 +507,15 @@ export default function CheckoutPage() {
                           {formatPrice(item.product.price * item.quantity)}
                         </span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.product.id)}
+                        aria-label={isKa ? 'წაშლა' : 'Remove'}
+                        title={isKa ? 'წაშლა' : 'Remove'}
+                        className="shrink-0 rounded-full p-1.5 text-graphite transition-colors hover:bg-error/10 hover:text-error"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
                   );
                 })}

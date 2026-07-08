@@ -15,7 +15,7 @@ export interface IUserAddress {
   address: string;
   city: string;
   regionName?: string;
-  zipCode?: string;
+  idNumber?: string;
   country: string;
 }
 
@@ -55,7 +55,7 @@ const UserSchema = new Schema<IUser>(
         address: String,
         city: String,
         regionName: String,
-        zipCode: String,
+        idNumber: String,
         country: String,
       },
       required: false,

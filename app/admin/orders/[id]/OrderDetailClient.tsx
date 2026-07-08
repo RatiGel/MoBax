@@ -41,7 +41,7 @@ interface AdminOrderDetail {
     lastName: string;
     address: string;
     city: string;
-    zipCode: string;
+    idNumber: string;
     country: string;
     phone: string;
   };
@@ -232,9 +232,15 @@ export function OrderDetailClient({ id }: { id: string }) {
                 <div className="text-neutral-600 dark:text-neutral-300">
                   {addr.address}
                   <br />
-                  {addr.city}, {addr.zipCode}
+                  {addr.city}
                   <br />
                   {addr.country}
+                  {addr.idNumber ? (
+                    <>
+                      <br />
+                      ID/Passport: {addr.idNumber}
+                    </>
+                  ) : null}
                 </div>
               </div>
               <div>

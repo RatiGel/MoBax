@@ -12,7 +12,7 @@ export function Footer() {
     { slug: 'headphones-speakers', nameEn: 'Headphones', nameKa: 'ყურსასმენები' },
     { slug: 'car-accessories', nameEn: 'Car Accessories', nameKa: 'ავტო აქსესუარები' },
     { slug: 'computer-accessories', nameEn: 'Computer', nameKa: 'კომპიუტერი' },
-    { slug: 'original', nameEn: '100% Original', nameKa: '100% ორიგინალი' },
+    { slug: 'original', nameEn: 'Genuine Products', nameKa: 'ორიგინალი პროდუქცია' },
   ];
 
   return (

@@ -14,13 +14,13 @@ type Address = {
   address: string;
   city: string;
   regionName: string;
-  zipCode: string;
+  idNumber: string;
   country: string;
 };
 
 const EMPTY_ADDRESS: Address = {
   firstName: '', lastName: '', phone: '', address: '',
-  city: '', regionName: '', zipCode: '', country: 'Georgia',
+  city: '', regionName: '', idNumber: '', country: 'Georgia',
 };
 
 export default function ProfilePage() {
@@ -145,7 +145,7 @@ export default function ProfilePage() {
           {field('a-address', t('address'), addr.address, (v) => updateAddr('address', v))}
           <div className="grid gap-4 sm:grid-cols-3">
             {field('a-region', t('regionName'), addr.regionName, (v) => updateAddr('regionName', v))}
-            {field('a-zip', t('zipCode'), addr.zipCode, (v) => updateAddr('zipCode', v))}
+            {field('a-idNumber', t('idNumber'), addr.idNumber, (v) => updateAddr('idNumber', v))}
             {field('a-country', t('country'), addr.country, (v) => updateAddr('country', v))}
           </div>
         </div>

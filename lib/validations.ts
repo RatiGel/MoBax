@@ -21,7 +21,8 @@ export const OrderAddressSchema = z.object({
   city: z.string().min(1),
   // Town/village name — required only when city is "other" (see CreateOrderSchema).
   regionName: z.string().default(''),
-  zipCode: z.string().default(''),
+  // National ID or passport number — required for delivery/customs & invoicing.
+  idNumber: z.string().min(1),
   country: z.string().min(1),
 });
 
@@ -34,7 +35,7 @@ export const ProfileAddressSchema = z.object({
   address: z.string().min(1),
   city: z.string().min(1),
   regionName: z.string().default(''),
-  zipCode: z.string().default(''),
+  idNumber: z.string().default(''),
   country: z.string().min(1),
 });
 

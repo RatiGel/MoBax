@@ -49,7 +49,7 @@ export interface IOrder extends Document {
     address: string;
     city: string;
     regionName?: string;
-    zipCode: string;
+    idNumber: string;
     country: string;
     phone: string;
   };
@@ -102,7 +102,7 @@ const OrderSchema = new Schema<IOrder>(
       address: String,
       city: String,
       regionName: String,
-      zipCode: String,
+      idNumber: String,
       country: String,
       phone: String,
     },

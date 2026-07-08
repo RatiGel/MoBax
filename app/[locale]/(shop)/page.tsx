@@ -47,7 +47,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
             <div className="animate-fade-up">
               <span className="inline-flex items-center gap-2 rounded-full border border-border-light dark:border-border-dark px-3.5 py-1.5 text-xs font-medium text-graphite">
                 <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
-                {locale === 'ka' ? '100% ორიგინალი · თბილისი' : '100% Original · Tbilisi'}
+                {locale === 'ka' ? '5+ წლიანი გამოცდილება' : '5+ Years of Experience'}
               </span>
               <h1 className="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-semibold text-ink dark:text-white leading-[1.04] tracking-display">
                 {t('heroTitle')}

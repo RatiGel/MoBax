@@ -170,7 +170,7 @@ async function seed() {
         lastName: customer.lastName,
         address: `${10 + i} Rustaveli Ave`,
         city: cities[i % cities.length],
-        zipCode: `01${(i % 90) + 10}`,
+        idNumber: `0100${(10000000 + i).toString()}`,
         country: 'Georgia',
         phone: `+9955${(550000000 + i).toString()}`,
       },
