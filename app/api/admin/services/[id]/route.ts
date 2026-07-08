@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
+import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
-import { ok, fail } from '@/lib/api';
+import { ok, fail, notFound } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
 import { UpdateServiceSchema } from '@/lib/validations';
 import Service from '@/models/Service';
@@ -10,9 +11,14 @@ export const dynamic = 'force-dynamic';
 
 type Params = { params: { id: string } };
 
+function isValidId(id: string) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
 async function update(req: NextRequest, { params }: Params) {
   const session = await requireAdmin({ module: 'content' });
   await connectDB();
+  if (!isValidId(params.id)) return notFound('Service not found');
   const json = await req.json();
   const parsed = UpdateServiceSchema.safeParse(json);
   if (!parsed.success) {
@@ -23,8 +29,10 @@ async function update(req: NextRequest, { params }: Params) {
     { $set: parsed.data },
     { new: true, runValidators: true }
   ).lean();
-  if (!updated) return fail('Service not found', 404);
-  await logActivity(session, 'service.update', 'Service', params.id, {});
+  if (!updated) return notFound('Service not found');
+  await logActivity(session, 'service.update', 'Service', params.id, {
+    fields: Object.keys(parsed.data),
+  });
   return ok(updated);
 }
 
@@ -52,8 +60,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const session = await requireAdmin({ module: 'content' });
     await connectDB();
+    if (!isValidId(params.id)) return notFound('Service not found');
     const deleted = await Service.findByIdAndDelete(params.id).lean();
-    if (!deleted) return fail('Service not found', 404);
+    if (!deleted) return notFound('Service not found');
     await logActivity(session, 'service.delete', 'Service', params.id, {});
     return ok({ id: params.id });
   } catch (err) {
