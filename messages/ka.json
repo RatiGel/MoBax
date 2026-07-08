@@ -357,5 +357,12 @@
     "you": "თქვენ",
     "supportTeam": "მხარდაჭერა",
     "loading": "იტვირთება…"
+  },
+  "services": {
+    "navLabel": "სერვისები",
+    "sectionServices": "ჩვენი სერვისები",
+    "sectionLocation": "სად გვიპოვით",
+    "getDirections": "მარშრუტის ნახვა",
+    "noServices": "სერვისები მალე დაემატება."
   }
 }

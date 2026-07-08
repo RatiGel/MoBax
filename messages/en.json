@@ -357,5 +357,12 @@
     "you": "You",
     "supportTeam": "Support",
     "loading": "Loading…"
+  },
+  "services": {
+    "navLabel": "Services",
+    "sectionServices": "Our Services",
+    "sectionLocation": "Where to find us",
+    "getDirections": "Get directions",
+    "noServices": "Services coming soon."
   }
 }
