@@ -1,4 +1,5 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server';
+import { ExternalLink } from 'lucide-react';
 import { getActiveServices, getServicePage } from '@/lib/services-data';
 
 export const dynamic = 'force-dynamic';
@@ -81,6 +82,17 @@ export default async function ServicesPage({ params: { locale } }: Props) {
               title="MoBax location"
             />
           </div>
+          {address && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 font-semibold text-cobalt hover:opacity-70 dark:text-cobalt-dark transition-opacity"
+            >
+              {t('getDirections')}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
         </section>
       )}
     </div>
