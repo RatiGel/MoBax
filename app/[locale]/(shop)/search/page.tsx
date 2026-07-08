@@ -59,37 +59,37 @@ function SearchPageInner() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8 border-b border-neutral-200 dark:border-neutral-800 pb-8">
-        <h1 className="font-display text-3xl font-bold text-neutral-950 dark:text-white">
+      <div className="mb-10 border-b border-border-light dark:border-border-dark pb-8">
+        <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white">
           {t('title')}
         </h1>
         {query && (
-          <p className="text-sm text-neutral-500 mt-1">{t('resultsFor', { query })}</p>
+          <p className="text-sm text-graphite mt-1.5">{t('resultsFor', { query })}</p>
         )}
       </div>
 
       {!query ? (
-        <div className="py-24 text-center text-neutral-400">
+        <div className="py-24 text-center text-graphite">
           <Search className="mx-auto mb-4 h-10 w-10" />
           <p className="text-sm">{t('prompt')}</p>
         </div>
       ) : loading ? (
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="aspect-square bg-neutral-100 dark:bg-neutral-900" />
-              <div className="mt-4 h-3 w-2/3 bg-neutral-100 dark:bg-neutral-900" />
-              <div className="mt-2 h-3 w-1/3 bg-neutral-100 dark:bg-neutral-900" />
+              <div className="aspect-square rounded-2xl bg-cloud-light dark:bg-cloud-dark" />
+              <div className="mt-4 h-3 w-2/3 rounded bg-cloud-light dark:bg-cloud-dark" />
+              <div className="mt-2 h-3 w-1/3 rounded bg-cloud-light dark:bg-cloud-dark" />
             </div>
           ))}
         </div>
       ) : results.length === 0 ? (
         <div className="py-24 text-center">
           <p className="mb-6 text-5xl">🔍</p>
-          <p className="font-medium text-neutral-700 dark:text-neutral-300">{t('noResults')}</p>
+          <p className="font-medium text-graphite">{t('noResults')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
           {results.map((p) => {
             const name = locale === 'ka' ? p.nameKa : p.nameEn;
             return (
@@ -98,22 +98,22 @@ function SearchPageInner() {
                 href={`/${locale}/products/${p.slug}`}
                 className="group block"
               >
-                <div className="relative aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+                <div className="relative aspect-square overflow-hidden rounded-2xl bg-cloud-light dark:bg-cloud-dark transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-ink/5">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.image}
                     alt={name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                   />
                 </div>
-                <div className="pt-4 pb-5">
-                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-neutral-400">
+                <div className="pt-3.5 pb-5 px-0.5">
+                  <p className="mb-1 text-[11px] font-medium tracking-wide text-graphite">
                     {p.brand}
                   </p>
-                  <h3 className="mb-2.5 line-clamp-2 text-sm font-medium leading-5 text-primary dark:text-neutral-100">
+                  <h3 className="mb-2 line-clamp-2 text-sm font-medium leading-snug text-ink dark:text-neutral-100">
                     {name}
                   </h3>
-                  <span className="text-base font-bold text-accent">{formatPrice(p.price)}</span>
+                  <span className="text-base font-semibold text-ink dark:text-white tabular-nums">{formatPrice(p.price)}</span>
                 </div>
               </Link>
             );

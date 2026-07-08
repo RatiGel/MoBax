@@ -4,7 +4,9 @@ import { getToken } from 'next-auth/jwt';
 const locales = ['en', 'ka'];
 const defaultLocale = 'ka';
 
-const protectedPaths = ['/checkout', '/account'];
+// Checkout supports guest orders (login is a nudge, not a gate), so it is NOT
+// protected — only account pages require a session.
+const protectedPaths = ['/account'];
 
 const ADMIN_ROLES = ['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR'];
 
@@ -39,7 +41,6 @@ export async function middleware(req: NextRequest) {
 
     const token = await getAuthToken(req);
     const role = token?.role as string | undefined;
-    console.log('[mw/admin]', { path: pathname, hasToken: !!token, role, email: token?.email, keys: token ? Object.keys(token) : [] });
     if (!token || !role || !ADMIN_ROLES.includes(role)) {
       const loginUrl = new URL('/en/login', req.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
@@ -74,6 +75,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
   }
+
+  // Expose the current pathname so the root layout can set <html lang>
+  // server-side (no client flash of the wrong locale's font).
+  const res = NextResponse.next();
+  res.headers.set('x-pathname', pathname);
+  return res;
 }
 
 export const config = {

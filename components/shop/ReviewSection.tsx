@@ -82,15 +82,15 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
   }
 
   return (
-    <section className="mt-24 pt-12 border-t border-neutral-200 dark:border-neutral-800">
+    <section className="mt-24 pt-12 border-t border-border-light dark:border-border-dark">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-10">
-        <h2 className="font-display text-2xl font-bold text-neutral-950 dark:text-white">
+        <h2 className="font-display font-semibold tracking-display text-2xl text-ink dark:text-white">
           {t('title')}
         </h2>
         {data.count > 0 && (
           <div className="flex items-center gap-3">
             <StarRating rating={data.averageRating} reviewCount={data.count} />
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-graphite">
               {t('basedOn', { count: data.count })}
             </span>
           </div>
@@ -101,30 +101,30 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
         {/* ── Reviews list ── */}
         <div>
           {data.reviews.length === 0 ? (
-            <p className="text-sm text-neutral-500">{t('noReviews')}</p>
+            <p className="text-sm text-graphite">{t('noReviews')}</p>
           ) : (
-            <ul className="space-y-6">
+            <ul className="space-y-4">
               {data.reviews.map((r) => (
                 <li
                   key={r._id}
-                  className="border-b border-neutral-100 dark:border-neutral-800 pb-6 last:border-0"
+                  className="rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-5"
                 >
                   <div className="mb-1.5 flex items-center gap-2">
                     <StarRating rating={r.rating} size="sm" />
                     {r.isVerifiedPurchase && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-success">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
                         <BadgeCheck className="h-3.5 w-3.5" />
                         {t('verified')}
                       </span>
                     )}
                   </div>
-                  <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  <p className="text-sm font-semibold text-ink dark:text-neutral-100">
                     {r.title}
                   </p>
-                  <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <p className="mt-1 text-sm text-graphite leading-relaxed">
                     {r.body}
                   </p>
-                  <p className="mt-2 text-xs text-neutral-400">
+                  <p className="mt-2 text-xs text-graphite/70">
                     {r.userName} ·{' '}
                     {new Date(r.createdAt).toLocaleDateString(locale === 'ka' ? 'ka-GE' : 'en-GB')}
                   </p>
@@ -136,25 +136,25 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
 
         {/* ── Write a review ── */}
         <div>
-          <h3 className="mb-5 text-[11px] font-bold uppercase tracking-[0.15em] text-neutral-900 dark:text-neutral-100">
+          <h3 className="mb-5 font-display font-semibold text-lg text-ink dark:text-white">
             {t('writeReview')}
           </h3>
 
           {status !== 'authenticated' ? (
-            <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-6 text-center">
-              <p className="mb-4 text-sm text-neutral-500">{t('loginPrompt')}</p>
-              <Button asChild variant="outline" size="sm">
+            <div className="rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6 text-center">
+              <p className="mb-4 text-sm text-graphite">{t('loginPrompt')}</p>
+              <Button asChild variant="outline" size="sm" className="rounded-full">
                 <Link href={`/${locale}/login`}>{t('signIn')}</Link>
               </Button>
             </div>
           ) : submitted ? (
-            <div className="rounded-lg border border-success/40 bg-success/5 p-6 text-sm text-neutral-700 dark:text-neutral-300">
+            <div className="rounded-2xl border border-success/40 bg-success/5 p-6 text-sm text-ink dark:text-neutral-300">
               {t('pendingNotice')}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <Label className="mb-2 block">{t('ratingLabel')}</Label>
+                <Label className="mb-2 block text-graphite">{t('ratingLabel')}</Label>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
                     <button
@@ -168,8 +168,8 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
                       <Star
                         className={
                           n <= (hover || rating)
-                            ? 'h-6 w-6 fill-accent text-accent'
-                            : 'h-6 w-6 text-neutral-300'
+                            ? 'h-6 w-6 fill-ink text-ink dark:fill-white dark:text-white'
+                            : 'h-6 w-6 text-border-light dark:text-border-dark'
                         }
                       />
                     </button>
@@ -178,7 +178,7 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
               </div>
 
               <div>
-                <Label htmlFor="review-title" className="mb-2 block">
+                <Label htmlFor="review-title" className="mb-2 block text-graphite">
                   {t('reviewTitle')}
                 </Label>
                 <Input
@@ -188,11 +188,12 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
                   placeholder={t('reviewTitlePlaceholder')}
                   maxLength={160}
                   required
+                  className="rounded-xl"
                 />
               </div>
 
               <div>
-                <Label htmlFor="review-body" className="mb-2 block">
+                <Label htmlFor="review-body" className="mb-2 block text-graphite">
                   {t('reviewBody')}
                 </Label>
                 <Textarea
@@ -203,12 +204,13 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
                   rows={4}
                   maxLength={5000}
                   required
+                  className="rounded-xl"
                 />
               </div>
 
               {error && <p className="text-sm text-error">{error}</p>}
 
-              <Button type="submit" disabled={submitting || !title.trim() || !body.trim()}>
+              <Button type="submit" className="rounded-full font-semibold" disabled={submitting || !title.trim() || !body.trim()}>
                 {submitting ? t('submitting') : t('submit')}
               </Button>
             </form>

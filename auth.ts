@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import { LoginSchema } from '@/lib/validations';
+import { OWNER_EMAIL } from '@/lib/rbac';
 
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
@@ -76,6 +77,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+      }
+      // Owner email is always SUPER_ADMIN, regardless of stored DB role.
+      if (token.email?.toLowerCase() === OWNER_EMAIL) {
+        token.role = 'SUPER_ADMIN';
       }
       return token;
     },

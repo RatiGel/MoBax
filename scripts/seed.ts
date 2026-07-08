@@ -13,6 +13,8 @@ import Product from '../models/Product';
 import User from '../models/User';
 import Order, { type OrderStatus, type PaymentStatus } from '../models/Order';
 import Discount from '../models/Discount';
+import Service from '../models/Service';
+import ServicePage from '../models/ServicePage';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
@@ -170,7 +172,7 @@ async function seed() {
         lastName: customer.lastName,
         address: `${10 + i} Rustaveli Ave`,
         city: cities[i % cities.length],
-        zipCode: `01${(i % 90) + 10}`,
+        idNumber: `0100${(10000000 + i).toString()}`,
         country: 'Georgia',
         phone: `+9955${(550000000 + i).toString()}`,
       },
@@ -190,6 +192,49 @@ async function seed() {
     { code: 'EXPIRED5', type: 'fixed', value: 5, minOrderAmount: 0, usageCount: 12, expiresAt: daysAgo(10), isActive: false },
   ]);
   console.log('Seeded 4 discount codes');
+
+  // --- Services ---
+  await Service.deleteMany({});
+  await Service.insertMany([
+    {
+      titleEn: 'Applying Screen Films',
+      titleKa: 'ეკრანის ფილმის დაფენა',
+      descriptionEn: 'Professional application of protective screen film with a bubble-free, precise fit for your device.',
+      descriptionKa: 'დამცავი ეკრანის ფილმის პროფესიონალური დაფენა — უბუშტო, ზუსტი მორგება თქვენი მოწყობილობისთვის.',
+      image: '',
+      order: 0,
+      isActive: true,
+    },
+    {
+      titleEn: 'Applying Leather Films',
+      titleKa: 'ტყავის ფილმის დაფენა',
+      descriptionEn: 'Premium leather-texture back film applied by hand for a refined grip and scratch protection.',
+      descriptionKa: 'პრემიუმ ტყავის ტექსტურის ზურგის ფილმა, ხელით დაფენილი — დახვეწილი შეხება და ნაკაწრებისგან დაცვა.',
+      image: '',
+      order: 1,
+      isActive: true,
+    },
+  ]);
+
+  // --- Service page content ---
+  await ServicePage.findOneAndUpdate(
+    { key: 'services' },
+    {
+      $set: {
+        key: 'services',
+        headingEn: 'Invisible protection for your beloved device',
+        headingKa: 'უხილავი დაცვა თქვენი საყვარელი მოწყობილობისთვის',
+        introEn: 'Bring your device to MoBax and let our specialists apply premium protective films while you wait.',
+        introKa: 'მოიტანეთ თქვენი მოწყობილობა MoBax-ში და ჩვენი სპეციალისტები დააფენენ პრემიუმ დამცავ ფილმებს ლოდინის გარეშე.',
+        mapEmbedUrl:
+          'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2409.147724542609!2d44.815260175260974!3d41.792993271251156!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40446d0060083acf%3A0x7925389d80f40bdd!2sMOBAX%20-%20phone%20accessories!5e1!3m2!1sen!2sge!4v1783496076755!5m2!1sen!2sge',
+        addressEn: 'MOBAX — phone accessories, Tbilisi',
+        addressKa: 'MOBAX — ტელეფონის აქსესუარები, თბილისი',
+      },
+    },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+  console.log('Seeded services + service page');
 
   await mongoose.disconnect();
   console.log('\n✅ Seed complete.\n   Super admin: admin@mobax.ge / Admin1234');

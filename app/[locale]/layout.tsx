@@ -8,6 +8,8 @@ import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/shop/CartDrawer';
 import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
+import { HtmlLang } from '@/components/HtmlLang';
+import { getStoreTheme, themeOverrideCss } from '@/lib/theme';
 
 const locales = ['en', 'ka'];
 
@@ -32,12 +34,24 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
 
   const messages = await getMessages();
 
+  // Live store theme — admin-controlled colors + branding. The override block
+  // recolors the brand CSS vars; branding flows to the Navbar as props.
+  const theme = await getStoreTheme();
+  const overrideCss = themeOverrideCss(theme);
+  const branding = {
+    storeName: theme.storeName,
+    logoUrl: theme.logoUrl,
+    announcement: theme.announcement,
+  };
+
   return (
     <SessionProvider>
+      <HtmlLang locale={locale} />
+      {overrideCss && <style id="store-theme" dangerouslySetInnerHTML={{ __html: overrideCss }} />}
       <NextIntlClientProvider locale={locale} messages={messages}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="flex min-h-screen flex-col">
-            <Navbar />
+            <Navbar branding={branding} />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>

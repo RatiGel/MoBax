@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @font-face {
   font-family: 'BPG Nino Mtavruli';
@@ -30,15 +30,25 @@
     --surface: #FFFFFF;
     --cloud: #F1F1EF;        /* raised surface */
     --graphite: #6B6B70;     /* secondary text */
-    --cobalt: #2E5BFF;       /* the one accent */
-    --cobalt-soft: #EAF0FF;  /* accent tint */
-    /* legacy tokens kept for admin panel compatibility */
-    --primary: #1E2D5A;
-    --accent: #2E5BFF;
     --text-secondary: #6B6B70;
     --border: #E8E8E5;
     --success: #16A34A;
     --error: #E5484D;
+
+    /* Brand tokens are admin-controllable. Stored as space-separated RGB
+       CHANNELS so Tailwind opacity modifiers (bg-cobalt/10) work via
+       rgb(var(--x) / <alpha-value>). The storefront layout injects an
+       override block from the saved Theme setting (see lib/theme.ts).
+       Variant shades (dark/soft/light) derive from the two base hues. */
+    --cobalt: 46 91 255;          /* #2E5BFF — the one accent */
+    --cobalt-dark: 92 124 255;    /* #5C7CFF */
+    --cobalt-soft: 234 240 255;   /* #EAF0FF — accent tint */
+    --primary: 30 45 90;          /* #1E2D5A */
+    --primary-dark: 22 34 71;     /* #162247 */
+    --primary-light: 42 63 122;   /* #2A3F7A */
+    --accent: 46 91 255;          /* mirrors cobalt by default */
+    --accent-dark: 92 124 255;
+    --accent-light: 234 240 255;
   }
 
   .dark {
@@ -47,14 +57,21 @@
     --surface: #141416;
     --cloud: #1C1C1F;
     --graphite: #97979E;
-    --cobalt: #5C7CFF;       /* lifted for dark contrast */
-    --cobalt-soft: #16213F;
-    --primary: #1E2D5A;
-    --accent: #5C7CFF;
     --text-secondary: #97979E;
     --border: #262629;
     --success: #30A46C;
     --error: #FF6369;
+
+    /* Brand tokens lifted for dark contrast. Override block re-derives these. */
+    --cobalt: 92 124 255;         /* #5C7CFF */
+    --cobalt-dark: 92 124 255;
+    --cobalt-soft: 22 33 63;      /* #16213F */
+    --primary: 30 45 90;
+    --primary-dark: 22 34 71;
+    --primary-light: 42 63 122;
+    --accent: 92 124 255;
+    --accent-dark: 92 124 255;
+    --accent-light: 234 240 255;
   }
 
   * {
@@ -75,7 +92,7 @@
 
   /* keyboard focus — cobalt ring, never removed silently */
   :focus-visible {
-    outline: 2px solid var(--cobalt);
+    outline: 2px solid rgb(var(--cobalt));
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -98,6 +115,17 @@
 
 .font-georgian {
   font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
+}
+
+/* English: Inter everywhere, including display headings (overrides Space Grotesk) */
+[lang='en'],
+[lang='en'] body,
+[lang='en'] h1,
+[lang='en'] h2,
+[lang='en'] h3,
+[lang='en'] h4,
+[lang='en'] .font-display {
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 [lang='ka'] {

@@ -11,27 +11,41 @@ import {
   Settings,
   UserCog,
   Star,
+  MessageSquare,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
+
+/** Section a nav item belongs to — drives the grouped sidebar layout. */
+export type NavGroup = 'Overview' | 'Catalog' | 'Sales' | 'Storefront' | 'Admin';
+
+export const NAV_GROUP_ORDER: NavGroup[] = ['Overview', 'Catalog', 'Sales', 'Storefront', 'Admin'];
 
 export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
   module: AdminModule;
+  group: NavGroup;
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, module: 'analytics' },
-  { label: 'Products', href: '/admin/products', icon: Package, module: 'products' },
-  { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'products' },
-  { label: 'Categories', href: '/admin/categories', icon: FolderTree, module: 'categories' },
-  { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'categories' },
-  { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders' },
-  { label: 'Customers', href: '/admin/customers', icon: Users, module: 'customers' },
-  { label: 'Pricing & Promotions', href: '/admin/pricing', icon: Tag, module: 'pricing' },
-  { label: 'Theme', href: '/admin/theme', icon: Palette, module: 'theme' },
-  { label: 'Content', href: '/admin/content', icon: FileText, module: 'content' },
-  { label: 'Team', href: '/admin/team', icon: UserCog, module: 'team' },
-  { label: 'Settings', href: '/admin/settings', icon: Settings, module: 'settings' },
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, module: 'analytics', group: 'Overview' },
+
+  { label: 'Products', href: '/admin/products', icon: Package, module: 'products', group: 'Catalog' },
+  { label: 'Categories', href: '/admin/categories', icon: FolderTree, module: 'categories', group: 'Catalog' },
+  { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'categories', group: 'Catalog' },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'products', group: 'Catalog' },
+
+  { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders', group: 'Sales' },
+  { label: 'Customers', href: '/admin/customers', icon: Users, module: 'customers', group: 'Sales' },
+  { label: 'Messages', href: '/admin/messages', icon: MessageSquare, module: 'support', group: 'Sales' },
+  { label: 'Pricing & Promotions', href: '/admin/pricing', icon: Tag, module: 'pricing', group: 'Sales' },
+
+  { label: 'Theme', href: '/admin/theme', icon: Palette, module: 'theme', group: 'Storefront' },
+  { label: 'Content', href: '/admin/content', icon: FileText, module: 'content', group: 'Storefront' },
+  { label: 'Services', href: '/admin/services', icon: Wrench, module: 'content', group: 'Storefront' },
+
+  { label: 'Team', href: '/admin/team', icon: UserCog, module: 'team', group: 'Admin' },
+  { label: 'Settings', href: '/admin/settings', icon: Settings, module: 'settings', group: 'Admin' },
 ];

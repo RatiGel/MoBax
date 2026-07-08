@@ -19,9 +19,41 @@ export const OrderAddressSchema = z.object({
   phone: z.string().min(1),
   address: z.string().min(1),
   city: z.string().min(1),
-  zipCode: z.string().default(''),
+  // Town/village name — required only when city is "other" (see CreateOrderSchema).
+  regionName: z.string().default(''),
+  // National ID or passport number — required for delivery/customs & invoicing.
+  idNumber: z.string().min(1),
   country: z.string().min(1),
 });
+
+// Profile saved address — same shape as OrderAddressSchema minus email.
+// Optional fields use .default('') so a partially-filled address still saves.
+export const ProfileAddressSchema = z.object({
+  firstName: z.string().min(1).max(50),
+  lastName: z.string().min(1).max(50),
+  phone: z.string().min(1),
+  address: z.string().min(1),
+  city: z.string().min(1),
+  regionName: z.string().default(''),
+  idNumber: z.string().default(''),
+  country: z.string().min(1),
+});
+
+export const UpdateProfileSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  // null clears the saved address; omitted leaves it unchanged (handled in route).
+  address: ProfileAddressSchema.nullable().optional(),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export type ProfileAddress = z.infer<typeof ProfileAddressSchema>;
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 
 export const CreateOrderSchema = z.object({
   items: z.array(
@@ -33,6 +65,17 @@ export const CreateOrderSchema = z.object({
   address: OrderAddressSchema,
   guestEmail: z.string().email().optional(),
   paymentMethod: z.enum(['FLITT']).default('FLITT'),
+  deliveryMethod: z.enum(['pickup', 'instant', 'nextday', 'regional']),
+}).superRefine((data, ctx) => {
+  // "Other region" has no fixed town in the dropdown — require the buyer to name
+  // it so the courier can actually deliver. Only matters for regional delivery.
+  if (data.deliveryMethod === 'regional' && data.address.city === 'other' && !data.address.regionName.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['address', 'regionName'],
+      message: 'Enter your town or village',
+    });
+  }
 });
 
 const ProductVariantSchema = z.object({
@@ -217,6 +260,43 @@ export const UpdateCustomerSchema = z.object({
 export type InviteInput = z.infer<typeof InviteSchema>;
 export type UpdateRoleInput = z.infer<typeof UpdateRoleSchema>;
 export type UpdateCustomerInput = z.infer<typeof UpdateCustomerSchema>;
+
+// --- Services (storefront services page) admin ---
+
+const MAP_EMBED_PREFIX = 'https://www.google.com/maps/embed';
+
+export const CreateServiceSchema = z.object({
+  titleEn: z.string().min(1, 'English title is required').max(160),
+  titleKa: z.string().min(1, 'Georgian title is required').max(160),
+  descriptionEn: z.string().max(5000).default(''),
+  descriptionKa: z.string().max(5000).default(''),
+  image: z.string().url('Image must be a valid URL').or(z.literal('')).default(''),
+  order: z.coerce.number().int().default(0),
+  isActive: z.boolean().default(true),
+});
+
+// All fields optional on update; same constraints when present.
+export const UpdateServiceSchema = CreateServiceSchema.partial();
+
+export const UpdateServicePageSchema = z.object({
+  headingEn: z.string().max(300).default(''),
+  headingKa: z.string().max(300).default(''),
+  introEn: z.string().max(2000).default(''),
+  introKa: z.string().max(2000).default(''),
+  mapEmbedUrl: z
+    .string()
+    .refine(
+      (v) => v === '' || v.startsWith(MAP_EMBED_PREFIX),
+      'Must be a Google Maps embed URL (https://www.google.com/maps/embed...)'
+    )
+    .default(''),
+  addressEn: z.string().max(500).default(''),
+  addressKa: z.string().max(500).default(''),
+});
+
+export type CreateServiceInput = z.infer<typeof CreateServiceSchema>;
+export type UpdateServiceInput = z.infer<typeof UpdateServiceSchema>;
+export type UpdateServicePageInput = z.infer<typeof UpdateServicePageSchema>;
 
 export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof UpdateCategorySchema>;

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import { useSession, signOut } from 'next-auth/react';
-import { User, LayoutDashboard, LogOut } from 'lucide-react';
+import { User, LayoutDashboard, LogOut, Package, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -32,7 +32,7 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
       <Link
         href={`/${locale}/login`}
         onClick={onNavigate}
-        className="h-10 w-10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
+        className="h-10 w-10 flex items-center justify-center text-ink/70 hover:text-cobalt dark:text-white/80 dark:hover:text-white transition-colors"
         aria-label={ka ? 'შესვლა' : 'Log in'}
       >
         <User className="h-5 w-5" />
@@ -70,6 +70,26 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
           <span className="truncate font-medium">{name || (ka ? 'ანგარიში' : 'Account')}</span>
           {email && <span className="truncate text-xs font-normal text-neutral-500">{email}</span>}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem asChild>
+          <Link href={`/${locale}/account`} onClick={onNavigate} className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            {ka ? 'ჩემი პროფილი' : 'My profile'}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/${locale}/account/orders`} onClick={onNavigate} className="cursor-pointer">
+            <Package className="mr-2 h-4 w-4" />
+            {ka ? 'შეკვეთები' : 'Orders'}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/${locale}/account/messages`} onClick={onNavigate} className="cursor-pointer">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            {ka ? 'შეტყობინებები' : 'Messages'}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
 
         {showAdmin && (

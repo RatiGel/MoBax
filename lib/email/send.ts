@@ -1,16 +1,22 @@
 import type { ReactElement } from 'react';
-import { Resend } from 'resend';
+import nodemailer, { type Transporter } from 'nodemailer';
+import { render } from '@react-email/components';
 
 /**
- * Lazily instantiated Resend client. We avoid creating it at module load so a
- * missing API key never crashes imports; the client is only built once a key is
- * present.
+ * Lazily built Gmail SMTP transport. Created once, on first send, so a missing
+ * credential never crashes imports. Gmail authenticates with an app password
+ * (not the account password) — spaces in the 16-char code are stripped.
  */
-let client: Resend | null = null;
+let transporter: Transporter | null = null;
 
-function getClient(apiKey: string): Resend {
-  if (!client) client = new Resend(apiKey);
-  return client;
+function getTransport(user: string, pass: string): Transporter {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass: pass.replace(/\s+/g, '') },
+    });
+  }
+  return transporter;
 }
 
 interface SendEmailArgs {
@@ -20,28 +26,29 @@ interface SendEmailArgs {
 }
 
 /**
- * Fire-and-forget email send. Mirrors the safety of {@link logActivity}: a
- * missing RESEND_API_KEY or a send failure logs a warning and NO-OPS — sending
- * email must never throw into (and break) the flow it is attached to.
+ * Fire-and-forget email send over Gmail SMTP. Sending must never throw into (and
+ * break) the flow it is attached to: a missing GMAIL_USER/GMAIL_APP_PASSWORD or
+ * a transport failure logs a warning and NO-OPS.
  */
 export async function sendEmail({ to, subject, react }: SendEmailArgs): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn(
-      `[email] RESEND_API_KEY not set — skipping email "${subject}" to ${
-        Array.isArray(to) ? to.join(', ') : to
-      }`
-    );
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  const recipients = Array.isArray(to) ? to.join(', ') : to;
+
+  if (!user || !pass) {
+    console.warn(`[email] GMAIL_USER/GMAIL_APP_PASSWORD not set — skipping "${subject}" to ${recipients}`);
     return;
   }
 
-  const from = process.env.EMAIL_FROM || 'MoBax <noreply@mobax.ge>';
+  // Gmail rewrites the envelope sender to the authenticated account, so From
+  // should be that same address (falls back to it if EMAIL_FROM is unset).
+  const from = process.env.EMAIL_FROM || `MoBax <${user}>`;
 
   try {
-    const { error } = await getClient(apiKey).emails.send({ from, to, subject, react });
-    if (error) {
-      console.error(`[email] Resend returned an error for "${subject}":`, error);
-    }
+    // Render the react-email component to HTML + a plaintext fallback.
+    const html = await render(react);
+    const text = await render(react, { plainText: true });
+    await getTransport(user, pass).sendMail({ from, to, subject, html, text });
   } catch (err) {
     console.error(`[email] failed to send "${subject}":`, err);
   }

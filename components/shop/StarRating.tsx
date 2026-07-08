@@ -18,15 +18,15 @@ export function StarRating({ rating, reviewCount, size = 'md' }: StarRatingProps
           key={star}
           className={cn(
             iconClass,
-            star <= Math.round(rating) ? 'fill-accent text-accent' : 'text-neutral-300'
+            star <= Math.round(rating) ? 'fill-ink text-ink dark:fill-white dark:text-white' : 'text-border-light dark:text-border-dark'
           )}
         />
       ))}
-      <span className={cn('font-medium text-neutral-700 dark:text-neutral-300', size === 'sm' ? 'text-xs' : 'text-sm')}>
+      <span className={cn('font-medium text-ink dark:text-neutral-200', size === 'sm' ? 'text-xs' : 'text-sm')}>
         {rating}
       </span>
       {reviewCount !== undefined && (
-        <span className={cn('text-neutral-400', size === 'sm' ? 'text-xs' : 'text-sm')}>
+        <span className={cn('text-graphite', size === 'sm' ? 'text-xs' : 'text-sm')}>
           ({reviewCount})
         </span>
       )}

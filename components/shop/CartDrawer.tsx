@@ -17,28 +17,28 @@ export function CartDrawer() {
 
   return (
     <Sheet open={isCartOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent side="right" className="flex flex-col">
+      <SheetContent side="right" className="flex flex-col bg-paper dark:bg-ink">
         <SheetHeader>
-          <SheetTitle>{t('title')}</SheetTitle>
+          <SheetTitle className="font-display font-semibold tracking-display text-ink dark:text-white">{t('title')}</SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-6">
-            <p className="text-4xl">🛒</p>
-            <p className="font-medium text-gray-700 dark:text-gray-300">{t('empty')}</p>
-            <p className="text-sm text-gray-500">{t('emptyDesc')}</p>
-            <Button variant="outline" onClick={closeCart} asChild>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-6">
+            <p className="text-5xl">🛒</p>
+            <p className="font-medium text-graphite">{t('empty')}</p>
+            <p className="text-sm text-graphite">{t('emptyDesc')}</p>
+            <Button variant="outline" className="rounded-full" onClick={closeCart} asChild>
               <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>
             </Button>
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 py-2 space-y-5">
               {items.map((item) => {
                 const name = locale === 'ka' ? item.product.nameKa : item.product.nameEn;
                 return (
-                  <div key={item.product.id} className="flex gap-3">
-                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
+                  <div key={item.product.id} className="flex gap-4">
+                    <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-border-light dark:border-border-dark bg-cloud-light dark:bg-cloud-dark">
                       <Image
                         src={item.product.images[0]}
                         alt={name}
@@ -47,21 +47,21 @@ export function CartDrawer() {
                       />
                     </div>
                     <div className="flex flex-1 flex-col">
-                      <p className="text-sm font-medium line-clamp-2 text-gray-900 dark:text-gray-100">{name}</p>
-                      <p className="text-sm font-bold text-neutral-950 dark:text-white mt-1">
+                      <p className="text-sm font-medium line-clamp-2 text-ink dark:text-white">{name}</p>
+                      <p className="text-sm font-bold text-ink dark:text-white mt-1">
                         {formatPrice(item.product.price * item.quantity)}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="rounded p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                          className="rounded-lg p-1 text-graphite hover:bg-cloud-light dark:hover:bg-cloud-dark"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
-                        <span className="text-sm w-6 text-center">{item.quantity}</span>
+                        <span className="text-sm w-6 text-center text-ink dark:text-white">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="rounded p-0.5 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                          className="rounded-lg p-1 text-graphite hover:bg-cloud-light dark:hover:bg-cloud-dark"
                         >
                           <Plus className="h-3 w-3" />
                         </button>
@@ -78,15 +78,15 @@ export function CartDrawer() {
               })}
             </div>
 
-            <div className="border-t border-neutral-200 dark:border-border-dark px-6 py-4 space-y-4">
+            <div className="border-t border-border-light dark:border-border-dark px-6 py-5 space-y-4">
               <div className="flex justify-between text-base font-semibold">
-                <span>{t('total')}</span>
-                <span className="text-neutral-950 dark:text-white font-bold">{formatPrice(total)}</span>
+                <span className="text-ink dark:text-white">{t('total')}</span>
+                <span className="text-ink dark:text-white font-bold">{formatPrice(total)}</span>
               </div>
-              <Button className="w-full" size="lg" asChild onClick={closeCart}>
+              <Button className="w-full rounded-full font-semibold" size="lg" asChild onClick={closeCart}>
                 <Link href={`/${locale}/checkout`}>{t('checkout')}</Link>
               </Button>
-              <Button variant="outline" className="w-full" onClick={closeCart} asChild>
+              <Button variant="outline" className="w-full rounded-full font-semibold" onClick={closeCart} asChild>
                 <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>
               </Button>
             </div>

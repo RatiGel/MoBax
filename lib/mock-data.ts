@@ -9,7 +9,6 @@ export type CategorySlug =
   | 'original'
   // ── phone-protection ──
   | 'screen-shields'
-  | 'protection-films'
   | 'phone-cases'
   // ── chargers ──
   | 'adapters'
@@ -111,7 +110,7 @@ export const categories: Category[] = [
   },
   {
     id: 'p6', slug: 'original',
-    nameEn: '100% Original', nameKa: '100% ორიგინალი',
+    nameEn: 'Genuine Products', nameKa: 'ორიგინალი პროდუქცია',
     icon: '✨',
     image: 'https://images.unsplash.com/photo-1606229365485-93a3b8ee0385?w=400&h=300&fit=crop',
     productCount: 20,
@@ -122,11 +121,6 @@ export const categories: Category[] = [
     id: 'c1', slug: 'screen-shields',
     nameEn: 'Screen Shields', nameKa: 'ეკრანის დამცავები',
     icon: '🪟', image: '', parentSlug: 'phone-protection', productCount: 30,
-  },
-  {
-    id: 'c2', slug: 'protection-films',
-    nameEn: 'Protection Films', nameKa: 'დამცავი ფილმები',
-    icon: '📄', image: '', parentSlug: 'phone-protection', productCount: 22,
   },
   {
     id: 'c3', slug: 'phone-cases',
@@ -762,7 +756,7 @@ export const products: Product[] = [
   // JBL (extra besides existing)
   {
     id: '24',
-    slug: 'jbl-tune-510bt',
+    slug: 'jbl-tune-510bt-classic',
     nameEn: 'JBL Tune 510BT Headphones',
     nameKa: 'JBL Tune 510BT ყურსასმენები',
     descriptionEn: 'JBL Pure Bass wireless on-ear headphones with 40 hours battery and fast charging.',

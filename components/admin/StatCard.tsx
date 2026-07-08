@@ -19,15 +19,15 @@ export function StatCard({
   accent?: boolean;
 }) {
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-sm">
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">{label}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{label}</p>
             {loading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+              <p className="text-2xl font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">
                 {value}
               </p>
             )}

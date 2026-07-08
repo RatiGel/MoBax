@@ -63,12 +63,17 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
+    <div className="rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark overflow-hidden">
+      {/* Horizontal scroll keeps wide tables usable on small screens. */}
+      <div className="overflow-x-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
+        <TableHeader className="bg-neutral-50/80 dark:bg-neutral-900/40">
+          <TableRow className="hover:bg-transparent">
             {columns.map((col) => (
-              <TableHead key={col.key} className={col.className}>
+              <TableHead
+                key={col.key}
+                className={`whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400 ${col.className ?? ''}`}
+              >
                 {col.sortable && onSortChange ? (
                   <button
                     className="inline-flex items-center gap-1 hover:text-neutral-900 dark:hover:text-neutral-100"
@@ -111,9 +116,12 @@ export function DataTable<T>({
             </TableRow>
           ) : (
             rows.map((row) => (
-              <TableRow key={rowKey(row)}>
+              <TableRow
+                key={rowKey(row)}
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition-colors"
+              >
                 {columns.map((col) => (
-                  <TableCell key={col.key} className={col.className}>
+                  <TableCell key={col.key} className={`whitespace-nowrap ${col.className ?? ''}`}>
                     {col.render(row)}
                   </TableCell>
                 ))}
@@ -122,6 +130,7 @@ export function DataTable<T>({
           )}
         </TableBody>
       </Table>
+      </div>
 
       {onPageChange && total > 0 && (
         <div className="flex items-center justify-between border-t border-border-light dark:border-border-dark px-4 py-3 text-sm">

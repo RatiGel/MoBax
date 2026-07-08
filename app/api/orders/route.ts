@@ -6,9 +6,37 @@ import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { CreateOrderSchema } from '@/lib/validations';
 import { auth } from '@/auth';
 import { initiatePayment } from '@/lib/payments';
+import { getDeliveryFee, isMethodValid } from '@/lib/shipping';
 import { sendEmail } from '@/lib/email/send';
-import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import AdminNewOrder from '@/lib/email/templates/AdminNewOrder';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'You must be signed in' }, { status: 401 });
+  }
+
+  await connectDB();
+  const orders = await Order.find({ userId: session.user.id })
+    .sort('-createdAt')
+    .select('orderNumber status paymentStatus total createdAt items')
+    .lean();
+
+  const list = orders.map((o) => ({
+    _id: String(o._id),
+    orderNumber: o.orderNumber,
+    status: o.status,
+    paymentStatus: o.paymentStatus,
+    total: o.total,
+    createdAt: o.createdAt,
+    itemCount: o.items?.length ?? 0,
+    firstImage: o.items?.[0]?.image ?? '',
+  }));
+
+  return NextResponse.json({ orders: list });
+}
 
 /**
  * Resolve the admin notification recipient: ADMIN_EMAIL env first, then the
@@ -41,7 +69,18 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const session = await auth();
-    const { items, address, guestEmail, paymentMethod } = parsed.data;
+    const { items, address, guestEmail, paymentMethod, deliveryMethod } = parsed.data;
+
+    // Re-validate the method server-side from the chosen city: instant/nextday
+    // require a Tbilisi address; regional a non-Tbilisi one; pickup only where the
+    // counter is reachable (Tbilisi/Rustavi/Mtskheta); instant also requires the
+    // 08:00–18:00 (non-Sunday) window. Never trust the client's claimed fee.
+    if (!isMethodValid(deliveryMethod, address.city, new Date())) {
+      return NextResponse.json(
+        { error: 'Selected delivery method is not available for this address.' },
+        { status: 400 }
+      );
+    }
 
     const productIds = items.map((i) => i.productId);
     const dbProducts = await Product.find({ _id: { $in: productIds }, isActive: true });
@@ -76,7 +115,11 @@ export async function POST(req: NextRequest) {
       (sum, item) => sum + item.priceSnapshot * item.quantity,
       0
     );
-    const shippingCost = subtotal >= 50 ? 0 : 5;
+    // Shipping fee is courier-collected (paid in cash on delivery), so it is
+    // recorded on the order but NOT included in the online gateway charge below.
+    // Pass subtotal so Next-Day in Tbilisi is waived above the free-shipping
+    // threshold — re-derived server-side from DB prices, never trusting the client.
+    const shippingCost = getDeliveryFee(deliveryMethod, address.city, subtotal);
     const total = subtotal + shippingCost;
 
     // Reserve stock with guarded atomic decrements (stock >= qty), so two
@@ -112,6 +155,7 @@ export async function POST(req: NextRequest) {
         paymentMethod,
         subtotal,
         shippingCost,
+        deliveryMethod,
         total,
         addressSnapshot: address,
         items: orderItems,
@@ -133,7 +177,8 @@ export async function POST(req: NextRequest) {
           method: paymentMethod,
           orderId: String(order._id),
           orderNumber: order.orderNumber,
-          amount: total,
+          // Online charge = products only; the delivery fee is paid to the courier.
+          amount: subtotal,
           successUrl: `${origin}/api/payments/success?orderId=${order._id}`,
           failUrl: `${origin}/api/payments/fail?orderId=${order._id}`,
         });
@@ -153,21 +198,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Fire-and-forget notifications. Never block or fail the order response.
+    // The customer confirmation is sent AFTER payment succeeds (see
+    // app/api/payments/success/route.ts), not here at creation — an unpaid order
+    // should not get a "confirmed" email. Admin is notified now so the team sees
+    // the incoming order immediately.
     const customerEmail = session?.user?.email || order.guestEmail || address.email;
-    const customerName = address.firstName || session?.user?.name || 'there';
-
-    if (customerEmail) {
-      void sendEmail({
-        to: customerEmail,
-        subject: `Order ${order.orderNumber} confirmed`,
-        react: OrderConfirmation({
-          orderNumber: order.orderNumber,
-          customerName,
-          items: orderItems,
-          total,
-        }),
-      });
-    }
 
     void resolveAdminEmail().then((adminEmail) => {
       if (!adminEmail) return;

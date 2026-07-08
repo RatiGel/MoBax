@@ -2,10 +2,12 @@
 
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { Package, CheckCircle2, Truck, Clock, XCircle } from 'lucide-react';
+import { useLocale } from 'next-intl';
+import { Package, CheckCircle2, Truck, Clock, XCircle, MapPin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatPrice } from '@/lib/utils';
+import { STORE_LOCATION } from '@/lib/store-location';
+import { OrderSummary } from '@/components/shop/OrderSummary';
 
 type OrderItem = {
   productId: string;
@@ -20,6 +22,7 @@ type TrackedOrder = {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  deliveryMethod?: 'pickup' | 'instant' | 'nextday' | 'regional';
   trackingNumber?: string;
   subtotal: number;
   shippingCost: number;
@@ -48,7 +51,10 @@ export default function OrderTrackingPage() {
 function OrderTrackingInner() {
   const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const isKa = locale === 'ka';
   const queryEmail = searchParams.get('email') ?? '';
+  const justPaid = searchParams.get('paid') === '1';
 
   const [email, setEmail] = useState(queryEmail);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
@@ -89,8 +95,33 @@ function OrderTrackingInner() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="font-display text-2xl font-semibold mb-1">Track your order</h1>
-      <p className="text-sm text-neutral-500 mb-8">Order #{id.slice(-8).toUpperCase()}</p>
+      {justPaid ? (
+        <div className="mb-8 flex flex-col items-center gap-3 rounded-2xl border border-success/30 bg-success/5 px-6 py-10 text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
+            <CheckCircle2 className="h-9 w-9" />
+          </span>
+          <h1 className="font-display font-semibold tracking-display text-2xl text-ink dark:text-white">
+            {isKa ? 'შეკვეთა მიღებულია' : 'Order received'}
+          </h1>
+          <p className="max-w-md text-sm text-graphite">
+            {isKa
+              ? 'თქვენი გადახდა წარმატებით დასრულდა. შეკვეთა მუშავდება — დეტალები გამოგიგზავნით ელფოსტაზე.'
+              : "Your payment went through and your order is being processed. We've emailed you the details."}
+          </p>
+          <p className="text-xs text-graphite">
+            {isKa ? 'შეკვეთა' : 'Order'} #{id.slice(-8).toUpperCase()}
+          </p>
+        </div>
+      ) : (
+        <>
+          <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-1">
+            {isKa ? 'შეკვეთის თვალყურის დევნება' : 'Track your order'}
+          </h1>
+          <p className="text-sm text-graphite mb-8">
+            {isKa ? 'შეკვეთა' : 'Order'} #{id.slice(-8).toUpperCase()}
+          </p>
+        </>
+      )}
 
       {!order && (
         <form
@@ -105,29 +136,31 @@ function OrderTrackingInner() {
             placeholder="Email used on the order"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="sm:max-w-xs"
+            className="sm:max-w-xs rounded-xl"
           />
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" className="rounded-full font-semibold" disabled={loading}>
             {loading ? 'Looking up…' : 'Find order'}
           </Button>
         </form>
       )}
 
       {tried && error && (
-        <div className="rounded-lg border border-error/30 bg-error/5 p-4 text-sm text-error">
+        <div className="rounded-xl border border-error/30 bg-error/5 p-4 text-sm text-error">
           {error}. Check the email matches the one used at checkout.
         </div>
       )}
 
       {order && (
         <div className="space-y-8">
-          {/* Status timeline */}
-          {cancelled ? (
-            <div className="flex items-center gap-3 rounded-lg border border-error/30 bg-error/5 p-4">
+          {/* Status timeline — hidden on the post-payment success view (the
+              "Order received" hero already conveys the state); shown on the
+              track-order lookup so returning buyers see progress. */}
+          {!justPaid && (cancelled ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-error/30 bg-error/5 p-4">
               <XCircle className="h-6 w-6 text-error" />
               <div>
-                <p className="font-medium">Order {order.status.toLowerCase()}</p>
-                <p className="text-sm text-neutral-500">
+                <p className="font-medium text-ink dark:text-white">Order {order.status.toLowerCase()}</p>
+                <p className="text-sm text-graphite">
                   Payment: {order.paymentStatus.toLowerCase()}
                 </p>
               </div>
@@ -142,14 +175,14 @@ function OrderTrackingInner() {
                     <span
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${
                         done
-                          ? 'bg-primary text-white dark:bg-accent dark:text-primary'
-                          : 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800'
+                          ? 'bg-cobalt text-white'
+                          : 'bg-cloud-light text-graphite dark:bg-cloud-dark'
                       }`}
                     >
                       <Icon className="h-5 w-5" />
                     </span>
                     <span
-                      className={`mt-2 text-xs ${done ? 'font-medium' : 'text-neutral-400'}`}
+                      className={`mt-2 text-xs ${done ? 'font-medium text-ink dark:text-white' : 'text-graphite'}`}
                     >
                       {step.charAt(0) + step.slice(1).toLowerCase()}
                     </span>
@@ -157,66 +190,65 @@ function OrderTrackingInner() {
                 );
               })}
             </ol>
-          )}
+          ))}
 
           {order.trackingNumber && (
-            <div className="rounded-lg border border-border-light dark:border-border-dark p-4 text-sm">
-              <span className="text-neutral-500">Tracking number: </span>
-              <span className="font-medium">{order.trackingNumber}</span>
+            <div className="rounded-2xl border border-border-light dark:border-border-dark p-4 text-sm">
+              <span className="text-graphite">Tracking number: </span>
+              <span className="font-medium text-ink dark:text-white">{order.trackingNumber}</span>
             </div>
           )}
 
-          {/* Items */}
-          <div className="rounded-lg border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark">
-            {order.items.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-4">
-                {item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-12 w-12 rounded object-cover" />
-                ) : (
-                  <span className="flex h-12 w-12 items-center justify-center rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-400">
-                    <Package className="h-5 w-5" />
-                  </span>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{item.nameSnapshot}</p>
-                  <p className="text-sm text-neutral-500">
-                    {item.quantity} × {formatPrice(item.priceSnapshot)}
-                  </p>
+          {/* Store pickup — where and when to collect, plus a map to open in Maps. */}
+          {order.deliveryMethod === 'pickup' && (
+            <div className="overflow-hidden rounded-2xl border border-border-light dark:border-border-dark">
+              <div className="flex items-start justify-between gap-3 p-5">
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                  <div>
+                    <p className="font-medium text-ink dark:text-white">
+                      {isKa ? 'აიღეთ ჩვენი მაღაზიიდან' : 'Pick up from our store'}
+                    </p>
+                    <p className="text-sm text-graphite">
+                      {isKa ? STORE_LOCATION.addressKa : STORE_LOCATION.addressEn}
+                    </p>
+                    <p className="mt-1 text-[11px] text-error">
+                      {isKa ? STORE_LOCATION.hoursKa : STORE_LOCATION.hoursEn}
+                    </p>
+                  </div>
                 </div>
-                <span className="font-medium">
-                  {formatPrice(item.priceSnapshot * item.quantity)}
-                </span>
+                <a
+                  href={STORE_LOCATION.mapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex shrink-0 items-center gap-1 text-sm font-semibold text-cobalt hover:underline dark:text-cobalt-dark"
+                >
+                  {isKa ? 'გახსენით რუკაზე' : 'Open in Maps'}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
               </div>
-            ))}
-          </div>
-
-          {/* Totals */}
-          <div className="space-y-1 text-sm">
-            <Row label="Subtotal" value={formatPrice(order.subtotal)} />
-            <Row
-              label="Shipping"
-              value={order.shippingCost === 0 ? 'Free' : formatPrice(order.shippingCost)}
-            />
-            <div className="flex justify-between border-t border-border-light dark:border-border-dark pt-2 text-base font-semibold">
-              <span>Total</span>
-              <span>{formatPrice(order.total)}</span>
+              <iframe
+                title={isKa ? 'მაღაზიის მდებარეობა' : 'Store location'}
+                src={STORE_LOCATION.embedSrc}
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                className="h-64 w-full border-0"
+              />
             </div>
-            <p className="pt-2 text-neutral-500">
-              Payment: {order.paymentMethod} · {order.paymentStatus.toLowerCase()}
-            </p>
-          </div>
+          )}
+
+          {/* Items + totals */}
+          <OrderSummary
+            items={order.items}
+            subtotal={order.subtotal}
+            shippingCost={order.shippingCost}
+            total={order.total}
+            paymentMethod={order.paymentMethod}
+            paymentStatus={order.paymentStatus}
+          />
         </div>
       )}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between text-neutral-600 dark:text-neutral-300">
-      <span>{label}</span>
-      <span>{value}</span>
     </div>
   );
 }

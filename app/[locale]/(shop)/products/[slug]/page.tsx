@@ -46,13 +46,13 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 bg-paper dark:bg-ink">
 
       {/* Breadcrumb */}
-      <div className="mb-8">
+      <div className="mb-10">
         <Link
           href={`/${locale}/products`}
-          className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-primary dark:hover:text-accent transition-colors uppercase tracking-widest font-medium"
+          className="inline-flex items-center gap-1.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors font-medium"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           {tP('title')}
@@ -63,7 +63,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
         {/* ── Image Gallery ─────────────────────────── */}
         <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-cloud-light dark:bg-cloud-dark">
             <Image
               src={product.images[selectedImage]}
               alt={name}
@@ -74,12 +74,12 @@ export default function ProductPage({ params }: ProductPageProps) {
             {/* Badges */}
             <div className="absolute left-4 top-4 flex flex-col gap-2">
               {product.isNew && (
-                <span className="bg-primary text-white text-[9px] font-bold uppercase tracking-[0.15em] px-2.5 py-1">
+                <span className="bg-cobalt text-white text-[10px] font-medium px-3 py-1 rounded-full">
                   {tP('new')}
                 </span>
               )}
               {hasDiscount && (
-                <span className="bg-error text-white text-[9px] font-bold uppercase tracking-[0.15em] px-2.5 py-1">
+                <span className="bg-cobalt text-white text-[10px] font-medium px-3 py-1 rounded-full">
                   -{discountPct}%
                 </span>
               )}
@@ -92,10 +92,10 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`relative h-20 w-20 overflow-hidden border-2 transition-all ${
+                  className={`relative h-20 w-20 overflow-hidden rounded-xl border-2 transition-all ${
                     selectedImage === i
-                      ? 'border-primary dark:border-accent'
-                      : 'border-neutral-200 dark:border-neutral-700 hover:border-primary/50'
+                      ? 'border-cobalt dark:border-cobalt-dark'
+                      : 'border-border-light dark:border-border-dark hover:border-cobalt/50'
                   }`}
                 >
                   <Image src={img} alt={`${name} ${i + 1}`} fill className="object-cover" />
@@ -108,10 +108,10 @@ export default function ProductPage({ params }: ProductPageProps) {
         {/* ── Product Info ──────────────────────────── */}
         <div className="space-y-7">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-accent mb-3">
+            <p className="text-xs font-medium text-cobalt dark:text-cobalt-dark mb-3">
               {product.brand}
             </p>
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-neutral-950 dark:text-white leading-tight">
+            <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-display text-ink dark:text-white leading-tight">
               {name}
             </h1>
             <div className="mt-4">
@@ -120,16 +120,16 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-4 py-6 border-t border-b border-neutral-100 dark:border-neutral-800">
-            <span className="text-4xl font-bold text-neutral-950 dark:text-white">
+          <div className="flex items-baseline gap-4 py-6 border-t border-b border-border-light dark:border-border-dark">
+            <span className="text-4xl font-bold text-ink dark:text-white">
               {formatPrice(product.price)}
             </span>
             {hasDiscount && (
               <>
-                <span className="text-xl text-neutral-400 line-through">
+                <span className="text-xl text-graphite line-through">
                   {formatPrice(product.originalPrice!)}
                 </span>
-                <span className="text-xs font-bold uppercase tracking-widest text-error">
+                <span className="text-sm font-semibold text-cobalt dark:text-cobalt-dark">
                   Save {discountPct}%
                 </span>
               </>
@@ -146,7 +146,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </span>
               </>
             ) : (
-              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wider">
+              <span className="text-sm font-medium text-graphite">
                 {t('outOfStock')}
               </span>
             )}

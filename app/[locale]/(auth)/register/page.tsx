@@ -78,18 +78,18 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-paper dark:bg-ink px-4 py-16">
+      <div className="w-full max-w-sm rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-8 sm:p-10 space-y-8">
         <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 dark:bg-primary">
-              <Smartphone className="h-6 w-6 text-primary dark:text-accent" />
+          <div className="flex justify-center mb-5">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cobalt/10 dark:bg-cobalt-dark/15">
+              <Smartphone className="h-6 w-6 text-cobalt dark:text-cobalt-dark" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('register')}</h1>
+          <h1 className="font-display font-semibold tracking-display text-2xl text-ink dark:text-white">{t('register')}</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {errors.general && (
             <p className="text-sm text-red-500 text-center bg-red-50 dark:bg-red-950/30 px-3 py-2 rounded">
               {errors.general}
@@ -137,7 +137,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-graphite hover:text-ink dark:hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -158,24 +158,24 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          <Button type="submit" className="w-full rounded-full font-semibold" size="lg" disabled={loading}>
             {loading ? 'Creating account…' : t('registerButton')}
           </Button>
         </form>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+            <span className="w-full border-t border-border-light dark:border-border-dark" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-950 px-2 text-gray-400">or</span>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-surface-light dark:bg-surface-dark px-3 text-graphite">or</span>
           </div>
         </div>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="w-full rounded-full font-semibold"
           size="lg"
           onClick={() => signIn('google', { callbackUrl: `/${locale}` })}
         >
@@ -200,9 +200,9 @@ export default function RegisterPage() {
           Continue with Google
         </Button>
 
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-center text-sm text-graphite">
           {t('hasAccount')}{' '}
-          <Link href={`/${locale}/login`} className="text-accent hover:underline font-medium">
+          <Link href={`/${locale}/login`} className="text-cobalt dark:text-cobalt-dark hover:underline font-medium">
             {t('login')}
           </Link>
         </p>

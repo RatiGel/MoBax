@@ -99,7 +99,7 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite" />
         <input
           type="text"
           value={query}
@@ -112,7 +112,7 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
           onKeyDown={onKeyDown}
           placeholder={t('placeholder')}
           aria-label={t('title')}
-          className="h-9 w-full rounded-full border border-white/20 bg-white/10 pl-9 pr-9 text-sm text-white placeholder:text-white/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="h-10 w-full rounded-full border border-transparent bg-cloud-light dark:bg-cloud-dark pl-10 pr-9 text-sm text-ink dark:text-white placeholder:text-graphite focus:border-cobalt focus:outline-none focus:bg-surface-light dark:focus:bg-surface-dark transition-colors"
         />
         {query && (
           <button
@@ -121,7 +121,7 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
               setQuery('');
               setResults([]);
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-graphite hover:text-ink dark:hover:text-white"
             aria-label="Clear"
           >
             <X className="h-3.5 w-3.5" />
@@ -130,13 +130,13 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       {showDropdown && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-2xl dark:border-border-dark dark:bg-surface-dark">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border-light bg-surface-light shadow-2xl shadow-ink/10 dark:border-border-dark dark:bg-surface-dark">
           {loading && results.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-neutral-400">…</p>
+            <p className="px-4 py-6 text-center text-sm text-graphite">…</p>
           ) : results.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-neutral-400">{t('noResults')}</p>
+            <p className="px-4 py-6 text-center text-sm text-graphite">{t('noResults')}</p>
           ) : (
-            <ul>
+            <ul className="p-1.5">
               {results.map((r, i) => {
                 const name = locale === 'ka' ? r.nameKa : r.nameEn;
                 return (
@@ -145,25 +145,25 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
                       type="button"
                       onMouseEnter={() => setActive(i)}
                       onClick={() => go(`/${locale}/products/${r.slug}`)}
-                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                      className={`flex w-full items-center gap-3 px-2.5 py-2.5 rounded-xl text-left transition-colors ${
                         active === i
-                          ? 'bg-neutral-100 dark:bg-primary'
-                          : 'hover:bg-neutral-50 dark:hover:bg-primary/60'
+                          ? 'bg-cobalt-soft dark:bg-cloud-dark'
+                          : 'hover:bg-cloud-light dark:hover:bg-cloud-dark'
                       }`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={r.image}
                         alt={name}
-                        className="h-10 w-10 flex-shrink-0 rounded object-cover bg-neutral-100"
+                        className="h-10 w-10 flex-shrink-0 rounded-lg object-cover bg-cloud-light dark:bg-cloud-dark"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                        <span className="block truncate text-sm font-medium text-ink dark:text-neutral-100">
                           {name}
                         </span>
-                        <span className="block text-xs text-neutral-400">{r.brand}</span>
+                        <span className="block text-xs text-graphite">{r.brand}</span>
                       </span>
-                      <span className="flex-shrink-0 text-sm font-semibold text-accent">
+                      <span className="flex-shrink-0 text-sm font-semibold text-ink dark:text-white tabular-nums">
                         {formatPrice(r.price)}
                       </span>
                     </button>
@@ -175,7 +175,7 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
           <button
             type="button"
             onClick={submit}
-            className="block w-full border-t border-neutral-100 bg-neutral-50 px-4 py-3 text-center text-xs font-semibold uppercase tracking-widest text-neutral-600 hover:text-neutral-950 dark:border-border-dark dark:bg-primary dark:text-neutral-300 dark:hover:text-white"
+            className="block w-full border-t border-border-light bg-cloud-light/50 px-4 py-3 text-center text-sm font-medium text-cobalt hover:opacity-70 dark:border-border-dark dark:bg-cloud-dark dark:text-cobalt-dark transition-opacity"
           >
             {t('seeAll')} →
           </button>
