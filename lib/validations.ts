@@ -261,6 +261,43 @@ export type InviteInput = z.infer<typeof InviteSchema>;
 export type UpdateRoleInput = z.infer<typeof UpdateRoleSchema>;
 export type UpdateCustomerInput = z.infer<typeof UpdateCustomerSchema>;
 
+// --- Services (storefront services page) admin ---
+
+const MAP_EMBED_PREFIX = 'https://www.google.com/maps/embed';
+
+export const CreateServiceSchema = z.object({
+  titleEn: z.string().min(1, 'English title is required').max(160),
+  titleKa: z.string().min(1, 'Georgian title is required').max(160),
+  descriptionEn: z.string().max(5000).default(''),
+  descriptionKa: z.string().max(5000).default(''),
+  image: z.string().url('Image must be a valid URL').or(z.literal('')).default(''),
+  order: z.coerce.number().int().default(0),
+  isActive: z.boolean().default(true),
+});
+
+// All fields optional on update; same constraints when present.
+export const UpdateServiceSchema = CreateServiceSchema.partial();
+
+export const UpdateServicePageSchema = z.object({
+  headingEn: z.string().max(300).default(''),
+  headingKa: z.string().max(300).default(''),
+  introEn: z.string().max(2000).default(''),
+  introKa: z.string().max(2000).default(''),
+  mapEmbedUrl: z
+    .string()
+    .refine(
+      (v) => v === '' || v.startsWith(MAP_EMBED_PREFIX),
+      'Must be a Google Maps embed URL (https://www.google.com/maps/embed...)'
+    )
+    .default(''),
+  addressEn: z.string().max(500).default(''),
+  addressKa: z.string().max(500).default(''),
+});
+
+export type CreateServiceInput = z.infer<typeof CreateServiceSchema>;
+export type UpdateServiceInput = z.infer<typeof UpdateServiceSchema>;
+export type UpdateServicePageInput = z.infer<typeof UpdateServicePageSchema>;
+
 export type CreateCategoryInput = z.infer<typeof CreateCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof UpdateCategorySchema>;
 export type CreateBrandInput = z.infer<typeof CreateBrandSchema>;
