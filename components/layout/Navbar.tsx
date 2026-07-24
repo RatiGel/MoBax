@@ -51,7 +51,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
 
   // Branding from the admin Theme page (falls back to the built-in MoBax brand).
   const storeName = branding?.storeName?.trim() || 'MoBax';
-  const logoUrl = branding?.logoUrl?.trim() || '';
+  const logoUrl = branding?.logoUrl?.trim() || '/images/logo.png';
   // Split the wordmark so the trailing syllable picks up the accent color
   // (e.g. "Mo" + "Bax"). Used only when no logo image is set.
   const logoHead = storeName.length > 2 ? storeName.slice(0, -3) : storeName;

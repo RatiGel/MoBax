@@ -57,7 +57,7 @@ export function Footer() {
 
           {/* Shop */}
           <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white mb-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5">
               {t('shop')}
             </h3>
             <ul className="space-y-3">
@@ -81,7 +81,7 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white mb-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5">
               {t('company')}
             </h3>
             <ul className="space-y-3">
@@ -95,7 +95,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white mb-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5">
               {locale === 'ka' ? 'კონტაქტი' : 'Contact'}
             </h3>
             <ul className="space-y-3 text-sm">

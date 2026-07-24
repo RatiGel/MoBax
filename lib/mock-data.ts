@@ -753,25 +753,6 @@ export const products: Product[] = [
     sku: 'MSH-MAJ-IV',
     specs: { Bluetooth: '5.0', Battery: '80h', 'Charging': 'Wireless' },
   },
-  // JBL (extra besides existing)
-  {
-    id: '24',
-    slug: 'jbl-tune-510bt-classic',
-    nameEn: 'JBL Tune 510BT Headphones',
-    nameKa: 'JBL Tune 510BT ყურსასმენები',
-    descriptionEn: 'JBL Pure Bass wireless on-ear headphones with 40 hours battery and fast charging.',
-    descriptionKa: 'JBL Pure Bass უსადენო ყურსასმენები 40 საათი ბატარეით.',
-    price: 49.99,
-    category: 'wireless-headphones',
-    brand: 'JBL',
-    images: ['https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=600&fit=crop'],
-    inStock: true,
-    isFeatured: true,
-    rating: 4.5,
-    reviewCount: 276,
-    sku: 'JBL-T510-BT',
-    specs: { Bluetooth: '5.0', Battery: '40h', Sound: 'Pure Bass' },
-  },
 ];
 
 // ── Brands ───────────────────────────────────────────────────

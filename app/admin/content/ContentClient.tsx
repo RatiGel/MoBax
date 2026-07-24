@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, Loader2, Save } from 'lucide-react';
+import { FileText, Plus, Trash2, Loader2, Save, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,24 @@ interface EditorSection {
   order: number;
 }
 
+// FAQ items — stored under the `faq` setting, rendered on the storefront home
+// page. Bilingual; array order is display order.
+interface FaqItem {
+  id: string;
+  questionEn: string;
+  questionKa: string;
+  answerEn: string;
+  answerKa: string;
+}
+
+function newFaqId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `faq-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  }
+}
+
 function toEditorSection(s: ApiSection): EditorSection {
   return {
     type: s.type,
@@ -81,6 +99,10 @@ export function ContentClient() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
   const [sections, setSections] = useState<EditorSection[]>([]);
+
+  const [faq, setFaq] = useState<FaqItem[]>([]);
+  const [loadingFaq, setLoadingFaq] = useState(true);
+  const [savingFaq, setSavingFaq] = useState(false);
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
@@ -108,9 +130,25 @@ export function ContentClient() {
     }
   }, []);
 
+  const loadFaq = useCallback(async () => {
+    setLoadingFaq(true);
+    try {
+      const data = await apiFetch<{ settings: Record<string, unknown> }>(
+        '/api/admin/settings'
+      );
+      const raw = data.settings?.faq;
+      setFaq(Array.isArray(raw) ? (raw as FaqItem[]) : []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to load FAQ');
+    } finally {
+      setLoadingFaq(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadList();
-  }, [loadList]);
+    loadFaq();
+  }, [loadList, loadFaq]);
 
   useEffect(() => {
     loadPage(selected);
@@ -177,6 +215,56 @@ export function ContentClient() {
       toast.error(e instanceof Error ? e.message : 'Failed to save page');
     } finally {
       setSaving(false);
+    }
+  }
+
+  function updateFaq<K extends keyof FaqItem>(index: number, key: K, val: FaqItem[K]) {
+    setFaq((prev) => prev.map((f, i) => (i === index ? { ...f, [key]: val } : f)));
+  }
+
+  function addFaq() {
+    setFaq((prev) => [
+      ...prev,
+      { id: newFaqId(), questionEn: '', questionKa: '', answerEn: '', answerKa: '' },
+    ]);
+  }
+
+  function removeFaq(index: number) {
+    setFaq((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function moveFaq(index: number, dir: -1 | 1) {
+    setFaq((prev) => {
+      const next = [...prev];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  async function handleSaveFaq() {
+    // Client-side guard: every item needs all four fields. The API re-validates.
+    for (let i = 0; i < faq.length; i++) {
+      const f = faq[i];
+      if (!f.questionEn.trim() || !f.questionKa.trim() || !f.answerEn.trim() || !f.answerKa.trim()) {
+        toast.error(`FAQ #${i + 1}: all four fields (EN/KA question & answer) are required`);
+        return;
+      }
+    }
+
+    setSavingFaq(true);
+    try {
+      await apiFetch('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({ faq }),
+      });
+      toast.success('FAQ saved');
+      loadFaq();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save FAQ');
+    } finally {
+      setSavingFaq(false);
     }
   }
 
@@ -343,6 +431,114 @@ export function ContentClient() {
       {loadingList && (
         <p className="mt-2 text-xs text-neutral-400">Loading page list…</p>
       )}
+
+      {/* ── Home FAQ manager ─────────────────────────────── */}
+      <Card className="mt-6">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5" /> Home FAQ
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1" onClick={addFaq}>
+              <Plus className="h-4 w-4" /> Add question
+            </Button>
+            <Button size="sm" className="gap-1" onClick={handleSaveFaq} disabled={savingFaq || loadingFaq}>
+              {savingFaq ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save FAQ
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-neutral-500">
+            Questions shown on the storefront home page. Order here is the display
+            order. If empty, the site falls back to the built-in default FAQ.
+          </p>
+          {loadingFaq ? (
+            <div className="flex items-center justify-center py-10 text-neutral-400">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : faq.length === 0 ? (
+            <p className="py-6 text-center text-sm text-neutral-500">
+              No FAQ items. Add one — until then the storefront shows the default FAQ.
+            </p>
+          ) : (
+            faq.map((f, i) => (
+              <div
+                key={f.id}
+                className="space-y-3 rounded-lg border border-border-light p-4 dark:border-border-dark"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-neutral-500">#{i + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Move up"
+                      disabled={i === 0}
+                      onClick={() => moveFaq(i, -1)}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Move down"
+                      disabled={i === faq.length - 1}
+                      onClick={() => moveFaq(i, 1)}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Remove question"
+                      onClick={() => removeFaq(i)}
+                    >
+                      <Trash2 className="h-4 w-4 text-error" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Question (EN)</Label>
+                    <Input
+                      value={f.questionEn}
+                      onChange={(e) => updateFaq(i, 'questionEn', e.target.value)}
+                      placeholder="English question"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Question (KA)</Label>
+                    <Input
+                      value={f.questionKa}
+                      onChange={(e) => updateFaq(i, 'questionKa', e.target.value)}
+                      placeholder="ქართული კითხვა"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Answer (EN)</Label>
+                    <Textarea
+                      rows={3}
+                      value={f.answerEn}
+                      onChange={(e) => updateFaq(i, 'answerEn', e.target.value)}
+                      placeholder="English answer"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Answer (KA)</Label>
+                    <Textarea
+                      rows={3}
+                      value={f.answerKa}
+                      onChange={(e) => updateFaq(i, 'answerKa', e.target.value)}
+                      placeholder="ქართული პასუხი"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

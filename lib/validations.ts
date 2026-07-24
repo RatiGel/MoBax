@@ -240,6 +240,21 @@ export const UpdateSettingsSchema = z
 
 export type UpdateSettingsInput = z.infer<typeof UpdateSettingsSchema>;
 
+// FAQ items stored under the `faq` setting key. Bilingual; array order is
+// display order. Validated explicitly on write (see admin/settings route)
+// even though the settings map itself is loose.
+export const FaqItemSchema = z.object({
+  id: z.string().min(1),
+  questionEn: z.string().min(1, 'English question is required').max(300),
+  questionKa: z.string().min(1, 'Georgian question is required').max(300),
+  answerEn: z.string().min(1, 'English answer is required').max(2000),
+  answerKa: z.string().min(1, 'Georgian answer is required').max(2000),
+});
+
+export const FaqItemsSchema = z.array(FaqItemSchema).max(50);
+
+export type FaqItem = z.infer<typeof FaqItemSchema>;
+
 // --- Team / Customers admin ---
 
 const AdminRoleEnum = z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR']);

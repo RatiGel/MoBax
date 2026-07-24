@@ -54,16 +54,16 @@ export default async function ServicesPage({ params: { locale } }: Props) {
     },
     {
       icon: Hand,
-      title: isKa ? 'ჩვენ დავაფენთ' : 'We apply it',
+      title: isKa ? 'ჩვენ დავაკრავთ' : 'We apply it',
       desc: isKa
-        ? 'სპეციალისტი დააფენს ფილმას ზუსტად, უბუშტოდ, ლოდინის დროს.'
+        ? 'სერვისი ჩვენთან. სპეციალური აპარატი უზრუნველყოფს ნებისმიერი ტელეფონის ფირის მოჭრასა და ავტომატურ დაკვრას.'
         : 'A specialist applies the film precisely and bubble-free while you wait.',
     },
     {
       icon: BadgeCheck,
       title: isKa ? 'მზადაა' : 'Ready to go',
       desc: isKa
-        ? 'თქვენი მოწყობილობა დაცულია და გამზადებულია რამდენიმე წუთში.'
+        ? 'რამდენიმე წუთში თქვენი მოწყობილობა დაცულია და მზადაა გამოყენებისთვის.'
         : 'Your device leaves protected and polished in minutes.',
     },
   ];
@@ -72,17 +72,17 @@ export default async function ServicesPage({ params: { locale } }: Props) {
     {
       icon: Sparkles,
       title: isKa ? 'უხილავი დაცვა' : 'Invisible finish',
-      desc: isKa ? 'ულტრათხელი ფენა, რომელიც არ ცვლის იერს.' : 'Ultra-thin layer that keeps the original look.',
+      desc: isKa ? 'ულტრათხელი ფენა შეუმჩნეველია, თუმცა ეკრანს იცავს.' : 'Ultra-thin layer that keeps the original look.',
     },
     {
       icon: ShieldCheck,
       title: isKa ? 'ნაკაწრებისგან დაცვა' : 'Scratch protection',
-      desc: isKa ? 'ყოველდღიური ცვეთისგან საიმედო ფარი.' : 'A reliable shield against daily wear.',
+      desc: isKa ? 'საიმედო დაცვა დავარდნისა და ნაკაწრებისგან.' : 'A reliable shield against daily wear.',
     },
     {
       icon: Clock,
       title: isKa ? 'სწრაფი მომსახურება' : 'Fast turnaround',
-      desc: isKa ? 'უმეტესი სამუშაო სრულდება 15 წუთში.' : 'Most jobs are done in under 15 minutes.',
+      desc: isKa ? 'ტელეფონი 15 წუთში მზადაა.' : 'Most jobs are done in under 15 minutes.',
     },
   ];
 

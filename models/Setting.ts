@@ -33,4 +33,5 @@ export const SETTING_KEYS = {
   TAX: 'tax',
   STORE_INFO: 'store_info',
   NOTIFICATIONS: 'notifications',
+  FAQ: 'faq',
 } as const;

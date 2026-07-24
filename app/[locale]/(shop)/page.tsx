@@ -2,10 +2,11 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star, ChevronDown } from 'lucide-react';
+import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from 'lucide-react';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { HeroProduct } from '@/components/shop/HeroProduct';
 import { Reveal } from '@/components/shop/Reveal';
+import { FaqSection } from '@/components/shop/FaqSection';
 import {
   getFeaturedProducts,
   getNewArrivals,
@@ -186,29 +187,8 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
         </div>
       </section>
 
-      {/* ── FAQ ──────────────────────────────────────────── */}
-      <section className="py-16 lg:py-20 bg-cloud-light/40 dark:bg-cloud-dark/40">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white mb-10 text-center tracking-display">
-            {locale === 'ka' ? 'ხშირად დასმული კითხვები' : 'Frequently Asked Questions'}
-          </h2>
-          <div className="flex flex-col gap-3">
-            {(['1', '2', '3', '4', '5'] as const).map((n) => (
-              <details key={n} className="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl px-6 py-5 open:border-cobalt/30 transition-colors">
-                <summary className="flex items-center justify-between cursor-pointer list-none gap-4">
-                  <span className="text-base font-semibold text-ink dark:text-white">
-                    {t(`faqQ${n}` as any)}
-                  </span>
-                  <ChevronDown className="h-5 w-5 flex-shrink-0 text-graphite transition-transform group-open:rotate-180 group-open:text-cobalt" />
-                </summary>
-                <p className="mt-4 text-sm text-graphite leading-relaxed">
-                  {t(`faqA${n}` as any)}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── FAQ — admin-managed, falls back to i18n defaults ─ */}
+      <FaqSection locale={locale} />
 
       {/* ── Trust badges ─────────────────────────────────── */}
       <section className="py-16 lg:py-20 bg-paper dark:bg-ink border-t border-border-light dark:border-border-dark">

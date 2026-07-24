@@ -3,8 +3,8 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
-import { UpdateSettingsSchema } from '@/lib/validations';
-import Setting from '@/models/Setting';
+import { UpdateSettingsSchema, FaqItemsSchema } from '@/lib/validations';
+import Setting, { SETTING_KEYS } from '@/models/Setting';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +35,17 @@ async function applyUpdate(req: NextRequest) {
   const parsed = UpdateSettingsSchema.safeParse(json);
   if (!parsed.success) {
     return fail(parsed.error.issues[0]?.message ?? 'Invalid settings data', 422);
+  }
+
+  // The settings map is loose, but the FAQ list has a strict shape — validate
+  // it explicitly when present so a malformed payload can't corrupt the
+  // storefront's FAQ section.
+  if (SETTING_KEYS.FAQ in parsed.data) {
+    const faqParsed = FaqItemsSchema.safeParse(parsed.data[SETTING_KEYS.FAQ]);
+    if (!faqParsed.success) {
+      return fail(faqParsed.error.issues[0]?.message ?? 'Invalid FAQ data', 422);
+    }
+    parsed.data[SETTING_KEYS.FAQ] = faqParsed.data;
   }
 
   const entries = Object.entries(parsed.data);

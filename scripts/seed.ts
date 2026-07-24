@@ -15,6 +15,7 @@ import Order, { type OrderStatus, type PaymentStatus } from '../models/Order';
 import Discount from '../models/Discount';
 import Service from '../models/Service';
 import ServicePage from '../models/ServicePage';
+import Setting, { SETTING_KEYS } from '../models/Setting';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
@@ -235,6 +236,56 @@ async function seed() {
     { upsert: true, setDefaultsOnInsert: true }
   );
   console.log('Seeded services + service page');
+
+  // --- Home FAQ (mirrors the default faqQ1..5 / faqA1..5 i18n strings) ---
+  // $setOnInsert so re-running the seed never clobbers admin edits.
+  await Setting.findOneAndUpdate(
+    { key: SETTING_KEYS.FAQ },
+    {
+      $setOnInsert: {
+        key: SETTING_KEYS.FAQ,
+        value: [
+          {
+            id: 'faq-delivery',
+            questionEn: 'How long does delivery take?',
+            questionKa: 'რამდენ ხანს სჭირდება მიწოდება?',
+            answerEn: 'Orders in Tbilisi are delivered next day. Regions take 2–4 business days.',
+            answerKa: 'თბილისში შეკვეთები მიეწოდება მეორე დღეს. რეგიონებში — 2–4 სამუშაო დღე.',
+          },
+          {
+            id: 'faq-original',
+            questionEn: 'Are all products 100% original?',
+            questionKa: 'ყველა პროდუქტი 100% ორიგინალია?',
+            answerEn: 'Yes. Every product is sourced directly from authorized distributors. We guarantee authenticity.',
+            answerKa: 'დიახ. ყველა პროდუქტი პირდაპირ ავტორიზებული დისტრიბუტორებისგანაა. ავთენტურობას ვიძლევით გარანტიას.',
+          },
+          {
+            id: 'faq-returns',
+            questionEn: 'What is your return policy?',
+            questionKa: 'როგორია დაბრუნების პოლიტიკა?',
+            answerEn: "You can return any item within 30 days of purchase, no questions asked, as long as it's unused and in original packaging.",
+            answerKa: 'ნებისმიერი პროდუქტი შეგიძლიათ დააბრუნოთ შეძენიდან 30 დღის განმავლობაში, თუ ის გამოუყენებელია და ორიგინალ შეფუთვაშია.',
+          },
+          {
+            id: 'faq-payment',
+            questionEn: 'What payment methods do you accept?',
+            questionKa: 'გადახდის რა მეთოდებს იღებთ?',
+            answerEn: 'We accept cash on delivery, TBC Pay, BOG Pay, and major credit/debit cards.',
+            answerKa: 'ვიღებთ ნაღდ ანგარიშსწორებას, TBC Pay-ს, BOG Pay-ს და ძირითად საკრედიტო/სადებეტო ბარათებს.',
+          },
+          {
+            id: 'faq-intl',
+            questionEn: 'Do you ship outside Georgia?',
+            questionKa: 'საქართველოს გარეთ იგზავნება?',
+            answerEn: 'Currently we only ship within Georgia. International shipping is planned for later this year.',
+            answerKa: 'ამჟამად მხოლოდ საქართველოს ტერიტორიაზე ვგზავნით. საერთაშორისო მიწოდება წლის ბოლოსთვისაა დაგეგმილი.',
+          },
+        ],
+      },
+    },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+  console.log('Seeded home FAQ');
 
   await mongoose.disconnect();
   console.log('\n✅ Seed complete.\n   Super admin: admin@mobax.ge / Admin1234');
