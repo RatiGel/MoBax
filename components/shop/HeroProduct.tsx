@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
-import type { Product } from '@/lib/mock-data';
+import type { Product } from '@/lib/types';
 
 const ROTATE_MS = 2000;
 // Under prefers-reduced-motion the slide is replaced by an instant cut, which

@@ -1,3 +1,11 @@
+/**
+ * SEED FIXTURES ONLY.
+ *
+ * scripts/seed.ts is the only runtime consumer. The storefront reads MongoDB
+ * through lib/catalog.ts — importing this module from a page or component puts
+ * stale data on the live site. Canonical types live in lib/types.ts.
+ */
+
 import type { CategorySlug, Category, Product, Brand } from './types';
 export type { CategorySlug, Category, Brand } from './types';
 export type { Product } from './types';

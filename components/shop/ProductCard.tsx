@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ShoppingCart, Star } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
-import type { Product } from '@/lib/mock-data';
+import type { Product } from '@/lib/types';
 
 interface ProductCardProps {
   product: Product;
