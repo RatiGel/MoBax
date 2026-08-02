@@ -1,68 +1,6 @@
-export type CategorySlug =
-  // ── parents ──
-  | 'most-popular'
-  | 'phone-protection'
-  | 'chargers'
-  | 'headphones-speakers'
-  | 'car-accessories'
-  | 'computer-accessories'
-  | 'original'
-  // ── phone-protection ──
-  | 'screen-shields'
-  | 'phone-cases'
-  // ── chargers ──
-  | 'adapters'
-  | 'cables'
-  | 'charger-complect'
-  // ── headphones-speakers ──
-  | 'wireless-headphones'
-  | 'wired-headphones'
-  | 'bluetooth-speakers'
-  | 'aux-converters'
-  // ── car-accessories ──
-  | 'phone-holders'
-  | 'modulators'
-  | 'car-chargers'
-  // ── computer-accessories ──
-  | 'keyboards'
-  | 'mouse'
-  | 'usb-flash-drives'
-  // ── original ──
-  | 'apple'
-  | 'samsung'
-  | 'google';
-
-export interface Category {
-  id: string;
-  slug: CategorySlug;
-  nameEn: string;
-  nameKa: string;
-  icon: string;
-  image: string;
-  parentSlug?: CategorySlug;
-  productCount: number;
-}
-
-export interface Product {
-  id: string;
-  slug: string;
-  nameEn: string;
-  nameKa: string;
-  descriptionEn: string;
-  descriptionKa: string;
-  price: number;
-  originalPrice?: number;
-  category: CategorySlug;
-  brand: string;
-  images: string[];
-  inStock: boolean;
-  isNew?: boolean;
-  isFeatured?: boolean;
-  rating: number;
-  reviewCount: number;
-  specs: Record<string, string>;
-  sku: string;
-}
+import type { CategorySlug, Category, Product, Brand } from './types';
+export type { CategorySlug, Category, Brand } from './types';
+export type { Product } from './types';
 
 export const categories: Category[] = [
   // ── Parent categories ──────────────────────────────────────
@@ -756,16 +694,6 @@ export const products: Product[] = [
 ];
 
 // ── Brands ───────────────────────────────────────────────────
-// `device` brands are phone makers — selecting one returns products made by
-// the brand AND third-party accessories compatible with its devices.
-// `maker` brands are accessory manufacturers — match on the product's brand only.
-export interface Brand {
-  slug: string;
-  name: string;
-  type: 'device' | 'maker';
-  // extra terms (besides `name`) to look for in specs.Compatibility for device brands
-  compatTerms?: string[];
-}
 
 export const brands: Brand[] = [
   { slug: 'apple', name: 'Apple', type: 'device', compatTerms: ['iPhone', 'iPad', 'AirPods', 'MagSafe', 'Apple'] },
