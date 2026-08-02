@@ -92,7 +92,11 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
       </section>
 
       {/* ── Shop by category — lets buyers self-segment ──── */}
-      <section className="py-16 lg:py-20 bg-paper dark:bg-ink">
+      {/* Rhythm note: sections deliberately don't share one uniform pad. This
+          one rides tight under the hero (which carries its own bottom space);
+          the tinted product sections below open up, and the FAQ gets the most
+          air as the page's resting point. */}
+      <section className="pt-4 pb-16 lg:pt-6 lg:pb-24 bg-paper dark:bg-ink">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal className="mb-8">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
@@ -101,7 +105,10 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
             <p className="mt-2 text-base text-graphite">{t('categoriesSubtitle')}</p>
           </Reveal>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {/* 3-up on desktop, not 6: at 1440px a six-column row left each tile
+              ~88px wide — too small to read the product in the photo, and the
+              labels started clipping. Fewer, larger tiles identify better. */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5">
             {categories.map((cat) => {
               const name = locale === 'ka' ? cat.nameKa : cat.nameEn;
               return (
@@ -110,20 +117,22 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
                   href={`/${locale}/products?category=${cat.slug}`}
                   className="group relative overflow-hidden rounded-2xl border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark transition-colors hover:border-cobalt/40"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-cloud-light dark:bg-cloud-dark">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-cloud-light dark:bg-cloud-dark">
                     {cat.image && (
                       <Image
                         src={cat.image}
                         alt={name}
                         fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                       />
                     )}
                   </div>
-                  <div className="p-3">
-                    <p className="text-sm font-semibold text-ink dark:text-white leading-tight line-clamp-1">{name}</p>
-                    <p className="mt-0.5 text-xs text-graphite">
+                  {/* Stacked on small screens: side-by-side made long names wrap
+                      to two lines while the count stayed pinned to the corner. */}
+                  <div className="flex flex-col gap-0.5 p-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:p-4">
+                    <p className="text-sm font-semibold text-ink dark:text-white leading-tight">{name}</p>
+                    <p className="shrink-0 text-xs text-graphite tabular-nums">
                       {t('productsCount', { count: cat.productCount })}
                     </p>
                   </div>
@@ -135,7 +144,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
       </section>
 
       {/* ── Featured Products ─────────────────────────────── */}
-      <section className="py-16 lg:py-20 bg-cloud-light/40 dark:bg-cloud-dark/40">
+      <section className="py-20 lg:py-28 bg-cloud-light/40 dark:bg-cloud-dark/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal className="flex items-end justify-between mb-10">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
@@ -160,7 +169,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
       </section>
 
       {/* ── New Arrivals — horizontal rail, distinct from the grid above ── */}
-      <section className="py-16 lg:py-20 bg-paper dark:bg-ink">
+      <section className="py-20 lg:py-28 bg-paper dark:bg-ink">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal className="flex items-end justify-between mb-10">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
@@ -176,9 +185,11 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
         </div>
 
         {/* Edge-bleed scroll rail — flick through breadth without a wall of cards.
-            Padding matches the max-w-7xl gutter so the first card aligns to it. */}
-        <div className="flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="hidden lg:block shrink-0 w-[max(0px,calc((100vw-80rem)/2))]" aria-hidden />
+            The rail aligns to the max-w-7xl gutter via scroll-padding rather than a
+            spacer element: a `100vw`-sized spacer overshoots by the scrollbar width,
+            and snap-mandatory then jumps the rail forward and clips the first card.
+            `snap-proximity` keeps the flick feel without fighting the resting position. */}
+        <div className="flex snap-x snap-proximity gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-4 scroll-px-4 sm:scroll-px-6 lg:scroll-px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {newArrivals.map((product) => (
             <div key={product.id} className="snap-start shrink-0 w-44 sm:w-52 lg:w-60">
               <ProductCard product={product} />

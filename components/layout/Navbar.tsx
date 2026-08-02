@@ -90,7 +90,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
       {/* Main Header — translucent glass */}
       <div className="bg-paper/80 dark:bg-ink/80 backdrop-blur-xl border-b border-border-light dark:border-border-dark">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-[68px] items-center justify-between gap-6">
+          <div className="flex h-[68px] items-center justify-between gap-3 lg:gap-6">
 
             {/* Logo — admin logo image if set, else the wordmark */}
             <Link href={`/${locale}`} className="flex-shrink-0 flex items-center group">
@@ -106,7 +106,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-7 flex-1 justify-center">
+            <nav className="hidden lg:flex items-center gap-7 flex-1 justify-center">
               {/* Brands mega-menu */}
               <div
                 className="relative"
@@ -219,8 +219,9 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
               </Link>
             </nav>
 
-            {/* Search (desktop) */}
-            <div className="hidden md:block w-full max-w-xs">
+            {/* Search (desktop) — min-w-0 so it absorbs the squeeze instead of
+                pushing the action cluster past the viewport at ~768px. */}
+            <div className="hidden md:block w-full min-w-0 max-w-xs flex-shrink">
               <SearchBar />
             </div>
 
@@ -249,7 +250,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
               {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden h-10 w-10 flex items-center justify-center text-ink dark:text-white"
+                className="lg:hidden h-10 w-10 flex items-center justify-center text-ink dark:text-white"
                 aria-label={t('menu')}
               >
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -261,7 +262,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden bg-paper dark:bg-ink border-b border-border-light dark:border-border-dark animate-fade-in">
+        <div className="lg:hidden bg-paper dark:bg-ink border-b border-border-light dark:border-border-dark animate-fade-in">
           <div className="px-4 py-6 space-y-1">
             <div className="mb-4">
               <SearchBar onNavigate={() => setMobileOpen(false)} />
