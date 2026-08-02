@@ -380,5 +380,12 @@
     "noServices": "Services coming soon.",
     "sectionCatalog": "Product catalog",
     "startsFrom": "Starts from {price} ₾"
+  },
+  "discounts": {
+    "title": "Discounts",
+    "subtitle": "Every product currently on sale",
+    "empty": "No discounted products right now. Check back soon.",
+    "badge": "-{percent}%",
+    "count": "{count} products on sale"
   }
 }

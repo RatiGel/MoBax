@@ -10,7 +10,7 @@ import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
 import { HtmlLang } from '@/components/HtmlLang';
 import { getStoreTheme, themeOverrideCss } from '@/lib/theme';
-import { getParentCategories, getBrands, getBrandProductCounts } from '@/lib/catalog';
+import { getParentCategories, getBrands, getBrandProductCounts, getDiscountedProducts } from '@/lib/catalog';
 
 const locales = ['en', 'ka'];
 
@@ -47,11 +47,16 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
 
   // Navbar categories/brands — Navbar is a client component and cannot query
   // Mongoose itself, so the DB reads happen here and flow down as props.
-  const [navCategories, navBrands, brandCounts] = await Promise.all([
+  const [navCategories, navBrands, brandCounts, discountedProducts] = await Promise.all([
     getParentCategories(),
     getBrands(),
     getBrandProductCounts(),
+    getDiscountedProducts(),
   ]);
+  // Discounts is a virtual category: it only appears in nav when at least one
+  // product currently qualifies, so an admin who clears every sale doesn't
+  // leave a dead link pointing at an empty page.
+  const showDiscounts = discountedProducts.length > 0;
 
   return (
     <SessionProvider>
@@ -71,6 +76,7 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
               categories={navCategories}
               brands={navBrands}
               brandCounts={brandCounts}
+              showDiscounts={showDiscounts}
             />
             <main className="flex-1">{children}</main>
             <Footer />

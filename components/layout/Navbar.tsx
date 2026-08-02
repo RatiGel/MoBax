@@ -27,11 +27,14 @@ export function Navbar({
   categories,
   brands,
   brandCounts,
+  showDiscounts,
 }: {
   branding?: NavbarBranding;
   categories: Category[];
   brands: Brand[];
   brandCounts: Record<string, number>;
+  /** Discounts is a virtual category — hidden entirely when nothing qualifies. */
+  showDiscounts: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations('nav');
@@ -245,6 +248,23 @@ export function Navbar({
                             </Link>
                           );
                         })}
+                        {/* Discounts — virtual category, only ever shown when
+                            at least one product currently qualifies. */}
+                        {showDiscounts && (
+                          <Link
+                            href={`/${locale}/products/discounts`}
+                            className="flex items-center gap-3 p-4 bg-surface-light dark:bg-surface-dark hover:bg-cobalt-soft dark:hover:bg-cloud-dark group transition-colors"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-ink dark:text-neutral-100 group-hover:text-cobalt dark:group-hover:text-cobalt-dark transition-colors">
+                                {locale === 'ka' ? 'ფასდაკლებები' : 'Discounts'}
+                              </p>
+                              <p className="text-xs text-graphite mt-0.5">
+                                {locale === 'ka' ? 'შეთავაზებები' : 'On sale now'}
+                              </p>
+                            </div>
+                          </Link>
+                        )}
                       </div>
                       <div className="p-3.5 bg-cloud-light dark:bg-cloud-dark border-t border-border-light dark:border-border-dark">
                         <Link
@@ -398,6 +418,15 @@ export function Navbar({
                   {locale === 'ka' ? cat.nameKa : cat.nameEn}
                 </Link>
               ))}
+              {showDiscounts && (
+                <Link
+                  href={`/${locale}/products/discounts`}
+                  className="flex items-center gap-3 py-2.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {locale === 'ka' ? 'ფასდაკლებები' : 'Discounts'}
+                </Link>
+              )}
             </div>
             <div className="pt-4 border-t border-border-light dark:border-border-dark space-y-3">
               {isAdmin && (
