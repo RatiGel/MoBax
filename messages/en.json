@@ -218,7 +218,20 @@
     "emailRequired": "Email is required",
     "passwordRequired": "Password is required",
     "passwordMin": "Password must be at least 8 characters",
-    "passwordMatch": "Passwords do not match"
+    "passwordMatch": "Passwords do not match",
+    "loginTitle": "Sign in to MoBax",
+    "loginSubtitle": "Track orders, save addresses, and check out faster.",
+    "registerTitle": "Create your account",
+    "registerSubtitle": "One account for orders, warranty claims, and faster checkout.",
+    "signingIn": "Signing in…",
+    "creatingAccount": "Creating account…",
+    "invalidCredentials": "That email and password don't match an account.",
+    "registrationFailed": "Couldn't create the account. Try again.",
+    "invalidEmail": "Enter a valid email address",
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "continueWithGoogle": "Continue with Google",
+    "emailPlaceholder": "you@example.com"
   },
   "categories": {
     "all": "All Categories",
