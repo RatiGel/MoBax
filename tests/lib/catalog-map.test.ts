@@ -85,6 +85,14 @@ describe('isOnSale', () => {
     expect(isOnSale({ price: 100, salePrice: 80, salePriceEnd: new Date('2026-08-01') }, now)).toBe(false);
     expect(isOnSale({ price: 100, salePrice: 80, salePriceEnd: new Date('2026-08-03') }, now)).toBe(true);
   });
+
+  it('treats a start exactly at now as already started', () => {
+    expect(isOnSale({ price: 100, salePrice: 80, salePriceStart: now }, now)).toBe(true);
+  });
+
+  it('treats an end exactly at now as expired', () => {
+    expect(isOnSale({ price: 100, salePrice: 80, salePriceEnd: now }, now)).toBe(false);
+  });
 });
 
 describe('discountPercent', () => {
