@@ -1,7 +1,12 @@
 # MoBax — Full Site Plan
 
-> Bilingual (EN/KA) mobile accessories e-commerce for Georgia market.
-> Stack: Next.js 14 App Router · TypeScript strict · PostgreSQL · Prisma · Zustand · next-intl · Tailwind
+> Bilingual (EN/KA) mobile accessories e-commerce for the Georgia market.
+> Stack: Next.js 14 App Router · TypeScript strict · MongoDB · Mongoose · NextAuth v5 · Zustand · next-intl · Tailwind
+
+> **Doc status:** refreshed 2026-08-02 against the actual codebase. Phases 1–10
+> are built; the remaining work is listed under "Open work" below. Historical
+> phase plans are kept as a record of intent, annotated where the shipped
+> implementation diverged.
 
 ---
 
@@ -10,348 +15,286 @@
 | Phase | Scope | Status |
 |-------|-------|--------|
 | 1 | Frontend foundation | ✅ Done |
-| 2 | Database + API routes | ✅ Done (MongoDB + Mongoose) |
-| 3 | Authentication | ✅ Done (NextAuth v5 Credentials) |
+| 2 | Database + API routes | 🟡 MongoDB + Mongoose live; **storefront pages still read `lib/mock-data.ts`** |
+| 3 | Authentication | ✅ NextAuth v5 Credentials + RBAC (owner/admin/staff) |
 | 4 | File uploads + media | ✅ Cloudinary upload (needs API keys to go live) |
 | 5 | Order management | ✅ stock reserve, guest tracking, CSV export, bulk + per-order status |
-| 6 | Payment integration | 🟡 COD live; Stripe/TBC/BOG stubbed behind env + webhook scaffold |
-| 7 | Admin panel | ✅ all 10 modules (products, categories, brands, orders, customers, pricing, content, team, settings, reviews) |
+| 6 | Payment integration | 🟡 **Flitt** hosted checkout on sandbox merchant; no Stripe/TBC/BOG |
+| 7 | Admin panel | ✅ 14 modules (dashboard + 13 sections) |
 | 8 | Search + Reviews | ✅ regex search + navbar bar; reviews w/ moderation + verified purchase |
-| 9 | Email + Notifications | ✅ Resend + React Email (needs RESEND_API_KEY to send) |
-| 10 | Deployment + CI/CD | 🟡 GitHub Actions CI added; Vercel env/domain still manual |
+| 9 | Email + Notifications | ✅ **nodemailer/SMTP** + React Email templates (needs SMTP creds) |
+| 10 | Deployment + CI/CD | 🟡 GitHub Actions CI (lint + typecheck + build); Vercel env/domain still manual |
+
+### Divergences from the original plan
+
+The plan below was written before implementation. Where the build went a
+different way, the reason is recorded so the choice isn't silently re-litigated:
+
+| Area | Planned | Shipped | Note |
+|------|---------|---------|------|
+| Database | PostgreSQL + Prisma (Neon) | **MongoDB + Mongoose** | No `prisma/` dir exists. Models in `models/*.ts`. |
+| Payments | Stripe + TBC + BOG + COD | **Flitt only** (`PAYMENT_METHODS = ['FLITT']`) | Single Georgian gateway, hosted checkout, SHA1-signed webhook. |
+| Email | Resend | **nodemailer/SMTP** | `resend` is still in package.json but `lib/email/send.ts` uses nodemailer. |
+| Search | Postgres FTS → Algolia | **Mongo regex** (`app/api/search/route.ts`) | Fine at current catalog size; revisit if it grows. |
+| Admin route | `app/[locale]/(admin)/` | **`app/admin/`** (not locale-prefixed) | Admin is English-only by design. |
+| Auth roles | `CUSTOMER \| ADMIN` | **owner / admin / staff / customer** | See `lib/rbac.ts` + `models/User.ts`. |
+
+---
+
+## Open work
+
+The highest-value items remaining, in priority order.
+
+1. **Finish Phase 2 — cut the storefront over to the database.**
+   This is the biggest gap between the docs and reality. The admin panel writes
+   products/categories/brands to MongoDB, and `/api/products` reads from it, but
+   the public pages import static fixtures instead — so **editing a product in
+   admin does not change the storefront**. Files still importing `lib/mock-data`:
+   - `app/[locale]/(shop)/page.tsx`
+   - `app/[locale]/(shop)/products/page.tsx`
+   - `app/[locale]/(shop)/products/[slug]/page.tsx`
+   - `components/layout/Navbar.tsx` (categories + brands)
+   - `components/shop/ProductCard.tsx`, `components/shop/HeroProduct.tsx` (types only)
+   - `app/api/chat/route.ts`
+   `lib/mock-data.ts` should end up as the seed fixture source only (it is already
+   what `scripts/seed.ts` imports) plus the canonical `Product` / `Category` types.
+
+2. **Payments — go live.** Flitt is wired end-to-end but points at the sandbox
+   merchant (`1549901` / `"test"`). Swap `FLITT_MERCHANT_ID` / `FLITT_PAYMENT_KEY`
+   to the real merchant — no code change needed. Decide whether Cash on Delivery
+   is still wanted; it is in the original plan but not implemented.
+
+3. **Deployment.** Add env vars to Vercel (preview + production), point
+   `mobax.ge` + `www.mobax.ge` at it, enable Analytics + Speed Insights.
+
+4. **Tests.** No test suite exists. CI runs lint + typecheck + build only.
+
+5. **Content cleanup.** The live FAQ setting contains a placeholder entry
+   (`"awrer"`); because the storefront prefers saved FAQ items over the i18n
+   fallbacks, that one entry replaces all five real questions on the home page.
+
+6. **Housekeeping.** `components/layout/Navbar 2.tsx` is a stray duplicate.
+   `resend` is an unused dependency.
 
 ---
 
 ## Phase 1 — Frontend Foundation ✅
 
-Already built. See `lib/mock-data.ts` for current fixtures.
-
 Pages: home, product listing, product detail, cart, checkout, login, register.
 Components: Navbar, Footer, LocaleSwitcher, ThemeToggle, ProductCard, CartDrawer.
-State: Zustand cart persisted to localStorage.
+State: Zustand cart persisted to localStorage (`mobax-cart`).
+
+Since shipped, also: services catalog, search page, account area, guest order
+tracking, support chat, before/after comparison slider, FAQ section.
 
 ---
 
-## Phase 2 — Database + API Routes
+## Phase 2 — Database + API Routes 🟡
 
-### Database schema (PostgreSQL via Prisma)
+### Shipped: MongoDB + Mongoose (not Prisma/Postgres)
+
+Connection helper: `lib/mongodb.ts`. Models live in `models/`:
 
 ```
-User            id, email, passwordHash, firstName, lastName, role, createdAt
-Address         id, userId, firstName, lastName, address, city, zipCode, country, isDefault
-Category        id, slug, nameEn, nameKa, parentId?, image
-Product         id, slug, nameEn, nameKa, descriptionEn, descriptionKa,
-                price, originalPrice?, sku, stock, categoryId, brandId,
-                isActive, isFeatured, isNew, createdAt
-Brand           id, name, logoUrl?
-ProductImage    id, productId, url, position, isMain
-ProductSpec     id, productId, key, value
-Order           id, userId?, guestEmail?, status, subtotal, shippingCost,
-                total, addressSnapshot(JSON), createdAt, updatedAt
-OrderItem       id, orderId, productId, nameSnapshot, priceSnapshot, quantity
-Review          id, userId, productId, rating(1-5), title, body, isApproved, createdAt
+User            email, passwordHash, firstName, lastName, role, createdAt
+Product         slug, nameEn/Ka, descriptionEn/Ka, price, originalPrice?,
+                sku, stock, category, brand, isActive, isFeatured, isNew
+Category        slug, nameEn/Ka, parentId?, image
+Brand           name, slug, type (device | maker), logoUrl?
+Order           userId?, guestEmail?, status, subtotal, shippingCost, total,
+                addressSnapshot, items[], paymentStatus, trackingNumber
+Review          userId, productId, rating(1-5), title, body, isApproved
+Setting         key/value store — theme, branding, FAQ, shipping, hours
 ```
+
+Beyond the original plan: `CatalogProduct`, `Service`, `ServicePage`, `Page`,
+`Discount`, `Promotion`, `Invite`, `ActivityLog`, `Conversation`,
+`SupportMessage`.
 
 ### Enums
 
 ```
 OrderStatus:  PENDING | CONFIRMED | PROCESSING | SHIPPED | DELIVERED | CANCELLED | REFUNDED
-UserRole:     CUSTOMER | ADMIN
+UserRole:     owner | admin | staff | customer
 ```
 
-### API routes (Next.js route handlers)
+### API routes
 
 ```
 GET    /api/products                   list + filter + sort + paginate
 GET    /api/products/[slug]            single product
 GET    /api/categories                 all categories
 GET    /api/brands                     all brands
+GET    /api/search                     regex search across name/brand/sku
 
 POST   /api/orders                     create order (guest or authed)
 GET    /api/orders/[id]                get order by id (owner or admin)
-PATCH  /api/orders/[id]/status         admin: update status
 
 GET    /api/reviews/[productSlug]      reviews for product
 POST   /api/reviews                    submit review (authed)
 
-GET    /api/admin/products             admin product list
-POST   /api/admin/products             create product
-PATCH  /api/admin/products/[id]        update product
-DELETE /api/admin/products/[id]        soft-delete
+POST   /api/payments/webhook           Flitt callback (SHA1-verified)
+GET    /api/payments/success|fail      Flitt redirect targets
 
-GET    /api/admin/orders               admin order list with filters
-GET    /api/admin/stats                dashboard numbers
+POST   /api/admin/upload               Cloudinary upload
+POST   /api/chat                       support assistant
+POST   /api/support                    support message intake
+       /api/admin/*                    per-module admin CRUD
 ```
 
-### Tasks
+### Remaining tasks
 
-- [ ] `prisma init` + schema.prisma with all models
-- [ ] Seed script (`prisma/seed.ts`) — import current mock-data fixtures
-- [ ] Replace all `lib/mock-data.ts` calls with API `fetch()` in pages
-- [ ] Add loading skeletons on product listing and detail
+- [ ] Replace `lib/mock-data.ts` reads in storefront pages with DB/API calls (see Open work #1)
+- [ ] Loading skeletons on product listing and detail
 - [ ] Error boundaries + 404 / empty state pages
-- [ ] Rate limiting on POST routes (upstash/ratelimit or simple IP check)
+- [ ] Rate limiting on POST routes
+
+Done: seed script (`npm run seed` → `scripts/seed.ts`, idempotent, seeds
+categories, brands, products, 3-role admin users, customers, date-spread orders
+for analytics, discount codes).
 
 ---
 
-## Phase 3 — Authentication
+## Phase 3 — Authentication ✅
 
-### Approach: NextAuth.js v5 (Auth.js)
-
-Providers: Credentials (email + bcrypt), Google OAuth (optional later).
-
-### Files
+NextAuth v5 (Auth.js), Credentials provider, JWT session strategy.
 
 ```
-auth.ts                       NextAuth config, session strategy: jwt
+auth.ts                        NextAuth config
 app/api/auth/[...nextauth]/route.ts
-lib/auth-helpers.ts           getServerSession wrapper, requireAuth(), requireAdmin()
-middleware.ts                 extend existing — protect /checkout, /account, /api/admin/*
+app/api/auth/register/route.ts
+lib/admin-auth.ts              server-side admin guards
+lib/rbac.ts                    role helpers (canSeeAdminPanel, etc.)
+middleware.ts                  locale routing + /account + /admin protection
 ```
 
-### Pages
+Roles are four-tier (owner / admin / staff / customer) rather than the planned
+two, with an invite flow (`models/Invite.ts`, `/admin/setup`) for onboarding
+staff. Session carries `id`, `email`, `role`.
 
-```
-/[locale]/login              ← already built, wire to signIn()
-/[locale]/register           ← already built, POST /api/auth/register
-/[locale]/account            new — profile, order history, saved addresses
-/[locale]/account/orders     order list
-/[locale]/account/orders/[id] order detail
-```
-
-### Tasks
-
-- [ ] Install: `next-auth@beta`, `bcryptjs`, `@types/bcryptjs`
-- [ ] Add User/Account/Session models to Prisma schema
-- [ ] Implement Credentials provider with email + password
-- [ ] Hash passwords on register, verify on login
-- [ ] Session includes: `id`, `email`, `role`
-- [ ] Protect checkout + account routes in middleware
-- [ ] Wire Navbar login/logout to NextAuth session
-- [ ] Account page: update name, change password, address book
+Pages: login, register, account (profile, orders, messages), guest order lookup.
 
 ---
 
-## Phase 4 — File Uploads + Media
+## Phase 4 — File Uploads + Media ✅
 
-### Approach: Cloudinary (free tier) or Vercel Blob
-
-Product images uploaded by admin, stored in cloud, URLs saved to `ProductImage` table.
-
-### Tasks
-
-- [ ] Setup Cloudinary account + env vars: `CLOUDINARY_URL`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`
-- [ ] `lib/cloudinary.ts` — upload helper (server-side only)
-- [ ] `POST /api/admin/upload` — multipart form, returns `{ url, publicId }`
-- [ ] Admin product form: drag-drop image uploader, reorder images, set main image
-- [ ] Implement `next/image` remote patterns for Cloudinary domain
-- [ ] Add image optimization: auto format WebP, lazy loading, blur placeholder
+Cloudinary. `lib/cloudinary.ts` + `POST /api/admin/upload`, with a drag-drop
+`components/admin/ImageUploader.tsx`. Remote patterns configured in
+`next.config.js`. Needs `CLOUDINARY_URL` +
+`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` to go live.
 
 ---
 
-## Phase 5 — Order Management
-
-### Order flow
+## Phase 5 — Order Management ✅
 
 ```
 Cart → Checkout (address) → Checkout (payment) → Order created (PENDING)
-  → Payment confirmed → CONFIRMED
-  → Admin picks + packs → PROCESSING
-  → Handed to courier → SHIPPED (tracking number added)
-  → Delivered → DELIVERED
+  → Payment confirmed → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
   → Optional: CANCELLED / REFUNDED
 ```
 
-### Guest checkout
-
-Guest can place order with email only — no account required.
-Order lookup by email + order ID.
-
-### Tasks
-
-- [ ] `POST /api/orders` — validate cart items vs real stock, decrement stock, create order
-- [ ] Stock reservation: lock stock on order create, release on cancel
-- [ ] `GET /[locale]/orders/[id]?email=...` — guest order tracking page
-- [ ] Order confirmation page after successful checkout
-- [ ] Admin can bulk update order status
-- [ ] CSV export of orders (admin)
+Guest checkout by email, no account required; lookup at
+`/[locale]/orders/[id]?email=...`. Stock is reserved on order create and
+released on cancel. Admin has bulk status updates and CSV export.
 
 ---
 
-## Phase 6 — Payment Integration
+## Phase 6 — Payment Integration 🟡
 
-### Primary: TBC Pay / BOG Pay (Georgian banks)
+### Shipped: Flitt hosted checkout (single provider)
 
-Both support redirect-based payment (hosted page) and webhook callbacks.
+Server-to-server create-order call returns a hosted `checkout_url`; the buyer is
+redirected there. Flitt POSTs an authoritative SHA1-signed callback to
+`/api/payments/webhook`, which marks the order PAID. Amounts are sent in minor
+units (tetri = GEL × 100).
 
 ```
-POST /api/payments/initiate        create payment session, redirect to bank
-GET  /api/payments/success         bank redirects here on success
-GET  /api/payments/fail            bank redirects here on fail
-POST /api/payments/webhook         bank posts status update (verify HMAC)
+lib/payments/index.ts            PAYMENT_METHODS = ['FLITT']
+lib/payments/flitt-signature.ts  SHA1 request/callback signing
+lib/payments/flitt-status.ts     status mapping
+app/api/payments/webhook         authoritative status callback
+app/api/payments/success|fail    browser redirect targets
 ```
 
-### Fallback: Cash on delivery (COD)
+- [ ] Swap sandbox merchant (`1549901` / `"test"`) for the real
+      `FLITT_MERCHANT_ID` / `FLITT_PAYMENT_KEY` — no code change
+- [ ] Decide on Cash on Delivery (planned, not implemented)
+- [ ] Refund flow
 
-Available for Tbilisi delivery only — no payment gateway needed.
-
-### Stripe (for cards, international)
-
-- [ ] Install `stripe` + `@stripe/stripe-js`
-- [ ] `POST /api/payments/stripe/intent` — create PaymentIntent
-- [ ] Stripe Elements embedded in checkout step 2
-- [ ] Stripe webhook at `POST /api/payments/stripe/webhook`
-
-### Tasks
-
-- [ ] Env vars: `TBC_MERCHANT_ID`, `TBC_SECRET`, `BOG_CLIENT_ID`, `BOG_CLIENT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-- [ ] Payment method selector in checkout step 2: Card (Stripe) | TBC Pay | BOG Pay | Cash on Delivery
-- [ ] Idempotency: do not double-charge on webhook retry
-- [ ] Refund flow: admin triggers refund via Stripe/bank API
+Stripe / TBC Pay / BOG Pay from the original plan were not built.
 
 ---
 
-## Phase 7 — Admin Panel
+## Phase 7 — Admin Panel ✅
 
-### Route group: `app/[locale]/(admin)/admin/`
-
-Protected by middleware — only `role === ADMIN` allowed.
-
-### Pages
+Route: `app/admin/` (not locale-prefixed — admin is English-only).
+Guarded in `middleware.ts` plus a server-side check on each page;
+`/admin/setup` stays public for invite redemption.
 
 ```
-/admin                       dashboard: revenue, orders today, low stock alerts
-/admin/products              table: search, filter, bulk actions
-/admin/products/new          create product form
-/admin/products/[id]/edit    edit product form (images, specs, pricing, stock)
-/admin/orders                orders table: status filter, date range, search by email/id
-/admin/orders/[id]           order detail: items, customer info, status change, add tracking
-/admin/categories            manage categories (CRUD, reorder)
-/admin/brands                manage brands
-/admin/customers             customer list (read-only for now)
-/admin/settings              store name, contact info, delivery zones
+/admin                dashboard: revenue, orders, low stock, activity
+/admin/products       + ProductForm (images, specs, pricing, stock)
+/admin/categories     /admin/brands        /admin/orders
+/admin/customers      /admin/pricing       /admin/content
+/admin/team           /admin/settings      /admin/reviews
+/admin/services       /admin/theme         /admin/messages
 ```
 
-### Components needed
+Components: `DataTable`, `ImageUploader`, `StatCard`, `StatusBadge`,
+`PageHeader`, `ConfirmDialog`, `DateRangeFilter`.
 
-```
-DataTable          sortable, filterable, paginated table (Tanstack Table or custom)
-ImageUploader      drag-drop, reorder, set primary
-RichTextEditor     product description (TipTap or Quill)
-StatusBadge        color-coded order status
-StatsCard          metric + trend arrow
-```
-
-### Tasks
-
-- [ ] Admin layout with sidebar nav (collapsed on mobile)
-- [ ] `requireAdmin()` server-side check on every admin page
-- [ ] Product CRUD with image upload
-- [ ] Inline order status update (select + save)
-- [ ] Tracking number field on order
-- [ ] Low stock threshold alert (configurable per product)
-- [ ] Dashboard chart: last 30 days revenue (Recharts or Chart.js)
+Beyond plan: live theme/branding editor (`/admin/theme` → `lib/theme.ts`
+injects CSS-var overrides at runtime), services catalog, CMS pages, discount
+and promotion management, team invites, activity log, support inbox.
 
 ---
 
-## Phase 8 — Search + Reviews
+## Phase 8 — Search + Reviews ✅
 
-### Search
+Search is a case-insensitive Mongo regex over name/brand/sku
+(`app/api/search/route.ts`, `LIMIT = 10`) — not Postgres FTS. Debounced navbar
+`SearchBar` with dropdown results plus a full `/[locale]/search` page.
 
-Option A: PostgreSQL full-text search (`tsvector`) — free, no external dep  
-Option B: Algolia InstantSearch — better UX, 10k operations/month free
-
-Recommendation: start with Postgres FTS, migrate to Algolia if needed.
-
-```sql
--- Postgres FTS index
-ALTER TABLE "Product" ADD COLUMN search_vector tsvector;
-CREATE INDEX product_search_idx ON "Product" USING gin(search_vector);
--- trigger to update on insert/update
-```
-
-```
-GET /api/search?q=iphone+case&locale=en     returns products scored by relevance
-```
-
-### Search UI
-
-- Navbar search bar — debounced input, dropdown results (top 5)
-- Full `/[locale]/search?q=...` page with filters
-
-### Reviews
-
-- Star rating (1–5) + title + body
-- Moderation: admin approves before publish (`isApproved = false` by default)
-- Verified purchase badge (check if user has a DELIVERED order for that product)
-- Aggregate rating displayed on product card + detail page (already has StarRating component)
-
-### Tasks
-
-- [ ] Search: add tsvector columns, update index on product save
-- [ ] `GET /api/search` endpoint
-- [ ] SearchBar component in Navbar (mobile: full-screen overlay)
-- [ ] Review form on product detail (show only if user is logged in)
-- [ ] `POST /api/reviews` — create review, check verified purchase
-- [ ] Admin review moderation queue at `/admin/reviews`
-- [ ] Update ProductCard + ProductPage to fetch live rating from DB
+Reviews: 1–5 stars + title + body, admin moderation queue
+(`isApproved = false` by default), verified-purchase badge, aggregate rating on
+card and detail page.
 
 ---
 
-## Phase 9 — Email + Notifications
+## Phase 9 — Email + Notifications ✅
 
-### Approach: Resend (simple API, generous free tier)
+**nodemailer over SMTP** (not Resend). `lib/email/send.ts` + React Email
+templates in `lib/email/templates/`:
 
 ```
-lib/email/
-  templates/
-    order-confirmation.tsx    React Email template
-    order-shipped.tsx
-    order-delivered.tsx
-    password-reset.tsx
-    welcome.tsx
-  send.ts                     wrapper around Resend client
+OrderConfirmation.tsx   OrderShipped.tsx   OrderDelivered.tsx
+Welcome.tsx             AdminNewOrder.tsx  Layout.tsx / styles.ts
 ```
 
-### Trigger points
+Preview at `/email-preview`. Telegram notifications also exist
+(`lib/telegram.ts`). Needs SMTP credentials to send.
 
-| Event | Recipient | Template |
-|-------|-----------|----------|
-| Order created | Customer | order-confirmation |
-| Order status → SHIPPED | Customer | order-shipped (includes tracking) |
-| Order status → DELIVERED | Customer | order-delivered |
-| Register | Customer | welcome |
-| Forgot password | Customer | password-reset |
-| New order (any) | Admin | admin-new-order |
-| Low stock | Admin | admin-low-stock |
-
-### Tasks
-
-- [ ] Install `resend`, `@react-email/components`
-- [ ] Env vars: `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_EMAIL`
-- [ ] Order confirmation email sent inside `POST /api/orders`
-- [ ] Status change emails triggered in `PATCH /api/orders/[id]/status`
-- [ ] Password reset: generate token (stored in DB), email link, verify + update
-- [ ] React Email preview at `/email-preview` (dev only)
+- [ ] Password reset (token + email link) — templates exist, flow not wired
 
 ---
 
-## Phase 10 — Deployment + CI/CD
+## Phase 10 — Deployment + CI/CD 🟡
 
 ### Infrastructure
 
 ```
-Vercel                  Next.js hosting (Hobby → Pro when needed)
-Neon / Supabase         Serverless PostgreSQL (free tier)
-Cloudinary              Image CDN
-Resend                  Transactional email
+Vercel        Next.js hosting
+MongoDB Atlas database
+Cloudinary    image CDN
+Flitt         payments
+SMTP          transactional email
 ```
 
 ### Environment variables
 
 ```
 # DB
-DATABASE_URL
+MONGODB_URI
 
 # Auth
 NEXTAUTH_SECRET
@@ -361,51 +304,38 @@ NEXTAUTH_URL
 CLOUDINARY_URL
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 
-# Payments
-STRIPE_SECRET_KEY
-STRIPE_PUBLISHABLE_KEY
-STRIPE_WEBHOOK_SECRET
-TBC_MERCHANT_ID
-TBC_SECRET
-BOG_CLIENT_ID
-BOG_CLIENT_SECRET
+# Payments (Flitt)
+FLITT_MERCHANT_ID
+FLITT_PAYMENT_KEY
 
-# Email
-RESEND_API_KEY
+# Email (SMTP)
+SMTP_HOST  SMTP_PORT  SMTP_USER  SMTP_PASS
 EMAIL_FROM
 ADMIN_EMAIL
+
+# Notifications (optional)
+TELEGRAM_BOT_TOKEN
+TELEGRAM_CHAT_ID
 
 # App
 NEXT_PUBLIC_SITE_URL
 ```
 
-### CI/CD (GitHub Actions)
+### CI/CD
 
-```yaml
-# .github/workflows/ci.yml
-on: [push, pull_request]
-jobs:
-  build:
-    - checkout
-    - npm ci
-    - npx prisma generate
-    - npm run build
-    - npm run lint
-  test:              # Phase 2+
-    - npm run test
-```
+`.github/workflows/ci.yml` runs on push to `main` and every PR:
+checkout → `npm ci` → lint → `tsc --noEmit` → build, with placeholder env so
+the build compiles without real secrets.
 
 ### Deployment checklist
 
+- [x] GitHub Actions CI
 - [ ] Link GitHub repo to Vercel
-- [ ] Add all env vars in Vercel dashboard (preview + production)
-- [ ] `vercel env pull .env.local` for local dev
+- [ ] Add env vars in Vercel (preview + production)
 - [ ] Vercel preview deploys on every PR
-- [ ] `prisma migrate deploy` runs in postbuild script
-- [ ] Production branch: `main`
 - [ ] Custom domain: `mobax.ge` + `www.mobax.ge`
-- [ ] SSL auto-provisioned by Vercel
 - [ ] Enable Vercel Analytics + Speed Insights
+- [ ] Add a test job once a suite exists
 
 ---
 
@@ -413,118 +343,59 @@ jobs:
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| ORM | Prisma | type-safe, migrations, good DX |
+| Database | MongoDB + Mongoose | flexible schema for a fast-moving catalog; no migration step |
 | Auth | NextAuth v5 | integrates with App Router, flexible |
-| Payments | Stripe + BOG/TBC | Stripe for cards, local banks for Georgian users |
-| Search | Postgres FTS → Algolia | start free, upgrade if needed |
-| Email | Resend + React Email | simple API, React templates |
+| Payments | Flitt | single Georgian gateway, hosted checkout — no PCI scope |
+| Search | Mongo regex | adequate at current catalog size; revisit if it grows |
+| Email | nodemailer + React Email | SMTP works with any provider; templates stay in React |
 | Images | Cloudinary | generous free tier, transform API |
-| DB host | Neon | serverless Postgres, free tier, Vercel-native |
-| State | Zustand | already in place for cart |
-| Forms | native + zod | no heavy form lib needed |
+| State | Zustand | cart, persisted to localStorage |
+| Forms | native + zod | `lib/validations.ts`, shared client + server |
+| Theming | CSS vars + next-themes | admin can restyle the brand live without a deploy |
 
 ---
 
-## Folder structure (target state)
+## Design system
+
+Committed in `PRODUCT.md` (register: product) and enforced in
+`app/globals.css` + `tailwind.config.ts`.
+
+- **Palette:** neutral-led, single cobalt accent (`#2E5BFF`; `#5C7CFF` lifted for
+  dark mode). Brand tokens are stored as space-separated RGB channels so
+  Tailwind opacity modifiers work and `/admin/theme` can override them live.
+- **Contrast:** WCAG 2.1 AA in both themes. `graphite` (secondary text) is
+  var-driven so it tracks the theme — it must, since a hardcoded value silently
+  failed AA across the whole dark-mode storefront.
+  Interactive pills pin to `#2E5BFF` because the lifted dark cobalt drops white
+  text below 4.5:1.
+- **Type:** Inter (EN) / BPG Nino Mtavruli + Noto Sans Georgian (KA). Both
+  locales are first-class; check KA for wrapping when changing any layout.
+- **Motion:** reveals must enhance an already-visible default — never gate
+  content on a viewport trigger, or it ships blank to crawlers and prerenders
+  (`components/shop/Reveal.tsx` documents the failure mode).
+
+---
+
+## Folder structure (actual)
 
 ```
 app/
   [locale]/
-    (shop)/
-      page.tsx
-      products/
-        page.tsx
-        [slug]/page.tsx
-      cart/page.tsx
-      checkout/page.tsx
-      search/page.tsx               ← Phase 8
-      orders/[id]/page.tsx          ← Phase 5
-    (auth)/
-      login/page.tsx
-      register/page.tsx
-      forgot-password/page.tsx      ← Phase 9
-      reset-password/page.tsx       ← Phase 9
-    (account)/
-      account/page.tsx              ← Phase 3
-      account/orders/page.tsx       ← Phase 3
-      account/orders/[id]/page.tsx  ← Phase 3
-    (admin)/
-      admin/page.tsx                ← Phase 7
-      admin/products/page.tsx
-      admin/products/new/page.tsx
-      admin/products/[id]/edit/page.tsx
-      admin/orders/page.tsx
-      admin/orders/[id]/page.tsx
-      admin/categories/page.tsx
-      admin/brands/page.tsx
-      admin/reviews/page.tsx
-      admin/settings/page.tsx
-  api/
-    products/route.ts
-    products/[slug]/route.ts
-    categories/route.ts
-    brands/route.ts
-    orders/route.ts
-    orders/[id]/route.ts
-    orders/[id]/status/route.ts
-    reviews/route.ts
-    reviews/[productSlug]/route.ts
-    search/route.ts
-    payments/
-      stripe/intent/route.ts
-      stripe/webhook/route.ts
-      tbc/initiate/route.ts
-      tbc/webhook/route.ts
-      bog/initiate/route.ts
-      bog/webhook/route.ts
-    admin/
-      products/route.ts
-      products/[id]/route.ts
-      orders/route.ts
-      stats/route.ts
-      upload/route.ts
-    auth/[...nextauth]/route.ts
-  layout.tsx
+    (shop)/     page, products/[slug], cart, checkout, search,
+                services, orders/[id], account/{orders,messages}
+    (auth)/     login, register
+  admin/        16 modules (see Phase 7) — not locale-prefixed
+  api/          products, categories, brands, search, orders, reviews,
+                payments/{webhook,success,fail}, admin/*, auth/*, chat, support
+  email-preview/
 components/
-  ui/                               ← done
-  shop/                             ← done
-  layout/                           ← done
-  admin/
-    DataTable.tsx
-    ImageUploader.tsx
-    StatsCard.tsx
-    StatusBadge.tsx
-  email/
-    order-confirmation.tsx
-    order-shipped.tsx
-    welcome.tsx
-lib/
-  mock-data.ts                      ← replace with DB calls in Phase 2
-  store.ts                          ← done (cart)
-  utils.ts                          ← done
-  auth-helpers.ts                   ← Phase 3
-  cloudinary.ts                     ← Phase 4
-  email/send.ts                     ← Phase 9
-  validations.ts                    ← zod schemas shared client+server
-prisma/
-  schema.prisma
-  seed.ts
-  migrations/
-messages/
-  en.json                           ← done
-  ka.json                           ← done
+  ui/           shadcn primitives
+  shop/         ProductCard, CartDrawer, HeroProduct, Reveal, FaqSection, …
+  layout/       Navbar, Footer, LocaleSwitcher, ThemeToggle, AccountMenu
+  admin/        DataTable, ImageUploader, StatCard, StatusBadge, …
+lib/            mongodb, store, utils, rbac, theme, faq, payments/, email/,
+                cloudinary, validations, mock-data (→ seed fixtures + types)
+models/         17 Mongoose models
+scripts/seed.ts
+messages/       en.json · ka.json
 ```
-
----
-
-## Priority order
-
-1. **Phase 2** — DB + API (unlocks everything else)
-2. **Phase 3** — Auth (needed before orders, account, admin)
-3. **Phase 7** — Admin panel (needed to manage products in production)
-4. **Phase 5** — Orders (core business flow)
-5. **Phase 6** — Payments (revenue)
-6. **Phase 4** — File uploads (admin needs this to add products)
-7. **Phase 9** — Email (operational necessity)
-8. **Phase 10** — Deploy (go live)
-9. **Phase 8** — Search + Reviews (nice to have, improves UX)

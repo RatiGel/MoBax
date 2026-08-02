@@ -8,50 +8,127 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev      # start dev server (localhost:3000)
 npm run build    # production build
 npm run lint     # eslint
+npm run seed     # wipe + reseed MongoDB from lib/mock-data fixtures
+npx tsc --noEmit # typecheck (CI runs this)
 ```
 
-No test suite yet (Phase 2+).
+No test suite yet. CI (`.github/workflows/ci.yml`) runs lint + typecheck + build.
+
+Note: running `npm run build` while `npm run dev` is live corrupts `.next` and
+makes the dev server 500. Stop dev first, or `rm -rf .next` and restart after.
 
 ## Project
 
-MoBax — bilingual (EN/KA) mobile accessories e-commerce for Georgia market. Currently Phase 1 complete (static frontend). Phases 2–10 are planned in `plan.md`.
+MoBax — bilingual (EN/KA) mobile accessories e-commerce for the Georgia market.
+A full-stack app: storefront, MongoDB, auth, payments, and a 14-module admin
+panel. Roadmap and current status live in `plan.md`; product/brand intent and
+the design bar live in `PRODUCT.md`.
 
 ## Architecture
 
-**Stack:** Next.js 14 App Router · TypeScript · Tailwind · Zustand · next-intl · shadcn/ui (Radix primitives)
+**Stack:** Next.js 14 App Router · TypeScript · Tailwind · MongoDB + Mongoose ·
+NextAuth v5 · Zustand · next-intl · shadcn/ui (Radix primitives)
 
 **Routing layout:**
 ```
 app/[locale]/
-  (shop)/      ← public storefront (home, products, cart, checkout)
+  (shop)/      ← public storefront (home, products, cart, checkout, search,
+                 services, account, guest order tracking)
   (auth)/      ← login, register
+app/admin/     ← admin panel, NOT locale-prefixed (English-only by design)
+app/api/       ← route handlers
 ```
-All routes are locale-prefixed (`/en/...`, `/ka/...`). Middleware (`middleware.ts`) handles locale routing via `next-intl`. Config in `i18n/request.ts`.
+Storefront routes are locale-prefixed (`/en/...`, `/ka/...`). `middleware.ts`
+handles locale routing via `next-intl` and guards `/account` and `/admin`
+(`/admin/setup` stays public for invite redemption). Config in `i18n/request.ts`.
 
-**i18n:** Two locales — `en` and `ka` (Georgian). Translation keys live in `messages/en.json` and `messages/ka.json`. Every user-facing string must have both translations. Access via `useTranslations()` (client) or `getTranslations()` (server).
+**i18n:** Two locales — `en` and `ka` (Georgian). Keys live in `messages/en.json`
+and `messages/ka.json`. Every user-facing string needs both translations.
+Access via `useTranslations()` (client) or `getTranslations()` (server).
+Georgian is first-class, not an afterthought: check KA for text wrapping and
+overflow whenever you change a layout.
 
-**State:** Zustand cart store (`lib/store.ts`) — persisted to localStorage under key `mobax-cart`. Cart state also controls the `CartDrawer` open/close via `isCartOpen`.
+**Data layer — read this before touching product data.** There are two sources
+and they are not yet connected:
 
-**Data layer (Phase 1):** All product and category data comes from `lib/mock-data.ts`. This will be replaced with Prisma + API routes in Phase 2. The `Product` and `Category` types defined there are the canonical shapes.
+- `models/*.ts` + `lib/mongodb.ts` — MongoDB. The admin panel and `/api/*`
+  routes read and write here.
+- `lib/mock-data.ts` — static TypeScript fixtures. **The storefront pages still
+  import these directly**, so editing a product in admin does NOT change the
+  public site. `lib/mock-data.ts` is also what `scripts/seed.ts` seeds from, and
+  it defines the canonical `Product` / `Category` types.
+
+Cutting the storefront over to the DB is the top open task (`plan.md` → Open
+work #1). Until then, know which source a page uses before debugging "wrong"
+product data.
+
+**Auth:** NextAuth v5 Credentials + JWT. Four roles — owner / admin / staff /
+customer (`lib/rbac.ts`, `models/User.ts`), with an invite flow for staff.
+
+**Payments:** Flitt hosted checkout only (`lib/payments/`). Server call returns a
+`checkout_url`; Flitt POSTs a SHA1-signed callback to `/api/payments/webhook`,
+which is the authoritative order status. Amounts in minor units (tetri = GEL×100).
+Currently on the sandbox merchant — swapping env vars takes it live.
+
+**Email:** nodemailer over SMTP (`lib/email/send.ts`) with React Email templates
+in `lib/email/templates/`. Preview at `/email-preview`. (`resend` is in
+package.json but unused.) Telegram notifications in `lib/telegram.ts`.
+
+**State:** Zustand cart store (`lib/store.ts`) — persisted to localStorage under
+`mobax-cart`. Also controls `CartDrawer` open/close via `isCartOpen`.
 
 **Components:**
-- `components/ui/` — shadcn primitives (button, card, input, etc.)
-- `components/shop/` — domain components (ProductCard, CartDrawer, StarRating, BeforeAfterSlider)
-- `components/layout/` — Navbar, Footer, LocaleSwitcher, ThemeToggle
+- `components/ui/` — shadcn primitives
+- `components/shop/` — ProductCard, CartDrawer, HeroProduct, Reveal, FaqSection,
+  StarRating, BeforeAfterSlider, SearchBar, ReviewSection, SupportChat
+- `components/layout/` — Navbar, Footer, LocaleSwitcher, ThemeToggle, AccountMenu
+- `components/admin/` — DataTable, ImageUploader, StatCard, StatusBadge, PageHeader
 
-**Home page sections** (`app/[locale]/(shop)/page.tsx`): Hero → Categories → Featured Products → Editorial banner → Before/After comparison → FAQ → Trust badges.
+## Design system
 
-- `BeforeAfterSlider` — client component, drag-to-compare two images (clip-path on the before layer, pointer events, keyboard arrows). Uses plain `<img>`, not `next/image`. Assets in `public/compare/` (`phone-naked.png` / `phone-cased.png`) — composited from product photos; both frames must share identical canvas size, background, and phone position or the drag transition jumps.
-- FAQ strings live in the `home` namespace as `faqQ1`–`faqQ5` / `faqA1`–`faqA5` in both `messages/*.json`. Note: `useTranslations('home')` scopes keys — top-level namespaces like `faq.title` won't resolve from `t()` on this page.
+`PRODUCT.md` holds the brand and accessibility commitments. Enforced in
+`app/globals.css` + `tailwind.config.ts`.
 
-**Theming:** `next-themes` — dark/light toggle via `ThemeToggle`. Tailwind `darkMode: 'class'`.
+**Color.** Neutral-led with a single cobalt accent (`#2E5BFF`, lifted to
+`#5C7CFF` in dark mode). Brand tokens are stored as space-separated RGB channels
+(`--cobalt: 46 91 255`) so Tailwind opacity modifiers like `bg-cobalt/10` work
+via `rgb(var(--x) / <alpha-value>)`, and so `/admin/theme` can override the brand
+at runtime (`lib/theme.ts` injects the override block).
 
-## Phase 2+ context
+**Contrast is a hard requirement — WCAG 2.1 AA, verified in both themes.**
+- Semantic text colors must be var-driven so they track the theme. `graphite`
+  (secondary text) was once hardcoded in `tailwind.config.ts`, so it stayed
+  identical in dark mode and silently failed AA everywhere it was used.
+- Pin interactive fills to `#2E5BFF` rather than `bg-cobalt` where white text
+  sits on them: the lifted dark-mode cobalt puts white at ~3.6:1, under the
+  4.5:1 floor.
 
-When adding DB + API (Phase 2), the plan calls for Prisma + PostgreSQL (Neon). Schema is defined in `plan.md`. Seed script should import current `mock-data.ts` fixtures. After Phase 2, pages should fetch from `/api/...` instead of importing from `lib/mock-data.ts`.
+**Motion.** Reveal animations must enhance an already-visible default. Never gate
+content behind a viewport/class trigger — observers don't fire during prerender,
+in headless renderers, or in background tabs, and the section ships blank. See
+the comment in `components/shop/Reveal.tsx`; this shipped as a ~1500px hole where
+the featured-product grid should have been. Respect `prefers-reduced-motion`.
 
-Auth (Phase 3) will use NextAuth v5. Middleware will be extended to protect `/checkout`, `/account`, and `/api/admin/*` routes.
+**Verify visually.** This codebase has had real bugs that read fine in source and
+only appear in a browser (blank sections, 768px horizontal overflow, a
+self-scrolling carousel). For UI changes, screenshot the running page at
+several widths, in both themes and both locales.
 
-Image hosting: Cloudinary (Phase 4). Add remote patterns to `next.config.js` when setting up.
+## Home page
 
-Payments: Stripe (cards) + TBC Pay / BOG Pay (Georgian banks) + Cash on Delivery (Phase 6).
+Sections (`app/[locale]/(shop)/page.tsx`): Hero → Categories → Featured Products
+→ New Arrivals rail → FAQ → Trust badges. Section padding is deliberately
+non-uniform for rhythm — don't normalize it.
+
+- `HeroProduct` — hero visual with an inline quick-add (shortest path to cart).
+- `Reveal` — scroll-reveal wrapper; see the motion rule above before editing.
+- `FaqSection` — async server component. Reads the admin-managed FAQ setting via
+  `lib/faq.ts` and falls back to `faqQ1`–`faqQ5` / `faqA1`–`faqA5` in the `home`
+  namespace **only when the saved list is empty**. Note: `useTranslations('home')`
+  scopes keys, so `faq.title` won't resolve from `t()` on this page.
+- `BeforeAfterSlider` — drag-to-compare, plain `<img>` not `next/image`. Assets in
+  `public/compare/`; both frames must share canvas size, background, and phone
+  position or the drag transition jumps.
+
+**Theming:** `next-themes`, dark/light via `ThemeToggle`, Tailwind
+`darkMode: 'class'`.
