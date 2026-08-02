@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyState } from './EmptyState';
 
 export interface Column<T> {
@@ -37,6 +38,22 @@ interface DataTableProps<T> {
   emptyTitle?: string;
   emptyDescription?: string;
   emptyAction?: React.ReactNode;
+  // optional row selection — covers only the rows currently rendered
+  // (this page), never the whole server-side-paginated result set.
+  selectable?: boolean;
+  selectedIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
+  getRowId?: (row: T) => string;
+}
+
+// Checkbox fills carrying a white check must be pinned to the literal
+// #2E5BFF, never `bg-primary`/`bg-cobalt` — see CLAUDE.md contrast rule.
+const CHECKBOX_CLASS =
+  'data-[state=checked]:bg-[#2E5BFF] data-[state=checked]:border-[#2E5BFF] data-[state=indeterminate]:bg-[#2E5BFF] data-[state=indeterminate]:border-[#2E5BFF]';
+
+function defaultGetRowId<T>(row: T): string {
+  const r = row as { id?: string; _id?: string };
+  return String(r.id ?? r._id);
 }
 
 export function DataTable<T>({
@@ -53,13 +70,44 @@ export function DataTable<T>({
   emptyTitle = 'Nothing here yet',
   emptyDescription,
   emptyAction,
+  selectable = false,
+  selectedIds,
+  onSelectionChange,
+  getRowId = defaultGetRowId,
 }: DataTableProps<T>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const selectedSet = new Set(selectedIds ?? []);
+  const pageRowIds = rows.map((row) => getRowId(row));
+  const selectedOnPageCount = pageRowIds.filter((id) => selectedSet.has(id)).length;
+  const allOnPageSelected = pageRowIds.length > 0 && selectedOnPageCount === pageRowIds.length;
+  const someOnPageSelected = selectedOnPageCount > 0 && !allOnPageSelected;
 
   function toggleSort(key: string) {
     if (!onSortChange) return;
     const dir = sort?.key === key && sort.dir === 'asc' ? 'desc' : 'asc';
     onSortChange({ key, dir });
+  }
+
+  function toggleSelectAll() {
+    if (!onSelectionChange) return;
+    if (allOnPageSelected) {
+      onSelectionChange((selectedIds ?? []).filter((id) => !pageRowIds.includes(id)));
+    } else {
+      const next = new Set(selectedIds ?? []);
+      pageRowIds.forEach((id) => next.add(id));
+      onSelectionChange(Array.from(next));
+    }
+  }
+
+  function toggleRow(id: string) {
+    if (!onSelectionChange) return;
+    const next = new Set(selectedIds ?? []);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    onSelectionChange(Array.from(next));
   }
 
   return (
@@ -69,6 +117,17 @@ export function DataTable<T>({
       <Table>
         <TableHeader className="bg-neutral-50/80 dark:bg-neutral-900/40">
           <TableRow className="hover:bg-transparent">
+            {selectable && (
+              <TableHead className="w-10 whitespace-nowrap">
+                <Checkbox
+                  className={CHECKBOX_CLASS}
+                  checked={someOnPageSelected ? 'indeterminate' : allOnPageSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select all rows on this page"
+                  disabled={pageRowIds.length === 0}
+                />
+              </TableHead>
+            )}
             {columns.map((col) => (
               <TableHead
                 key={col.key}
@@ -101,6 +160,11 @@ export function DataTable<T>({
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <TableRow key={`sk-${i}`}>
+                {selectable && (
+                  <TableCell>
+                    <Skeleton className="h-4 w-4" />
+                  </TableCell>
+                )}
                 {columns.map((col) => (
                   <TableCell key={col.key}>
                     <Skeleton className="h-5 w-full max-w-[160px]" />
@@ -110,23 +174,36 @@ export function DataTable<T>({
             ))
           ) : rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="p-0">
+              <TableCell colSpan={selectable ? columns.length + 1 : columns.length} className="p-0">
                 <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => (
-              <TableRow
-                key={rowKey(row)}
-                className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition-colors"
-              >
-                {columns.map((col) => (
-                  <TableCell key={col.key} className={`whitespace-nowrap ${col.className ?? ''}`}>
-                    {col.render(row)}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
+            rows.map((row) => {
+              const id = getRowId(row);
+              return (
+                <TableRow
+                  key={rowKey(row)}
+                  className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition-colors"
+                >
+                  {selectable && (
+                    <TableCell>
+                      <Checkbox
+                        className={CHECKBOX_CLASS}
+                        checked={selectedSet.has(id)}
+                        onCheckedChange={() => toggleRow(id)}
+                        aria-label={`Select row ${id}`}
+                      />
+                    </TableCell>
+                  )}
+                  {columns.map((col) => (
+                    <TableCell key={col.key} className={`whitespace-nowrap ${col.className ?? ''}`}>
+                      {col.render(row)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
