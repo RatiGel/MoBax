@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -12,7 +12,7 @@ import { AccountMenu } from './AccountMenu';
 import { navIconButton, navIconGlyph } from './navIcon';
 import { SearchBar } from '@/components/shop/SearchBar';
 import { useCartStore } from '@/lib/store';
-import { getParentCategories, brands } from '@/lib/mock-data';
+import { getParentCategories, brands, getProductsByBrand } from '@/lib/mock-data';
 import { canSeeAdminPanel } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
 
@@ -33,6 +33,12 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
   const [brandsOpen, setBrandsOpen] = useState(false);
   const deviceBrands = brands.filter((b) => b.type === 'device');
   const makerBrands = brands.filter((b) => b.type === 'maker');
+  // Resolved once, not per hover: getProductsByBrand scans the whole catalog
+  // per brand, and the menu re-renders on every open/close.
+  const brandCounts = useMemo(
+    () => Object.fromEntries(brands.map((b) => [b.slug, getProductsByBrand(b.slug).length])),
+    [],
+  );
   const { getItemCount, openCart } = useCartStore();
   // Cart count comes from a localStorage-persisted store — defer to after mount
   // so server and first client render agree (avoids hydration mismatch).
@@ -109,12 +115,23 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
             {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-7 flex-1 justify-center">
               {/* Brands mega-menu */}
+              {/* Focus-within alongside hover so the panel is reachable by
+                  keyboard, and Escape closes it — it was pointer-only before. */}
               <div
                 className="relative"
                 onMouseEnter={() => setBrandsOpen(true)}
                 onMouseLeave={() => setBrandsOpen(false)}
+                onFocusCapture={() => setBrandsOpen(true)}
+                onBlurCapture={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setBrandsOpen(false);
+                }}
+                onKeyDown={(e) => e.key === 'Escape' && setBrandsOpen(false)}
               >
-                <button className="flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-ink dark:hover:text-white transition-colors py-6">
+                <button
+                  aria-expanded={brandsOpen}
+                  onClick={() => setBrandsOpen((v) => !v)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-ink dark:hover:text-white transition-colors py-6"
+                >
                   {locale === 'ka' ? 'ბრენდები' : 'Brands'}
                   <ChevronDown
                     className={`h-3.5 w-3.5 transition-transform duration-200 ${brandsOpen ? 'rotate-180' : ''}`}
@@ -122,35 +139,66 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
                 </button>
 
                 {brandsOpen && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-[420px] animate-slide-down pt-2">
-                    <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-2xl shadow-ink/10 rounded-2xl overflow-hidden p-2">
-                      <p className="px-3 pt-2 pb-1.5 text-[11px] font-medium tracking-wide text-graphite">
-                        {locale === 'ka' ? 'მოწყობილობის ბრენდი' : 'Shop by device'}
-                      </p>
-                      <div className="grid grid-cols-2 gap-px">
-                        {deviceBrands.map((b) => (
-                          <Link
-                            key={b.slug}
-                            href={`/${locale}/products?brand=${b.slug}`}
-                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-ink dark:text-neutral-100 hover:bg-cobalt-soft hover:text-cobalt dark:hover:bg-cloud-dark dark:hover:text-cobalt-dark transition-colors"
-                          >
-                            {b.name}
-                          </Link>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-[560px] animate-slide-down pt-2">
+                    <div className="overflow-hidden rounded-2xl border border-border-light bg-surface-light shadow-2xl shadow-ink/10 dark:border-border-dark dark:bg-surface-dark">
+                      {/* Two intents side by side rather than stacked: "which
+                          phone do I own" and "whose accessory do I want" are
+                          parallel questions, and the old stacked version buried
+                          the makers below the fold of the panel. The divider
+                          carries the split, so neither column needs a card. */}
+                      <div className="grid grid-cols-2 divide-x divide-border-light dark:divide-border-dark">
+                        {[
+                          {
+                            key: 'device',
+                            label: locale === 'ka' ? 'მოწყობილობის მიხედვით' : 'Shop by device',
+                            items: deviceBrands,
+                          },
+                          {
+                            key: 'maker',
+                            label: locale === 'ka' ? 'აქსესუარების ბრენდი' : 'Accessory brands',
+                            items: makerBrands,
+                          },
+                        ].map((group) => (
+                          <div key={group.key} className="p-2">
+                            {/* No uppercase / letter-spacing here: Georgian is
+                                a unicase script, so text-transform does nothing
+                                but tracking visibly stretches it. Sentence case
+                                at one weight reads correctly in both locales. */}
+                            <p className="px-3 pb-1.5 pt-2 text-[11px] font-semibold text-graphite">
+                              {group.label}
+                            </p>
+                            {group.items.map((b) => {
+                              // Real catalog count, not a decorative number —
+                              // it tells a shopper whether the link is worth a
+                              // tap before they spend one.
+                              const count = brandCounts[b.slug] ?? 0;
+                              return (
+                                <Link
+                                  key={b.slug}
+                                  href={`/${locale}/products?brand=${b.slug}`}
+                                  className="group/brand flex items-baseline justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-cobalt-soft dark:hover:bg-cloud-dark"
+                                >
+                                  <span className="text-sm font-medium text-ink transition-colors group-hover/brand:text-cobalt dark:text-neutral-100 dark:group-hover/brand:text-cobalt-dark">
+                                    {b.name}
+                                  </span>
+                                  <span className="shrink-0 text-xs tabular-nums text-graphite">
+                                    {count}
+                                  </span>
+                                </Link>
+                              );
+                            })}
+                          </div>
                         ))}
                       </div>
-                      <p className="px-3 pt-3 pb-1.5 text-[11px] font-medium tracking-wide text-graphite">
-                        {locale === 'ka' ? 'აქსესუარების ბრენდი' : 'Accessory brands'}
-                      </p>
-                      <div className="grid grid-cols-2 gap-px">
-                        {makerBrands.map((b) => (
-                          <Link
-                            key={b.slug}
-                            href={`/${locale}/products?brand=${b.slug}`}
-                            className="rounded-xl px-3 py-2.5 text-sm font-medium text-ink dark:text-neutral-100 hover:bg-cobalt-soft hover:text-cobalt dark:hover:bg-cloud-dark dark:hover:text-cobalt-dark transition-colors"
-                          >
-                            {b.name}
-                          </Link>
-                        ))}
+                      {/* Mirrors the Categories panel's footer so both menus
+                          share one vocabulary. */}
+                      <div className="border-t border-border-light bg-cloud-light p-3.5 dark:border-border-dark dark:bg-cloud-dark">
+                        <Link
+                          href={`/${locale}/products`}
+                          className="flex items-center gap-1 text-xs font-semibold text-cobalt transition-opacity hover:opacity-70 dark:text-cobalt-dark"
+                        >
+                          {locale === 'ka' ? 'ყველა პროდუქტი →' : 'View all products →'}
+                        </Link>
                       </div>
                     </div>
                   </div>
