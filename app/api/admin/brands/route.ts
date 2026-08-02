@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { CreateBrandSchema } from '@/lib/validations';
 import Brand from '@/models/Brand';
 
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     await logActivity(session, 'brand.create', 'Brand', String(brand._id), {
       name: brand.name,
     });
+
+    revalidateStorefront('brand');
 
     return ok(brand.toObject(), 201);
   } catch (err) {

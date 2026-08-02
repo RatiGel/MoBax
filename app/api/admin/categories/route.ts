@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { CreateCategorySchema } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
 import Category from '@/models/Category';
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
       slug,
       nameEn: category.nameEn,
     });
+
+    revalidateStorefront('category');
 
     return ok(category.toObject(), 201);
   } catch (err) {
