@@ -49,7 +49,13 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
       <HtmlLang locale={locale} />
       {overrideCss && <style id="store-theme" dangerouslySetInnerHTML={{ __html: overrideCss }} />}
       <NextIntlClientProvider locale={locale} messages={messages}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        {/* Storefront opens light regardless of OS preference: the brand's
+            product photography and cobalt accent are art-directed on paper
+            white, and a dark first paint is not what a first-time shopper
+            should meet. enableSystem is off so an OS dark preference doesn't
+            silently override this; ThemeToggle still switches themes and the
+            choice persists per visitor. */}
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <div className="flex min-h-screen flex-col">
             <Navbar branding={branding} />
             <main className="flex-1">{children}</main>
