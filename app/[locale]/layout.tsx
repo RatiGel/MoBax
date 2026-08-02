@@ -10,6 +10,7 @@ import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
 import { HtmlLang } from '@/components/HtmlLang';
 import { getStoreTheme, themeOverrideCss } from '@/lib/theme';
+import { getParentCategories, getBrands, getBrandProductCounts } from '@/lib/catalog';
 
 const locales = ['en', 'ka'];
 
@@ -44,6 +45,14 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
     announcement: theme.announcement,
   };
 
+  // Navbar categories/brands — Navbar is a client component and cannot query
+  // Mongoose itself, so the DB reads happen here and flow down as props.
+  const [navCategories, navBrands, brandCounts] = await Promise.all([
+    getParentCategories(),
+    getBrands(),
+    getBrandProductCounts(),
+  ]);
+
   return (
     <SessionProvider>
       <HtmlLang locale={locale} />
@@ -57,7 +66,12 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
             choice persists per visitor. */}
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <div className="flex min-h-screen flex-col">
-            <Navbar branding={branding} />
+            <Navbar
+              branding={branding}
+              categories={navCategories}
+              brands={navBrands}
+              brandCounts={brandCounts}
+            />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>

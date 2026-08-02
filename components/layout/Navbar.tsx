@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -12,7 +12,7 @@ import { AccountMenu } from './AccountMenu';
 import { navIconButton, navIconGlyph } from './navIcon';
 import { SearchBar } from '@/components/shop/SearchBar';
 import { useCartStore } from '@/lib/store';
-import { getParentCategories, brands, getProductsByBrand } from '@/lib/mock-data';
+import type { Category, Brand } from '@/lib/types';
 import { canSeeAdminPanel } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
 
@@ -22,7 +22,17 @@ export interface NavbarBranding {
   announcement: string;
 }
 
-export function Navbar({ branding }: { branding?: NavbarBranding }) {
+export function Navbar({
+  branding,
+  categories,
+  brands,
+  brandCounts,
+}: {
+  branding?: NavbarBranding;
+  categories: Category[];
+  brands: Brand[];
+  brandCounts: Record<string, number>;
+}) {
   const locale = useLocale();
   const t = useTranslations('nav');
   const tCat = useTranslations('categories');
@@ -33,12 +43,6 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
   const [brandsOpen, setBrandsOpen] = useState(false);
   const deviceBrands = brands.filter((b) => b.type === 'device');
   const makerBrands = brands.filter((b) => b.type === 'maker');
-  // Resolved once, not per hover: getProductsByBrand scans the whole catalog
-  // per brand, and the menu re-renders on every open/close.
-  const brandCounts = useMemo(
-    () => Object.fromEntries(brands.map((b) => [b.slug, getProductsByBrand(b.slug).length])),
-    [],
-  );
   const { getItemCount, openCart } = useCartStore();
   // Cart count comes from a localStorage-persisted store — defer to after mount
   // so server and first client render agree (avoids hydration mismatch).
@@ -52,7 +56,7 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
     session?.user?.role as UserRole | undefined,
   );
   // "most-popular" is a /products filter, not a real category — keep it out of nav.
-  const parentCategories = getParentCategories().filter((c) => c.slug !== 'most-popular');
+  const parentCategories = categories.filter((c) => c.slug !== 'most-popular');
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '?');
 
