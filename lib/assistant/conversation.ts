@@ -1,4 +1,4 @@
-import type { CategorySlug } from '@/lib/mock-data';
+import type { CategorySlug } from '@/lib/types';
 
 /**
  * What the assistant has learned about the shopper so far.

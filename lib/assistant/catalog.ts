@@ -1,10 +1,5 @@
-import {
-  products,
-  categories,
-  getSubcategories,
-  type CategorySlug,
-  type Product,
-} from '@/lib/mock-data';
+import { getProducts, getCategories, getSubcategories } from '@/lib/catalog';
+import type { CategorySlug, Product } from '@/lib/types';
 
 /**
  * Retrieval for the shopping assistant.
@@ -131,8 +126,8 @@ function contradictsDevice(product: Product, device: string): boolean {
 }
 
 /** Expand a parent category to its children, matching storefront behaviour. */
-function categoryPool(slug: CategorySlug): Product[] {
-  const subs = getSubcategories(slug);
+async function categoryPool(slug: CategorySlug, products: Product[]): Promise<Product[]> {
+  const subs = await getSubcategories(slug);
   if (subs.length > 0) {
     const subSlugs = subs.map((s) => s.slug);
     return products.filter((p) => subSlugs.includes(p.category));
@@ -154,8 +149,9 @@ function sortPool(pool: Product[], sort: AssistantQuery['sort']): Product[] {
   }
 }
 
-export function findProducts(query: AssistantQuery, limit = 4): ScoredProduct[] {
-  let pool = query.category ? categoryPool(query.category) : [...products];
+export async function findProducts(query: AssistantQuery, limit = 4): Promise<ScoredProduct[]> {
+  const allProducts = await getProducts();
+  let pool = query.category ? await categoryPool(query.category, allProducts) : [...allProducts];
 
   if (query.brand) {
     const b = query.brand.toLowerCase();
@@ -248,7 +244,8 @@ export function findProducts(query: AssistantQuery, limit = 4): ScoredProduct[] 
  * scored zero. Handing it the real brands, spec values, and price range keeps
  * extraction inside terms that can actually match something.
  */
-export function catalogVocabulary() {
+export async function catalogVocabulary() {
+  const [products, categories] = await Promise.all([getProducts(), getCategories()]);
   const brands = Array.from(new Set(products.map((p) => p.brand))).sort();
   const prices = products.map((p) => p.price);
   const specValues = new Set<string>();

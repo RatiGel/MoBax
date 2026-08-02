@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { type CategorySlug } from '@/lib/mock-data';
+import { type CategorySlug } from '@/lib/types';
 import {
   findProducts,
   catalogVocabulary,
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No messages.' }, { status: 400 });
   }
 
-  const vocab = catalogVocabulary();
+  const vocab = await catalogVocabulary();
   const convo = messages.map((m) => `${m.role}: ${m.content}`).join('\n');
   const langRule =
     locale === 'ka'
@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
       inStockOnly: true,
     };
 
-    const matches = findProducts(query, 4);
+    const matches = await findProducts(query, 4);
 
     if (matches.length === 0) {
       return NextResponse.json({
