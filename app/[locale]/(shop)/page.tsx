@@ -32,9 +32,12 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
   // not a real product group, so it doesn't belong in the home grid.
   const categories = getParentCategories().filter((c) => c.slug !== 'most-popular');
 
-  // Hero product — the single highest-trust item, shown so the buyer sees
-  // something to buy above the fold instead of an empty column.
-  const heroProduct = featured[0] ?? newArrivals[0];
+  // Hero products — a rotating set of new arrivals, so the buyer sees
+  // something to buy above the fold instead of an empty column, and gets a
+  // sense of the range's breadth rather than one SKU. Falls back to featured
+  // if new arrivals are empty; the component handles a single-item list by
+  // rendering a static tile with no controls.
+  const heroProducts = (newArrivals.length > 0 ? newArrivals : featured).slice(0, 5);
 
   return (
     <>
@@ -86,7 +89,7 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
             </div>
 
             {/* Product visual with inline quick-add — shortest path to cart */}
-            {heroProduct && <HeroProduct product={heroProduct} />}
+            {heroProducts.length > 0 && <HeroProduct products={heroProducts} />}
           </div>
         </div>
       </section>
