@@ -56,6 +56,7 @@ const config: Config = {
         'fade-in': 'fadeIn 0.2s ease-out',
         'fade-up': 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both',
         'float': 'float 6s ease-in-out infinite',
+        'badge-pop': 'badgePop 0.34s cubic-bezier(0.34,1.56,0.64,1)',
       },
       keyframes: {
         slideDown: {
@@ -73,6 +74,11 @@ const config: Config = {
         float: {
           '0%,100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-12px)' },
+        },
+        badgePop: {
+          '0%': { transform: 'scale(0.4)', opacity: '0' },
+          '60%': { transform: 'scale(1.18)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
     },

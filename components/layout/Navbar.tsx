@@ -9,6 +9,7 @@ import { ShoppingCart, X, Menu, ChevronDown, LayoutDashboard } from 'lucide-reac
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { AccountMenu } from './AccountMenu';
+import { navIconButton, navIconGlyph } from './navIcon';
 import { SearchBar } from '@/components/shop/SearchBar';
 import { useCartStore } from '@/lib/store';
 import { getParentCategories, brands } from '@/lib/mock-data';
@@ -225,35 +226,61 @@ export function Navbar({ branding }: { branding?: NavbarBranding }) {
               <SearchBar />
             </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-0.5">
-              <LocaleSwitcher />
-              <ThemeToggle />
+            {/* Right Actions — two groups: preferences (language, theme) sit
+                together inside one recessed rail; the things you act on (cart,
+                account) float free to its right. A hairline divider was doing
+                this job before, but a shared container is what actually makes
+                the toggles read as settings rather than peers of the cart. */}
+            <div className="flex flex-shrink-0 items-center gap-2">
+              {/* The rail surface only appears at sm+; below that its padding
+                  costs more width than the grouping is worth, so the two
+                  controls stand alone. One instance either way — rendering the
+                  pair twice would duplicate the language group in the a11y
+                  tree. */}
+              <div className="flex items-center gap-0.5 sm:rounded-full sm:bg-ink/[0.025] sm:p-0.5 sm:ring-1 sm:ring-inset sm:ring-ink/[0.05] dark:sm:bg-white/[0.03] dark:sm:ring-white/[0.07]">
+                <LocaleSwitcher />
+                <ThemeToggle />
+              </div>
 
               <button
                 onClick={openCart}
-                className="relative h-10 w-10 flex items-center justify-center text-graphite hover:text-ink dark:hover:text-white transition-colors"
-                aria-label={t('cart')}
+                className={navIconButton}
+                aria-label={
+                  itemCount > 0 ? `${t('cart')} (${itemCount})` : t('cart')
+                }
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className={navIconGlyph} strokeWidth={1.75} />
                 {itemCount > 0 && (
-                  <span className="absolute right-0.5 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cobalt text-[10px] font-bold text-white">
+                  /* Ring matches the navbar surface so the badge reads as a
+                     cutout rather than a sticker overlapping the glyph.
+                     Keyed on the count so React remounts it and the pop
+                     keyframe replays on every add — the feedback for "it went
+                     in the cart" is the badge moving, not just changing. */
+                  <span
+                    key={itemCount}
+                    className="absolute -right-0.5 -top-0.5 z-10 flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-full bg-[#2E5BFF] px-[5px] text-[10px] font-bold leading-none tracking-tight text-white shadow-[0_1px_4px_rgba(46,91,255,0.45)] ring-2 ring-paper motion-reduce:animate-none dark:ring-ink"
+                  >
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}
               </button>
 
-              <div className="hidden md:flex items-center ml-1">
+              <div className="hidden md:flex items-center">
                 <AccountMenu />
               </div>
 
               {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden h-10 w-10 flex items-center justify-center text-ink dark:text-white"
+                className={`${navIconButton} lg:hidden`}
                 aria-label={t('menu')}
+                aria-expanded={mobileOpen}
               >
-                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileOpen ? (
+                  <X className={navIconGlyph} strokeWidth={1.75} />
+                ) : (
+                  <Menu className={navIconGlyph} strokeWidth={1.75} />
+                )}
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { canSeeAdminPanel } from '@/lib/rbac';
+import { navIconButton, navIconGlyph } from './navIcon';
 import type { UserRole } from '@/models/User';
 
 /**
@@ -32,10 +33,10 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
       <Link
         href={`/${locale}/login`}
         onClick={onNavigate}
-        className="h-10 w-10 flex items-center justify-center text-ink/70 hover:text-cobalt dark:text-white/80 dark:hover:text-white transition-colors"
+        className={navIconButton}
         aria-label={ka ? 'შესვლა' : 'Log in'}
       >
-        <User className="h-5 w-5" />
+        <User className={navIconGlyph} strokeWidth={1.75} />
       </Link>
     );
   }
@@ -47,8 +48,10 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <DropdownMenu>
+      {/* Round focus ring, not the global square :focus-visible outline —
+          that outline clipped the corners of the circular avatar. */}
       <DropdownMenuTrigger
-        className="h-10 w-10 flex items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="group flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-2 focus-visible:ring-offset-paper motion-reduce:transition-none dark:focus-visible:ring-offset-ink"
         aria-label={ka ? 'ანგარიში' : 'Account'}
       >
         {image ? (
@@ -56,10 +59,13 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
           <img
             src={image}
             alt=""
-            className="h-8 w-8 rounded-full object-cover ring-2 ring-white/30"
+            className="h-8 w-8 rounded-full object-cover ring-1 ring-ink/10 transition-shadow group-hover:ring-2 group-hover:ring-cobalt/40 dark:ring-white/15"
           />
         ) : (
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-primary text-sm font-bold ring-2 ring-white/20">
+          /* Gradient base pinned to #2E5BFF, not the `cobalt` token: the token
+             lifts to #5C7CFF in dark mode, which puts white under the 4.5:1
+             floor. The old `text-primary` (navy) on cobalt was ~2.6:1. */
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4B72FF] to-[#2E5BFF] text-[0.8125rem] font-bold text-white ring-1 ring-inset ring-white/15 transition-shadow group-hover:shadow-[0_0_0_3px_rgba(46,91,255,0.18)]">
             {initial}
           </span>
         )}
