@@ -1,5 +1,4 @@
-import { useTranslations } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Truck, Shield, RotateCcw, Headphones, Star } from 'lucide-react';
@@ -7,11 +6,7 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { HeroProduct } from '@/components/shop/HeroProduct';
 import { Reveal } from '@/components/shop/Reveal';
 import { FaqSection } from '@/components/shop/FaqSection';
-import {
-  getFeaturedProducts,
-  getNewArrivals,
-  getParentCategories,
-} from '@/lib/mock-data';
+import { getFeaturedProducts, getNewArrivals, getParentCategories } from '@/lib/catalog';
 
 interface HomePageProps {
   params: { locale: string };
@@ -23,14 +18,21 @@ export async function generateMetadata({ params: { locale } }: HomePageProps) {
   };
 }
 
-export default function HomePage({ params: { locale } }: HomePageProps) {
+// Storefront reads the DB; ISR keeps it cheap. Admin catalog writes call
+// revalidateStorefront(), so edits land immediately rather than within 60s.
+export const revalidate = 60;
+
+export default async function HomePage({ params: { locale } }: HomePageProps) {
   setRequestLocale(locale);
-  const t = useTranslations('home');
-  const featured = getFeaturedProducts();
-  const newArrivals = getNewArrivals();
+  const t = await getTranslations('home');
+  const [featured, newArrivals, allParents] = await Promise.all([
+    getFeaturedProducts(),
+    getNewArrivals(),
+    getParentCategories(),
+  ]);
   // Exclude the "most-popular" pseudo-category — it's a /products filter,
   // not a real product group, so it doesn't belong in the home grid.
-  const categories = getParentCategories().filter((c) => c.slug !== 'most-popular');
+  const categories = allParents.filter((c) => c.slug !== 'most-popular');
 
   // Hero products — a rotating set of new arrivals, so the buyer sees
   // something to buy above the fold instead of an empty column, and gets a
@@ -99,107 +101,113 @@ export default function HomePage({ params: { locale } }: HomePageProps) {
           one rides tight under the hero (which carries its own bottom space);
           the tinted product sections below open up, and the FAQ gets the most
           air as the page's resting point. */}
-      <section className="pt-4 pb-16 lg:pt-6 lg:pb-24 bg-paper dark:bg-ink">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal className="mb-8">
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
-              {t('categoriesTitle')}
-            </h2>
-            <p className="mt-2 text-base text-graphite">{t('categoriesSubtitle')}</p>
-          </Reveal>
+      {categories.length > 0 && (
+        <section className="pt-4 pb-16 lg:pt-6 lg:pb-24 bg-paper dark:bg-ink">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="mb-8">
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
+                {t('categoriesTitle')}
+              </h2>
+              <p className="mt-2 text-base text-graphite">{t('categoriesSubtitle')}</p>
+            </Reveal>
 
-          {/* 3-up on desktop, not 6: at 1440px a six-column row left each tile
-              ~88px wide — too small to read the product in the photo, and the
-              labels started clipping. Fewer, larger tiles identify better. */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5">
-            {categories.map((cat) => {
-              const name = locale === 'ka' ? cat.nameKa : cat.nameEn;
-              return (
-                <Link
-                  key={cat.id}
-                  href={`/${locale}/products?category=${cat.slug}`}
-                  className="group relative overflow-hidden rounded-2xl border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark transition-colors hover:border-cobalt/40"
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-cloud-light dark:bg-cloud-dark">
-                    {cat.image && (
-                      <Image
-                        src={cat.image}
-                        alt={name}
-                        fill
-                        sizes="(max-width: 640px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                      />
-                    )}
-                  </div>
-                  {/* Stacked on small screens: side-by-side made long names wrap
-                      to two lines while the count stayed pinned to the corner. */}
-                  <div className="flex flex-col gap-0.5 p-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:p-4">
-                    <p className="text-sm font-semibold text-ink dark:text-white leading-tight">{name}</p>
-                    <p className="shrink-0 text-xs text-graphite tabular-nums">
-                      {t('productsCount', { count: cat.productCount })}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+            {/* 3-up on desktop, not 6: at 1440px a six-column row left each tile
+                ~88px wide — too small to read the product in the photo, and the
+                labels started clipping. Fewer, larger tiles identify better. */}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5">
+              {categories.map((cat) => {
+                const name = locale === 'ka' ? cat.nameKa : cat.nameEn;
+                return (
+                  <Link
+                    key={cat.id}
+                    href={`/${locale}/products?category=${cat.slug}`}
+                    className="group relative overflow-hidden rounded-2xl border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark transition-colors hover:border-cobalt/40"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-cloud-light dark:bg-cloud-dark">
+                      {cat.image && (
+                        <Image
+                          src={cat.image}
+                          alt={name}
+                          fill
+                          sizes="(max-width: 640px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                        />
+                      )}
+                    </div>
+                    {/* Stacked on small screens: side-by-side made long names wrap
+                        to two lines while the count stayed pinned to the corner. */}
+                    <div className="flex flex-col gap-0.5 p-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:p-4">
+                      <p className="text-sm font-semibold text-ink dark:text-white leading-tight">{name}</p>
+                      <p className="shrink-0 text-xs text-graphite tabular-nums">
+                        {t('productsCount', { count: cat.productCount })}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Featured Products ─────────────────────────────── */}
-      <section className="py-20 lg:py-28 bg-cloud-light/40 dark:bg-cloud-dark/40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal className="flex items-end justify-between mb-10">
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
-              {t('featuredTitle')}
-            </h2>
-            <Link
-              href={`/${locale}/products`}
-              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
-            >
-              {t('viewAll')} <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Reveal>
+      {featured.length > 0 && (
+        <section className="py-20 lg:py-28 bg-cloud-light/40 dark:bg-cloud-dark/40">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="flex items-end justify-between mb-10">
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
+                {t('featuredTitle')}
+              </h2>
+              <Link
+                href={`/${locale}/products`}
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+              >
+                {t('viewAll')} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Reveal>
 
-          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.map((product, i) => (
-              <Reveal key={product.id} delay={Math.min(i, 3) * 0.06}>
-                <ProductCard product={product} />
-              </Reveal>
-            ))}
+            <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+              {featured.map((product, i) => (
+                <Reveal key={product.id} delay={Math.min(i, 3) * 0.06}>
+                  <ProductCard product={product} />
+                </Reveal>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── New Arrivals — horizontal rail, distinct from the grid above ── */}
-      <section className="py-20 lg:py-28 bg-paper dark:bg-ink">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal className="flex items-end justify-between mb-10">
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
-              {t('newArrivalsTitle')}
-            </h2>
-            <Link
-              href={`/${locale}/products`}
-              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
-            >
-              {t('viewAll')} <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Reveal>
-        </div>
+      {newArrivals.length > 0 && (
+        <section className="py-20 lg:py-28 bg-paper dark:bg-ink">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="flex items-end justify-between mb-10">
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
+                {t('newArrivalsTitle')}
+              </h2>
+              <Link
+                href={`/${locale}/products`}
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+              >
+                {t('viewAll')} <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Reveal>
+          </div>
 
-        {/* Edge-bleed scroll rail — flick through breadth without a wall of cards.
-            The rail aligns to the max-w-7xl gutter via scroll-padding rather than a
-            spacer element: a `100vw`-sized spacer overshoots by the scrollbar width,
-            and snap-mandatory then jumps the rail forward and clips the first card.
-            `snap-proximity` keeps the flick feel without fighting the resting position. */}
-        <div className="flex snap-x snap-proximity gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-4 scroll-px-4 sm:scroll-px-6 lg:scroll-px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {newArrivals.map((product) => (
-            <div key={product.id} className="snap-start shrink-0 w-44 sm:w-52 lg:w-60">
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
-      </section>
+          {/* Edge-bleed scroll rail — flick through breadth without a wall of cards.
+              The rail aligns to the max-w-7xl gutter via scroll-padding rather than a
+              spacer element: a `100vw`-sized spacer overshoots by the scrollbar width,
+              and snap-mandatory then jumps the rail forward and clips the first card.
+              `snap-proximity` keeps the flick feel without fighting the resting position. */}
+          <div className="flex snap-x snap-proximity gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-4 scroll-px-4 sm:scroll-px-6 lg:scroll-px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {newArrivals.map((product) => (
+              <div key={product.id} className="snap-start shrink-0 w-44 sm:w-52 lg:w-60">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── FAQ — admin-managed, falls back to i18n defaults ─ */}
       <FaqSection locale={locale} />
