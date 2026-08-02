@@ -6,7 +6,7 @@
  */
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { categories, products } from '../lib/mock-data';
+import { categories, products, brands as brandFixtures } from '../lib/mock-data';
 import Category from '../models/Category';
 import Brand from '../models/Brand';
 import Product from '../models/Product';
@@ -65,9 +65,19 @@ async function seed() {
   console.log(`Seeded ${categories.length} categories`);
 
   // ── Brands ──────────────────────────────────────────────────
-  const brandNames = Array.from(new Set(products.map((p) => p.brand)));
-  await Brand.insertMany(brandNames.map((name) => ({ name })));
-  console.log(`Seeded ${brandNames.length} brands`);
+  // Seeded from the `brands` fixture, not derived from product.brand strings:
+  // the fixture carries `type` and `compatTerms`, which the brand mega-menu
+  // and getProductsByBrand() both need.
+  await Brand.insertMany(
+    brandFixtures.map((b, i) => ({
+      slug: b.slug,
+      name: b.name,
+      type: b.type,
+      compatTerms: b.compatTerms ?? [],
+      order: i,
+    }))
+  );
+  console.log(`Seeded ${brandFixtures.length} brands`);
 
   // ── Products (vary stock so low-stock dashboard has data) ────
   const productDocs = products.map((p, i) => {
