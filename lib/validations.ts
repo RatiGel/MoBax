@@ -160,6 +160,8 @@ export type ReviewInput = z.infer<typeof ReviewSchema>;
 export const CreateBrandSchema = z.object({
   name: z.string().min(1, 'Brand name is required').max(120),
   logoUrl: z.string().url('Logo must be a valid URL').or(z.literal('')).default(''),
+  type: z.enum(['device', 'maker']).default('maker'),
+  compatTerms: z.array(z.string()).default([]),
 });
 
 export const UpdateBrandSchema = CreateBrandSchema.partial();

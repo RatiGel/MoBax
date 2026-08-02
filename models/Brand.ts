@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { slugify } from '../lib/utils';
 
 export interface IBrand extends Document {
   slug: string;
@@ -18,6 +19,13 @@ const BrandSchema = new Schema<IBrand>({
   compatTerms: [{ type: String }],
   logoUrl: { type: String, default: '' },
   order: { type: Number, default: 0 },
+});
+
+// Derive slug from name if not provided
+BrandSchema.pre('validate', function () {
+  if (!this.slug && this.name) {
+    this.slug = slugify(this.name);
+  }
 });
 
 const Brand: Model<IBrand> =
