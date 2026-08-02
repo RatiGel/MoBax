@@ -270,7 +270,7 @@ function ProductsPageInner() {
                 onClick={() => setSelectedBrand('all')}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                   selectedBrand === 'all'
-                    ? 'bg-primary text-white dark:bg-accent dark:text-primary font-medium'
+                    ? 'bg-primary text-white dark:bg-[#2E5BFF] dark:text-white font-medium'
                     : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                 }`}
               >
@@ -282,7 +282,7 @@ function ProductsPageInner() {
                   onClick={() => setSelectedBrand(brand)}
                   className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                     selectedBrand === brand
-                      ? 'bg-primary text-white dark:bg-accent dark:text-primary font-medium'
+                      ? 'bg-primary text-white dark:bg-[#2E5BFF] dark:text-white font-medium'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                   }`}
                 >

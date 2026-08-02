@@ -14,7 +14,10 @@ const config: Config = {
         ink: '#0A0A0B',
         paper: '#FBFBFA',
         cloud: { light: '#F1F1EF', dark: '#1C1C1F' },
-        graphite: '#6B6B70',
+        /* Secondary text. Driven by a CSS var so it tracks the theme: the old
+           hardcoded #6B6B70 stayed identical in dark mode and failed WCAG AA
+           (~3.2-3.7:1 on ink) everywhere it was used. */
+        graphite: 'rgb(var(--graphite) / <alpha-value>)',
         /* Brand tokens reference CSS-var RGB channels so the admin Theme page
            can override them live at runtime (see app/globals.css + lib/theme.ts).
            `<alpha-value>` keeps opacity modifiers (bg-cobalt/10) working. */

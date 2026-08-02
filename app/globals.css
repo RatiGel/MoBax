@@ -29,7 +29,9 @@
     --foreground: #0A0A0B;   /* ink */
     --surface: #FFFFFF;
     --cloud: #F1F1EF;        /* raised surface */
-    --graphite: #6B6B70;     /* secondary text */
+    /* Secondary text, as RGB channels so `text-graphite/70` still works.
+       #6B6B70 = 5.9:1 on paper — clears AA. */
+    --graphite: 107 107 112;
     --text-secondary: #6B6B70;
     --border: #E8E8E5;
     --success: #16A34A;
@@ -56,8 +58,10 @@
     --foreground: #F4F4F2;
     --surface: #141416;
     --cloud: #1C1C1F;
-    --graphite: #97979E;
-    --text-secondary: #97979E;
+    /* Lifted from #97979E (~3.7:1 on ink, failed AA) to #ADADB5, which clears
+       4.5:1 against ink AND the raised cloud/surface panels it sits on. */
+    --graphite: 173 173 181;
+    --text-secondary: #ADADB5;
     --border: #262629;
     --success: #30A46C;
     --error: #FF6369;

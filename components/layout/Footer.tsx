@@ -26,27 +26,27 @@ export function Footer() {
               <span className="font-display text-2xl font-semibold text-white tracking-display">Mo</span>
               <span className="font-display text-2xl font-semibold text-cobalt-dark tracking-display">Bax</span>
             </Link>
-            <p className="text-sm leading-relaxed text-neutral-500 max-w-xs">{t('tagline')}</p>
+            <p className="text-sm leading-relaxed text-neutral-400 max-w-xs">{t('tagline')}</p>
 
             <div className="flex gap-3 mt-7">
               <a
                 href="#"
                 aria-label="Instagram"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-500 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
               >
                 <Instagram className="h-4 w-4" />
               </a>
               <a
                 href="#"
                 aria-label="Facebook"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-500 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
               >
                 <Facebook className="h-4 w-4" />
               </a>
               <a
                 href="#"
                 aria-label="TikTok"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-500 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.2v12.86a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.95a5.78 5.78 0 0 0-.77-.05A5.78 5.78 0 1 0 15.34 15.7V9.18a7.5 7.5 0 0 0 4.37 1.4V7.4a4.28 4.28 0 0 1-3.11-1.58Z" />
@@ -110,21 +110,21 @@ export function Footer() {
                   hello@mobax.ge
                 </a>
               </li>
-              <li className="text-neutral-600 text-xs">10:00 – 22:00</li>
+              <li className="text-neutral-400 text-xs">10:00 – 22:00</li>
             </ul>
           </div>
         </div>
 
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-5">
-          <p className="text-xs text-neutral-600 order-2 sm:order-1">
+          <p className="text-xs text-neutral-400 order-2 sm:order-1">
             © {new Date().getFullYear()} MoBax. {t('rights')}.
           </p>
           <div className="flex items-center gap-2 order-1 sm:order-2">
             {['VISA', 'MC', 'Apple Pay', 'G Pay', 'BOG', 'TBC'].map((method) => (
               <span
                 key={method}
-                className="border border-white/10 text-neutral-500 text-[10px] font-medium px-2.5 py-1 rounded-md"
+                className="border border-white/10 text-neutral-400 text-[10px] font-medium px-2.5 py-1 rounded-md"
               >
                 {method}
               </span>

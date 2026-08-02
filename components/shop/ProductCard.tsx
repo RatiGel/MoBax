@@ -50,8 +50,10 @@ export function ProductCard({ product }: ProductCardProps) {
                 {t('new')}
               </span>
             )}
+            {/* Discount badge stays on the darker cobalt in both themes: the
+                lifted dark-mode cobalt put white text at 3.63:1, under AA. */}
             {hasDiscount && (
-              <span className="bg-cobalt text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+              <span className="bg-[#2E5BFF] text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
                 −{discountPct}%
               </span>
             )}
