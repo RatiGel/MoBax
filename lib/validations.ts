@@ -322,8 +322,10 @@ export const CreateServiceSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateServiceSchema = CreateServiceSchema.partial();
+// All fields optional on update, same constraints when present. Defaults are
+// create-only (see toUpdateSchema) so an omitted field is left untouched
+// rather than overwritten with a default.
+export const UpdateServiceSchema = toUpdateSchema(CreateServiceSchema);
 
 export const UpdateServicePageSchema = z.object({
   headingEn: z.string().max(300).default(''),
@@ -369,8 +371,9 @@ export const CreateCatalogProductSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateCatalogProductSchema = CreateCatalogProductSchema.partial();
+// All fields optional on update, same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdateCatalogProductSchema = toUpdateSchema(CreateCatalogProductSchema);
 
 export type CreateCatalogProductInput = z.infer<typeof CreateCatalogProductSchema>;
 export type UpdateCatalogProductInput = z.infer<typeof UpdateCatalogProductSchema>;
