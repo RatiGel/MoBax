@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SingleImageUploader } from '@/components/admin/SingleImageUploader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -75,6 +76,7 @@ export function ThemeClient() {
   const [typography, setTypography] = useState<Typography>(TYPOGRAPHY_DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoUrlMode, setLogoUrlMode] = useState(false);
 
   function set<K extends keyof Theme>(key: K, val: Theme[K]) {
     setTheme((t) => ({ ...t, [key]: val }));
@@ -173,12 +175,33 @@ export function ThemeClient() {
                     <Input value={theme.storeName} onChange={(e) => set('storeName', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Logo URL</Label>
-                    <Input
-                      value={theme.logoUrl}
-                      onChange={(e) => set('logoUrl', e.target.value)}
-                      placeholder="https://…"
-                    />
+                    <div className="flex items-center justify-between">
+                      <Label>Logo</Label>
+                      <button
+                        type="button"
+                        onClick={() => setLogoUrlMode((m) => !m)}
+                        className="text-xs font-medium text-accent underline-offset-2 hover:underline"
+                      >
+                        {logoUrlMode ? 'Upload instead' : 'Paste a URL instead'}
+                      </button>
+                    </div>
+                    {logoUrlMode ? (
+                      <Input
+                        value={theme.logoUrl}
+                        onChange={(e) => set('logoUrl', e.target.value)}
+                        placeholder="https://…"
+                      />
+                    ) : (
+                      <SingleImageUploader
+                        value={theme.logoUrl}
+                        onChange={(url) => set('logoUrl', url)}
+                        folder="theme"
+                      />
+                    )}
+                    <p className="text-xs text-neutral-500">
+                      Upload an image, pick one from the media library, or paste an external URL
+                      (e.g. a CDN-hosted logo).
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Announcement bar text</Label>
