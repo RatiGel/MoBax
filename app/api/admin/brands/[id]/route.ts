@@ -19,7 +19,7 @@ function isValidId(id: string) {
 
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
-    await requireAdmin({ module: 'categories' });
+    await requireAdmin({ module: 'brands' });
     await connectDB();
     if (!isValidId(params.id)) return notFound('Brand not found');
 
@@ -35,7 +35,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
-    const session = await requireAdmin({ module: 'categories' });
+    const session = await requireAdmin({ module: 'brands' });
     await connectDB();
     if (!isValidId(params.id)) return notFound('Brand not found');
 
@@ -76,7 +76,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
-    const session = await requireAdmin({ module: 'categories' });
+    const session = await requireAdmin({ module: 'brands' });
     await connectDB();
     if (!isValidId(params.id)) return notFound('Brand not found');
 

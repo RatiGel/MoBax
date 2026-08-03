@@ -36,8 +36,8 @@ export const NAV_ITEMS: NavItem[] = [
 
   { label: 'Products', href: '/admin/products', icon: Package, module: 'products', group: 'Catalog' },
   { label: 'Categories', href: '/admin/categories', icon: FolderTree, module: 'categories', group: 'Catalog' },
-  { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'categories', group: 'Catalog' },
-  { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'products', group: 'Catalog' },
+  { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'brands', group: 'Catalog' },
+  { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'reviews', group: 'Catalog' },
   { label: 'Inventory', href: '/admin/inventory', icon: Boxes, module: 'products', group: 'Catalog' },
 
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders', group: 'Sales' },

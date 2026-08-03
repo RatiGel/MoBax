@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin({ module: 'categories' });
+    await requireAdmin({ module: 'brands' });
     await connectDB();
 
     const search = req.nextUrl.searchParams.get('search')?.trim();
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAdmin({ module: 'categories' });
+    const session = await requireAdmin({ module: 'brands' });
     await connectDB();
 
     const json = await req.json();
