@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+// Zod's `.partial()` makes every key optional but does NOT remove `.default(...)`
+// — an omitted key still gets its default filled in on parse. For a PATCH-style
+// update schema derived from a create schema, that silently reintroduces the
+// defaulted fields (e.g. `descriptionEn: ''`, `tags: []`, `isActive: true`) into
+// the parsed result even though the caller never sent them, and the route then
+// `$set`s the whole parsed object — wiping real data with defaults.
+//
+// This helper builds an update schema that keeps every constraint (`.max()`,
+// `.url()`, enum membership, nested object/array shapes, etc.) but drops the
+// `.default(...)` wrapper first, then applies `.partial()`. The result: an
+// omitted key stays omitted in the parsed output, while a present key is still
+// validated exactly as it would be on create.
+function toUpdateSchema<Shape extends z.ZodRawShape>(createSchema: z.ZodObject<Shape>) {
+  const shape = createSchema.shape;
+  const unwrapped = Object.fromEntries(
+    Object.entries(shape).map(([key, schema]) => [
+      key,
+      schema instanceof z.ZodDefault ? schema.removeDefault() : schema,
+    ])
+  ) as Shape;
+  return z.object(unwrapped).partial();
+}
+
 export const RegisterSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
@@ -108,8 +131,10 @@ export const CreateProductSchema = z.object({
   specs: z.record(z.string(), z.string()).default({}),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateProductSchema = CreateProductSchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema) so an omitted field is left untouched
+// rather than overwritten with its default.
+export const UpdateProductSchema = toUpdateSchema(CreateProductSchema);
 
 export const CreateCategorySchema = z.object({
   slug: z.string().min(1).max(120).optional(), // auto-derived from nameEn if omitted
@@ -123,8 +148,9 @@ export const CreateCategorySchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateCategorySchema = CreateCategorySchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdateCategorySchema = toUpdateSchema(CreateCategorySchema);
 
 export const ORDER_STATUSES = [
   'PENDING',
@@ -164,7 +190,9 @@ export const CreateBrandSchema = z.object({
   compatTerms: z.array(z.string()).default([]),
 });
 
-export const UpdateBrandSchema = CreateBrandSchema.partial();
+// Defaults are create-only (see toUpdateSchema) so update never overwrites
+// logoUrl/type/compatTerms with their defaults when omitted.
+export const UpdateBrandSchema = toUpdateSchema(CreateBrandSchema);
 
 // --- Pricing & Promotions admin ---
 
@@ -185,7 +213,8 @@ export const CreateDiscountSchema = z.object({
 });
 
 // All fields optional on update; code is still uppercased when present.
-export const UpdateDiscountSchema = CreateDiscountSchema.partial();
+// Defaults are create-only (see toUpdateSchema).
+export const UpdateDiscountSchema = toUpdateSchema(CreateDiscountSchema);
 
 export const CreatePromotionSchema = z.object({
   name: z.string().min(1, 'Name is required').max(160),
@@ -197,8 +226,9 @@ export const CreatePromotionSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdatePromotionSchema = CreatePromotionSchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdatePromotionSchema = toUpdateSchema(CreatePromotionSchema);
 
 export type CreateDiscountInput = z.infer<typeof CreateDiscountSchema>;
 export type UpdateDiscountInput = z.infer<typeof UpdateDiscountSchema>;
