@@ -133,6 +133,20 @@ export async function PATCH(req: NextRequest) {
       if (!Number.isFinite(value) || value <= 0) return fail('Invalid sale value', 400);
       if (body.mode === 'percent' && value >= 100) return fail('Percent must be below 100', 400);
 
+      // Validate dates before the loop: an already-invalid Date passed to
+      // Mongoose's date caster throws a CastError mid-batch, which would
+      // abort with a bare 500 after only partially applying the update and
+      // give the caller no accounting of what happened. Fail fast instead.
+      const start = body.startsAt ? new Date(body.startsAt) : null;
+      if (start && Number.isNaN(start.getTime())) return fail('Invalid start date', 400);
+      const end = body.endsAt ? new Date(body.endsAt) : null;
+      if (end && Number.isNaN(end.getTime())) return fail('Invalid end date', 400);
+      // An end at or before start can never satisfy isOnSale() — the same
+      // silent-no-op the salePrice >= price guard below already prevents.
+      if (start && end && end <= start) {
+        return fail('End date must be after start date', 400);
+      }
+
       const products = await Product.find({ _id: { $in: ids } }).lean();
       let updated = 0;
       for (const p of products) {
@@ -148,8 +162,8 @@ export async function PATCH(req: NextRequest) {
           {
             $set: {
               salePrice,
-              salePriceStart: body.startsAt ? new Date(body.startsAt) : null,
-              salePriceEnd: body.endsAt ? new Date(body.endsAt) : null,
+              salePriceStart: start,
+              salePriceEnd: end,
             },
           },
         );
