@@ -10,7 +10,7 @@ import { StarRating } from '@/components/shop/StarRating';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { ReviewSection } from '@/components/shop/ReviewSection';
 import { useCartStore } from '@/lib/store';
-import { formatPrice } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/types';
 
 interface ProductDetailClientProps {
@@ -172,8 +172,14 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
               </button>
             </div>
 
+            {/* Georgian drops the wide tracking: "კალათაში დამატება" is much
+                longer than "Add to cart", and 0.15em on top of it overflows the
+                button at 390px. Latin keeps the original letter-spacing. */}
             <Button
-              className="flex-1 h-12 text-xs font-bold uppercase tracking-[0.15em]"
+              className={cn(
+                'flex-1 h-12 text-xs font-bold uppercase min-w-0',
+                locale === 'ka' ? 'tracking-normal' : 'tracking-[0.15em]'
+              )}
               onClick={handleAddToCart}
               disabled={!product.inStock || added}
             >
