@@ -12,7 +12,12 @@ npm run seed     # wipe + reseed MongoDB from lib/mock-data fixtures
 npx tsc --noEmit # typecheck (CI runs this)
 ```
 
-No test suite yet. CI (`.github/workflows/ci.yml`) runs lint + typecheck + build.
+```bash
+npm test         # vitest — 46 unit tests (lib/catalog.ts, lib/page-sections.ts, validations)
+```
+
+CI (`.github/workflows/ci.yml`) runs lint + typecheck + build. It does not yet
+run `npm test`, even though a real test suite exists now — worth adding a step.
 
 Note: running `npm run build` while `npm run dev` is live corrupts `.next` and
 makes the dev server 500. Stop dev first, or `rm -rf .next` and restart after.
@@ -20,9 +25,9 @@ makes the dev server 500. Stop dev first, or `rm -rf .next` and restart after.
 ## Project
 
 MoBax — bilingual (EN/KA) mobile accessories e-commerce for the Georgia market.
-A full-stack app: storefront, MongoDB, auth, payments, and a 14-module admin
-panel. Roadmap and current status live in `plan.md`; product/brand intent and
-the design bar live in `PRODUCT.md`.
+A full-stack app: storefront, MongoDB, auth, payments, and a 16-module admin
+panel (dashboard + 15 sections). Roadmap and current status live in `plan.md`;
+product/brand intent and the design bar live in `PRODUCT.md`.
 
 ## Architecture
 
@@ -48,19 +53,41 @@ Access via `useTranslations()` (client) or `getTranslations()` (server).
 Georgian is first-class, not an afterthought: check KA for text wrapping and
 overflow whenever you change a layout.
 
-**Data layer — read this before touching product data.** There are two sources
-and they are not yet connected:
+**Data layer.** The storefront and the admin panel both read the same
+MongoDB data now — there is one source, not two:
 
 - `models/*.ts` + `lib/mongodb.ts` — MongoDB. The admin panel and `/api/*`
   routes read and write here.
-- `lib/mock-data.ts` — static TypeScript fixtures. **The storefront pages still
-  import these directly**, so editing a product in admin does NOT change the
-  public site. `lib/mock-data.ts` is also what `scripts/seed.ts` seeds from, and
-  it defines the canonical `Product` / `Category` types.
+- `lib/catalog.ts` — the storefront's read layer over MongoDB (`getProducts`,
+  `getCategories`, `getBrands`, `getDiscountedProducts`, `getPopularProducts`,
+  etc.), built on the mapping helpers in `lib/catalog-map.ts` (`mapProduct` /
+  `mapCategory` / `mapBrand` / `isOnSale` / `discountPercent`). Storefront pages
+  call `lib/catalog.ts`, never the models directly. An eslint
+  `no-restricted-imports` rule blocks importing `@/lib/mock-data` (or any
+  relative path to it) from outside `scripts/seed.ts`, so a page cannot
+  silently regress back to the old fixture data.
+- `lib/mock-data.ts` — **seed fixtures only.** `scripts/seed.ts` reads it to
+  populate MongoDB; it also still defines the canonical `Product` / `Category`
+  / `Brand` TypeScript types (imported for typing, not for data). Nothing in
+  the storefront or admin reads product data from this file anymore.
 
-Cutting the storefront over to the DB is the top open task (`plan.md` → Open
-work #1). Until then, know which source a page uses before debugging "wrong"
-product data.
+Editing a product, category, brand, or theme setting in admin now changes the
+public site without a redeploy — the storefront pages carry ISR
+(`revalidate = 60`) and mutating admin routes call `revalidateStorefront()`
+(`lib/revalidate.ts`) to bust the cache on write, so most changes are visible
+immediately rather than waiting for the 60s window.
+
+**Update schemas — never write `CreateXSchema.partial()`.** `lib/validations.ts`
+defines a `toUpdateSchema()` helper for exactly this reason: Zod's `.partial()`
+only makes keys optional, it does not remove `.default()` — so a bare
+`.partial()` update schema still fills in every omitted field with its create
+default during `parse()`, and a `PATCH { stock: 5 }` silently wipes
+descriptions, resets tags, and can re-activate a disabled record. This shipped
+as a real bug earlier in this project (see `plan.md` → "Out-of-plan bugs") and
+was fixed by switching every update schema to `toUpdateSchema()`, which uses
+Zod's `removeDefault()` so `.max()` / `.url()` / enum / nested constraints are
+still enforced. Any new update schema must use `toUpdateSchema()`, not
+`.partial()`.
 
 **Auth:** NextAuth v5 Credentials + JWT. Four roles — owner / admin / staff /
 customer (`lib/rbac.ts`, `models/User.ts`), with an invite flow for staff.
@@ -82,7 +109,14 @@ package.json but unused.) Telegram notifications in `lib/telegram.ts`.
 - `components/shop/` — ProductCard, CartDrawer, HeroProduct, Reveal, FaqSection,
   StarRating, BeforeAfterSlider, SearchBar, ReviewSection, SupportChat
 - `components/layout/` — Navbar, Footer, LocaleSwitcher, ThemeToggle, AccountMenu
-- `components/admin/` — DataTable, ImageUploader, StatCard, StatusBadge, PageHeader
+- `components/admin/` — DataTable (with opt-in row-selection props shared by
+  bulk order actions and bulk sale pricing), ImageUploader, SingleImageUploader,
+  StatCard, StatusBadge, PageHeader, ConfirmDialog, DateRangeFilter,
+  BilingualField (EN/KA field pair with an accessible missing-translation warning)
+
+**Admin modules beyond the original plan:** `/admin/media` (media library,
+`models/Media.ts`, folder-scoped uploads) and `/admin/inventory` (per-product
+stock thresholds, All/Low/Out filters, audited adjustments via `ActivityLog`).
 
 ## Design system
 

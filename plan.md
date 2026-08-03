@@ -15,7 +15,7 @@
 | Phase | Scope | Status |
 |-------|-------|--------|
 | 1 | Frontend foundation | ✅ Done |
-| 2 | Database + API routes | 🟡 MongoDB + Mongoose live; **storefront pages still read `lib/mock-data.ts`** |
+| 2 | Database + API routes | ✅ MongoDB + Mongoose live; storefront reads the DB through `lib/catalog.ts` |
 | 3 | Authentication | ✅ NextAuth v5 Credentials + RBAC (owner/admin/staff) |
 | 4 | File uploads + media | ✅ Cloudinary upload (needs API keys to go live) |
 | 5 | Order management | ✅ stock reserve, guest tracking, CSV export, bulk + per-order status |
@@ -45,19 +45,18 @@ different way, the reason is recorded so the choice isn't silently re-litigated:
 
 The highest-value items remaining, in priority order.
 
-1. **Finish Phase 2 — cut the storefront over to the database.**
-   This is the biggest gap between the docs and reality. The admin panel writes
-   products/categories/brands to MongoDB, and `/api/products` reads from it, but
-   the public pages import static fixtures instead — so **editing a product in
-   admin does not change the storefront**. Files still importing `lib/mock-data`:
-   - `app/[locale]/(shop)/page.tsx`
-   - `app/[locale]/(shop)/products/page.tsx`
-   - `app/[locale]/(shop)/products/[slug]/page.tsx`
-   - `components/layout/Navbar.tsx` (categories + brands)
-   - `components/shop/ProductCard.tsx`, `components/shop/HeroProduct.tsx` (types only)
-   - `app/api/chat/route.ts`
-   `lib/mock-data.ts` should end up as the seed fixture source only (it is already
-   what `scripts/seed.ts` imports) plus the canonical `Product` / `Category` types.
+1. ~~**Finish Phase 2 — cut the storefront over to the database.**~~ **Done.**
+   The storefront now reads MongoDB through `lib/catalog.ts` (`mapProduct` /
+   `mapCategory` / `mapBrand`, `getProducts`, `getCategories`, `getBrands`,
+   `getDiscountedProducts`, etc.) instead of importing `lib/mock-data.ts`
+   directly. An eslint `no-restricted-imports` rule blocks both `@/lib/mock-data`
+   and relative-path imports of it from anywhere outside `scripts/seed.ts`, so
+   the cutover can't silently regress. `lib/mock-data.ts` is now seed-fixture
+   data only (what `scripts/seed.ts` seeds from) plus the canonical `Product` /
+   `Category` / `Brand` types. Editing a product, category, brand, or theme
+   setting in admin now changes the public site without a redeploy, subject to
+   the ISR revalidate window (60s) or an explicit `revalidateStorefront()` call
+   on the mutating route.
 
 2. **Payments — go live.** Flitt is wired end-to-end but points at the sandbox
    merchant (`1549901` / `"test"`). Swap `FLITT_MERCHANT_ID` / `FLITT_PAYMENT_KEY`
@@ -67,14 +66,61 @@ The highest-value items remaining, in priority order.
 3. **Deployment.** Add env vars to Vercel (preview + production), point
    `mobax.ge` + `www.mobax.ge` at it, enable Analytics + Speed Insights.
 
-4. **Tests.** No test suite exists. CI runs lint + typecheck + build only.
+4. **Tests.** 46 unit tests exist (`vitest`, `npm test`) covering `lib/catalog.ts`,
+   `lib/page-sections.ts`, and validation schemas. No integration/e2e suite yet;
+   CI runs lint + typecheck + build + test.
 
 5. **Content cleanup.** The live FAQ setting contains a placeholder entry
    (`"awrer"`); because the storefront prefers saved FAQ items over the i18n
    fallbacks, that one entry replaces all five real questions on the home page.
 
-6. **Housekeeping.** `components/layout/Navbar 2.tsx` is a stray duplicate.
-   `resend` is an unused dependency.
+6. **Housekeeping.** `resend` is an unused dependency.
+
+7. **`/[locale]/products/[slug]` is fully dynamic.** It declares `revalidate = 60`
+   but has no `generateStaticParams`, so every request hits MongoDB — likely the
+   highest-traffic route on the site. Add `generateStaticParams` (top-N by
+   view count or featured flag) with `dynamicParams = true` so the long tail
+   still resolves on demand.
+
+8. **`Category.productCount` is stale.** No admin route recomputes it on
+   product create/update/delete — it only ever reflects the original seed.
+   `getBrandProductCounts()` in `lib/catalog.ts` computes brand counts live;
+   categories should get the same treatment (or the field should be dropped
+   and callers should compute counts on read, matching brands).
+
+### Out-of-plan bugs found and fixed during the admin-panel-v2 build
+
+These were not in the original task list — they surfaced during verification
+of unrelated tasks and were fixed with owner approval:
+
+- **Seeded product ids treated as ObjectIds.** `app/api/admin/products/[id]/route.ts`
+  validated ids with `ObjectId.isValid()`, but `models/Product.ts` declares
+  `_id` as `String` (seeded ids are `"1"`..`"23"`). Every GET/PATCH/DELETE on a
+  seeded product 404'd, so editing or deleting a product from admin silently
+  did nothing. Fixed to accept string ids (commit `47b9d4f`). Every other admin
+  model uses a real `ObjectId` `_id`, so their routes were left unchanged.
+
+- **`.partial()` update schemas silently overwrote data with Zod defaults.**
+  Every update schema in `lib/validations.ts` was `CreateXSchema.partial()`.
+  `.partial()` only makes keys optional — it does not strip `.default()` — so a
+  `PATCH { stock: 5 }` still carried every other field's default through Zod's
+  parse and overwrote it: descriptions blanked, tags reset, `isActive` could
+  flip back to `true` on a disabled record. This was masked until the id bug
+  above was fixed (the routes 404'd before reaching the parse). Fixed with a
+  `toUpdateSchema()` helper (uses Zod's `removeDefault()`, which preserves
+  `.max()` / `.url()` / enum / nested constraints) applied to all seven update
+  schemas — product, category, brand, discount, promotion, service,
+  catalogProduct (commits `725f805`, `e3ce3b5`). **Never write
+  `CreateXSchema.partial()` for an update schema in this codebase — always use
+  `toUpdateSchema()`.**
+
+- **The low-stock inventory filter matched nothing.** Mongoose schema defaults
+  only apply to documents written *after* the field is added to the schema,
+  and MongoDB's `$lte` never matches a *missing* field — so 22 of the 23 seeded
+  products were invisible to the admin Low-stock filter and dashboard count.
+  Fixed with an `$ifNull` fallback to `DEFAULT_LOW_STOCK_THRESHOLD` (exported
+  from the model so the query and the schema default can't drift) plus an
+  idempotent backfill script (commit `b7af0a0`).
 
 ---
 
@@ -89,7 +135,7 @@ tracking, support chat, before/after comparison slider, FAQ section.
 
 ---
 
-## Phase 2 — Database + API Routes 🟡
+## Phase 2 — Database + API Routes ✅
 
 ### Shipped: MongoDB + Mongoose (not Prisma/Postgres)
 
@@ -144,7 +190,7 @@ POST   /api/support                    support message intake
 
 ### Remaining tasks
 
-- [ ] Replace `lib/mock-data.ts` reads in storefront pages with DB/API calls (see Open work #1)
+- [x] Replace `lib/mock-data.ts` reads in storefront pages with DB calls through `lib/catalog.ts`
 - [ ] Loading skeletons on product listing and detail
 - [ ] Error boundaries + 404 / empty state pages
 - [ ] Rate limiting on POST routes
@@ -238,14 +284,25 @@ Guarded in `middleware.ts` plus a server-side check on each page;
 /admin/customers      /admin/pricing       /admin/content
 /admin/team           /admin/settings      /admin/reviews
 /admin/services       /admin/theme         /admin/messages
+/admin/media          /admin/inventory
 ```
 
-Components: `DataTable`, `ImageUploader`, `StatCard`, `StatusBadge`,
-`PageHeader`, `ConfirmDialog`, `DateRangeFilter`.
+Components: `DataTable`, `ImageUploader`, `SingleImageUploader`, `StatCard`,
+`StatusBadge`, `PageHeader`, `ConfirmDialog`, `DateRangeFilter`,
+`BilingualField`.
 
-Beyond plan: live theme/branding editor (`/admin/theme` → `lib/theme.ts`
-injects CSS-var overrides at runtime), services catalog, CMS pages, discount
-and promotion management, team invites, activity log, support inbox.
+Beyond plan: live theme/branding editor with a draft → preview → publish flow
+(`/admin/theme` → `lib/theme.ts` injects CSS-var overrides at runtime; the
+preview uses Next's `draftMode()` gated on an admin session, never a public
+query string), a media library (`/admin/media`, backed by `models/Media.ts`,
+folder-scoped uploads shared with `ImageUploader`/`SingleImageUploader`), a
+per-product inventory module (`/admin/inventory` — All/Low/Out filters,
+audited stock adjustments via `ActivityLog`), bulk order status actions and
+bulk sale pricing (both via the shared `DataTable` selection props), a visual
+page-section editor (typed forms per section kind, replacing the original
+raw-JSON textarea), admin-editable nav/footer/typography settings, services
+catalog, CMS pages, discount and promotion management, team invites, activity
+log, support inbox.
 
 ---
 
@@ -384,7 +441,7 @@ app/
     (shop)/     page, products/[slug], cart, checkout, search,
                 services, orders/[id], account/{orders,messages}
     (auth)/     login, register
-  admin/        16 modules (see Phase 7) — not locale-prefixed
+  admin/        dashboard + 15 modules (see Phase 7) — not locale-prefixed
   api/          products, categories, brands, search, orders, reviews,
                 payments/{webhook,success,fail}, admin/*, auth/*, chat, support
   email-preview/
@@ -392,10 +449,12 @@ components/
   ui/           shadcn primitives
   shop/         ProductCard, CartDrawer, HeroProduct, Reveal, FaqSection, …
   layout/       Navbar, Footer, LocaleSwitcher, ThemeToggle, AccountMenu
-  admin/        DataTable, ImageUploader, StatCard, StatusBadge, …
-lib/            mongodb, store, utils, rbac, theme, faq, payments/, email/,
-                cloudinary, validations, mock-data (→ seed fixtures + types)
-models/         17 Mongoose models
+  admin/        DataTable, ImageUploader, SingleImageUploader, StatCard,
+                StatusBadge, BilingualField, …
+lib/            mongodb, store, utils, rbac, theme, faq, catalog, catalog-map,
+                revalidate, media-folders, payments/, email/, cloudinary,
+                validations, mock-data (→ seed fixtures + types)
+models/         18 Mongoose models
 scripts/seed.ts
 messages/       en.json · ka.json
 ```
