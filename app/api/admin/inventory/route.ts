@@ -5,7 +5,7 @@ import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
 import { revalidateStorefront } from '@/lib/revalidate';
 import { InventoryAdjustSchema } from '@/lib/validations';
-import Product from '@/models/Product';
+import Product, { DEFAULT_LOW_STOCK_THRESHOLD } from '@/models/Product';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,13 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, Number(searchParams.get('page') || 1));
     const limit = Math.min(100, Math.max(1, Number(searchParams.get('limit') || 20)));
 
-    const lowQuery = { $expr: { $lte: ['$stock', '$lowStockThreshold'] } };
+    // $ifNull so documents seeded/written before this field existed (missing
+    // lowStockThreshold, not merely 0) fall back to the schema default
+    // instead of silently never matching — MongoDB's $lte never satisfies a
+    // comparison against a missing field.
+    const lowQuery = {
+      $expr: { $lte: ['$stock', { $ifNull: ['$lowStockThreshold', DEFAULT_LOW_STOCK_THRESHOLD] }] },
+    };
     const outQuery = { stock: { $lte: 0 } };
 
     const filter: Record<string, unknown> =

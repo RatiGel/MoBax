@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "backfill:low-stock-threshold": "node --env-file=.env.local --import tsx scripts/backfill-low-stock-threshold.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -1,5 +1,14 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
+/**
+ * Default low-stock threshold for products that don't specify their own.
+ * Shared between the schema default (new documents) and any query that
+ * needs to treat a missing `lowStockThreshold` the same way (e.g. via
+ * `$ifNull`) — most existing documents predate this field and will never
+ * have it set unless backfilled, so queries must not assume its presence.
+ */
+export const DEFAULT_LOW_STOCK_THRESHOLD = 5;
+
 export interface IProductVariant {
   color?: string;
   modelCompat?: string;
@@ -53,7 +62,7 @@ const ProductSchema = new Schema<IProduct>(
     salePriceEnd: { type: Date },
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
-    lowStockThreshold: { type: Number, default: 5 },
+    lowStockThreshold: { type: Number, default: DEFAULT_LOW_STOCK_THRESHOLD },
     categorySlug: { type: String, required: true },
     brand: { type: String, required: true },
     tags: [{ type: String }],
