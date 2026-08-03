@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { DataTable, type Column } from '@/components/admin/DataTable';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -16,6 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { apiFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -33,6 +42,24 @@ export interface AdminProduct {
   isActive: boolean;
   isFeatured: boolean;
   images: string[];
+  salePrice?: number;
+  salePriceStart?: string | null;
+  salePriceEnd?: string | null;
+}
+
+type SaleMode = 'percent' | 'fixed';
+
+interface BulkSaleResponse {
+  updated: number;
+  skipped?: number;
+}
+
+/** Same rule as lib/catalog-map.ts isOnSale() — a sale must undercut price. */
+function computeSalePreview(price: number, mode: SaleMode, value: number): number | null {
+  if (!Number.isFinite(value) || value <= 0) return null;
+  if (mode === 'percent' && value >= 100) return null;
+  const salePrice = mode === 'percent' ? Math.round(price * (1 - value / 100) * 100) / 100 : value;
+  return salePrice < price ? salePrice : null;
 }
 
 type ListResponse = {
@@ -52,7 +79,7 @@ export function ProductsClient() {
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [status, setStatus] = useState<'all' | 'active' | 'inactive' | 'onSale'>('all');
   const [category, setCategory] = useState<string>('all');
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' }>({
     key: 'newest',
@@ -61,6 +88,14 @@ export function ProductsClient() {
 
   const [categories, setCategories] = useState<{ slug: string; nameEn: string }[]>([]);
   const [toDelete, setToDelete] = useState<AdminProduct | null>(null);
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [saleDialogOpen, setSaleDialogOpen] = useState(false);
+  const [saleMode, setSaleMode] = useState<SaleMode>('percent');
+  const [saleValue, setSaleValue] = useState('20');
+  const [saleStartsAt, setSaleStartsAt] = useState('');
+  const [saleEndsAt, setSaleEndsAt] = useState('');
+  const [saleSaving, setSaleSaving] = useState(false);
 
   // Debounce the search box.
   useEffect(() => {
@@ -72,6 +107,12 @@ export function ProductsClient() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, status, category, sort]);
+
+  // Clear selection whenever the page, filter, or search changes — otherwise
+  // a bulk action could hit rows the user can no longer see.
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [page, debouncedSearch, status, category, sort]);
 
   // Load category options once.
   useEffect(() => {
@@ -89,7 +130,8 @@ export function ProductsClient() {
       dir: sort.dir,
     });
     if (debouncedSearch) p.set('search', debouncedSearch);
-    if (status !== 'all') p.set('status', status);
+    if (status === 'onSale') p.set('onSale', 'true');
+    else if (status !== 'all') p.set('status', status);
     if (category !== 'all') p.set('category', category);
     return p.toString();
   }, [page, sort, debouncedSearch, status, category]);
@@ -110,6 +152,80 @@ export function ProductsClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const selectedRows = useMemo(
+    () => rows.filter((p) => selectedIds.includes(p._id)),
+    [rows, selectedIds],
+  );
+  const firstSelected = selectedRows[0];
+  const salePreview =
+    firstSelected != null
+      ? computeSalePreview(firstSelected.price, saleMode, Number(saleValue))
+      : null;
+
+  function openSaleDialog() {
+    setSaleMode('percent');
+    setSaleValue('20');
+    setSaleStartsAt('');
+    setSaleEndsAt('');
+    setSaleDialogOpen(true);
+  }
+
+  async function handleSetSale(e: React.FormEvent) {
+    e.preventDefault();
+    const value = Number(saleValue);
+    if (!Number.isFinite(value) || value <= 0) {
+      toast.error('Enter a valid sale value');
+      return;
+    }
+    if (saleMode === 'percent' && value >= 100) {
+      toast.error('Percent must be below 100');
+      return;
+    }
+    setSaleSaving(true);
+    try {
+      const data = await apiFetch<BulkSaleResponse>('/api/admin/products', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          ids: selectedIds,
+          action: 'setSale',
+          mode: saleMode,
+          value,
+          startsAt: saleStartsAt || undefined,
+          endsAt: saleEndsAt || undefined,
+        }),
+      });
+      const skipped = data.skipped ?? 0;
+      if (skipped > 0) {
+        toast.warning(
+          `${data.updated} updated, ${skipped} skipped — the sale price was not below the current price`,
+        );
+      } else {
+        toast.success(`${data.updated} product${data.updated === 1 ? '' : 's'} updated`);
+      }
+      setSaleDialogOpen(false);
+      setSelectedIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to set sale price');
+    } finally {
+      setSaleSaving(false);
+    }
+  }
+
+  async function handleClearSale() {
+    try {
+      const data = await apiFetch<BulkSaleResponse>('/api/admin/products', {
+        method: 'PATCH',
+        body: JSON.stringify({ ids: selectedIds, action: 'clearSale' }),
+      });
+      toast.success(`Cleared sale on ${data.updated} product${data.updated === 1 ? '' : 's'}`);
+      setSelectedIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to clear sale');
+    }
+  }
 
   async function handleDelete() {
     if (!toDelete) return;
@@ -182,6 +298,22 @@ export function ProductsClient() {
       ),
     },
     {
+      key: 'sale',
+      header: 'Sale',
+      render: (p) => {
+        if (typeof p.salePrice !== 'number') {
+          return <span className="text-neutral-400">—</span>;
+        }
+        const pct = p.price > 0 ? Math.round(((p.price - p.salePrice) / p.price) * 100) : 0;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{formatPrice(p.salePrice)}</span>
+            <Badge className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90">-{pct}%</Badge>
+          </div>
+        );
+      },
+    },
+    {
       key: 'actions',
       header: '',
       className: 'text-right',
@@ -230,6 +362,7 @@ export function ProductsClient() {
             <SelectItem value="all">All statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Archived</SelectItem>
+            <SelectItem value="onSale">On sale</SelectItem>
           </SelectContent>
         </Select>
         <Select value={category} onValueChange={setCategory}>
@@ -245,6 +378,31 @@ export function ProductsClient() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Reserved-height slot: always present so the table below never shifts
+          when the bar appears/disappears; only its contents toggle. */}
+      <div className="mb-3 flex h-11 items-center gap-3 rounded-lg border border-border-light bg-neutral-50 px-3 dark:border-border-dark dark:bg-neutral-900/40">
+        {selectedIds.length > 0 && (
+          <>
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+              {selectedIds.length} product{selectedIds.length === 1 ? '' : 's'} selected
+            </span>
+            <Button
+              size="sm"
+              className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90"
+              onClick={openSaleDialog}
+            >
+              Set sale
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleClearSale}>
+              Clear sale
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+              Clear selection
+            </Button>
+          </>
+        )}
       </div>
 
       <DataTable
@@ -267,6 +425,10 @@ export function ProductsClient() {
             </Link>
           </Button>
         }
+        selectable
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        getRowId={(p) => p._id}
       />
 
       <ConfirmDialog
@@ -282,6 +444,93 @@ export function ProductsClient() {
         destructive
         onConfirm={handleDelete}
       />
+
+      <Dialog open={saleDialogOpen} onOpenChange={setSaleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set sale price</DialogTitle>
+            <DialogDescription>
+              Applies to {selectedIds.length} selected product{selectedIds.length === 1 ? '' : 's'}.
+              Products already selling below the computed sale price are skipped.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSetSale} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Type</Label>
+                <Select value={saleMode} onValueChange={(v) => setSaleMode(v as SaleMode)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">Percent off (%)</SelectItem>
+                    <SelectItem value="fixed">Fixed sale price</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{saleMode === 'percent' ? 'Percent off' : 'Sale price'}</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={saleValue}
+                  onChange={(e) => setSaleValue(e.target.value)}
+                />
+                <p className="text-xs text-neutral-500">
+                  {saleMode === 'percent' ? 'Below 100' : 'In GEL, below the current price'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Starts at</Label>
+                <Input
+                  type="date"
+                  value={saleStartsAt}
+                  onChange={(e) => setSaleStartsAt(e.target.value)}
+                />
+                <p className="text-xs text-neutral-500">Optional — blank starts immediately</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Ends at</Label>
+                <Input
+                  type="date"
+                  value={saleEndsAt}
+                  onChange={(e) => setSaleEndsAt(e.target.value)}
+                />
+                <p className="text-xs text-neutral-500">Optional — blank never expires</p>
+              </div>
+            </div>
+
+            {firstSelected && (
+              <div className="rounded-lg border border-border-light dark:border-border-dark p-3 text-sm">
+                <p className="text-neutral-500">Preview for “{firstSelected.nameEn}”</p>
+                <p className="mt-1 font-medium">
+                  {formatPrice(firstSelected.price)} →{' '}
+                  {salePreview != null ? (
+                    <span className="text-[#2E5BFF]">{formatPrice(salePreview)}</span>
+                  ) : (
+                    <span className="text-error">not below current price</span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setSaleDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saleSaving}>
+                {saleSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Apply sale
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

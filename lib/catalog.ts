@@ -19,8 +19,13 @@ import BrandModel from '@/models/Brand';
 import { mapProduct, mapCategory, mapBrand, isOnSale } from '@/lib/catalog-map';
 import type { Product, Category, Brand, CategorySlug, ProductFilter } from '@/lib/types';
 
-/** Mongo predicate for an active sale. Mirrors isOnSale() in catalog-map.ts. */
-function activeSaleQuery(now: Date = new Date()) {
+/**
+ * Mongo predicate for an active sale. Mirrors isOnSale() in catalog-map.ts.
+ * Exported so admin/products' "On sale" list filter uses the exact same
+ * boundary operators as the storefront — divergence here would let a product
+ * show on-sale in one place and not the other.
+ */
+export function activeSaleQuery(now: Date = new Date()) {
   return {
     salePrice: { $ne: null, $exists: true },
     $and: [
