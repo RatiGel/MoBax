@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { apiFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -30,7 +31,22 @@ export interface AdminOrder {
   paymentStatus: PaymentStatus;
   total: number;
   createdAt: string;
+  addressSnapshot?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    address?: string;
+    city?: string;
+    regionName?: string;
+    idNumber?: string;
+    country?: string;
+    phone?: string;
+  };
 }
+
+// Statuses whose bulk application restores product stock — must be called
+// out in the confirmation dialog so nobody triggers it unaware.
+const RESTOCKING_STATUSES: OrderStatus[] = ['CANCELLED', 'REFUNDED'];
 
 type ListResponse = {
   orders: AdminOrder[];
@@ -68,6 +84,10 @@ export function OrdersClient() {
     dir: 'desc',
   });
 
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<OrderStatus>('PROCESSING');
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
   // Debounce the search box.
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
@@ -78,6 +98,12 @@ export function OrdersClient() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, status, payment, from, to, sort]);
+
+  // Clear selection whenever the page, filter, or search changes — otherwise
+  // a bulk action could hit rows the user can no longer see.
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [page, debouncedSearch, status, payment, from, to, sort]);
 
   const query = useMemo(() => {
     const p = new URLSearchParams({
@@ -121,11 +147,37 @@ export function OrdersClient() {
     {
       key: 'customer',
       header: 'Customer',
-      render: (o) => (
-        <span className="text-neutral-600 dark:text-neutral-300">
-          {o.guestEmail || o.userId || '—'}
-        </span>
-      ),
+      render: (o) => {
+        const addr = o.addressSnapshot;
+        const name = [addr?.firstName, addr?.lastName].filter(Boolean).join(' ');
+        const label = name || o.guestEmail || addr?.email || o.userId || '—';
+        return <span className="text-neutral-600 dark:text-neutral-300">{label}</span>;
+      },
+    },
+    {
+      key: 'address',
+      header: 'Shipping address',
+      render: (o) => {
+        const addr = o.addressSnapshot;
+        if (!addr || (!addr.city && !addr.address)) {
+          return <span className="text-neutral-400">—</span>;
+        }
+        const full = [addr.address, addr.city, addr.regionName, addr.country]
+          .filter(Boolean)
+          .join(', ');
+        const street = addr.address ?? '';
+        const truncatedStreet =
+          street.length > 24 ? `${street.slice(0, 24)}…` : street;
+        return (
+          <span
+            className="text-neutral-600 dark:text-neutral-300"
+            title={full}
+          >
+            {addr.city ? `${addr.city} — ` : ''}
+            {truncatedStreet}
+          </span>
+        );
+      },
     },
     {
       key: 'createdAt',
@@ -162,6 +214,29 @@ export function OrdersClient() {
       ),
     },
   ];
+
+  async function applyBulkStatus() {
+    const count = selectedIds.length;
+    try {
+      const res = await fetch('/api/admin/orders/bulk', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, status: bulkStatus }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        toast.error(json.error);
+        return;
+      }
+      toast.success(`Updated ${count} orders`);
+      setSelectedIds([]);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to update orders');
+    }
+  }
+
+  const isRestocking = RESTOCKING_STATUSES.includes(bulkStatus);
 
   // Export honors the active filters (reuses the list query, minus pagination).
   function exportCsv() {
@@ -231,6 +306,40 @@ export function OrdersClient() {
         />
       </div>
 
+      {/* Reserved-height slot: always present so the table below never shifts
+          when the bar appears/disappears; only its contents toggle. */}
+      <div className="mb-3 flex h-11 items-center gap-3 rounded-lg border border-border-light bg-neutral-50 px-3 dark:border-border-dark dark:bg-neutral-900/40">
+        {selectedIds.length > 0 && (
+          <>
+            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+              {selectedIds.length} order{selectedIds.length === 1 ? '' : 's'} selected
+            </span>
+            <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as OrderStatus)}>
+              <SelectTrigger className="h-8 w-44">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDER_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.charAt(0) + s.slice(1).toLowerCase()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90"
+              onClick={() => setBulkConfirmOpen(true)}
+            >
+              Apply
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+              Clear
+            </Button>
+          </>
+        )}
+      </div>
+
       <DataTable
         columns={columns}
         rows={rows}
@@ -244,6 +353,24 @@ export function OrdersClient() {
         onSortChange={setSort}
         emptyTitle="No orders found"
         emptyDescription="Try adjusting filters or date range."
+        selectable
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        getRowId={(o) => o._id}
+      />
+
+      <ConfirmDialog
+        open={bulkConfirmOpen}
+        onOpenChange={setBulkConfirmOpen}
+        title={`Change ${selectedIds.length} order${selectedIds.length === 1 ? '' : 's'} to ${bulkStatus}?`}
+        description={
+          isRestocking
+            ? `Setting these orders to ${bulkStatus} restores stock for every item in each order that isn't already cancelled or refunded. This cannot be undone automatically.`
+            : `This updates the status for all ${selectedIds.length} selected order${selectedIds.length === 1 ? '' : 's'}.`
+        }
+        confirmLabel="Apply"
+        destructive={isRestocking}
+        onConfirm={applyBulkStatus}
       />
     </div>
   );
