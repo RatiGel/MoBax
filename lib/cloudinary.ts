@@ -10,15 +10,21 @@ cloudinary.config({
 export interface UploadedImage {
   url: string;
   publicId: string;
+  width: number;
+  height: number;
+  bytes: number;
+  format: string;
 }
 
 /**
  * Upload an image to Cloudinary. Accepts a Node Buffer or a base64/data-URI string.
- * Returns the secure URL and the public_id (needed for later deletion).
+ * `folder` is the logical folder (e.g. "products", "categories") and is nested
+ * under `mobax/`. Returns the secure URL, public_id (needed for later deletion),
+ * and the asset's dimensions/size/format as reported by Cloudinary.
  */
 export async function uploadImage(
   file: Buffer | string,
-  folder = 'mobax/products'
+  folder = 'products'
 ): Promise<UploadedImage> {
   const payload =
     typeof file === 'string'
@@ -26,11 +32,18 @@ export async function uploadImage(
       : `data:application/octet-stream;base64,${file.toString('base64')}`;
 
   const result = await cloudinary.uploader.upload(payload, {
-    folder,
+    folder: `mobax/${folder}`,
     resource_type: 'image',
   });
 
-  return { url: result.secure_url, publicId: result.public_id };
+  return {
+    url: result.secure_url,
+    publicId: result.public_id,
+    width: result.width,
+    height: result.height,
+    bytes: result.bytes,
+    format: result.format,
+  };
 }
 
 /** Remove an image from Cloudinary by its public_id. */

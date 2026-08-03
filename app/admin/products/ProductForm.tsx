@@ -260,6 +260,7 @@ export function ProductForm({ id }: { id?: string }) {
               <ImageUploader
                 value={values.images}
                 onChange={(imgs) => set('images', imgs)}
+                folder="products"
               />
             </CardContent>
           </Card>

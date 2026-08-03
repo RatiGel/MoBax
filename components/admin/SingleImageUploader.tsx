@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 interface SingleImageUploaderProps {
   value: string;
   onChange: (url: string) => void;
+  /** Logical folder this upload belongs to — determines the Cloudinary
+   * folder and the RBAC module checked server-side. Defaults to 'products'. */
+  folder?: 'products' | 'categories' | 'services' | 'content' | 'theme';
 }
 
 interface UploadResult {
@@ -17,7 +20,7 @@ interface UploadResult {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export function SingleImageUploader({ value, onChange }: SingleImageUploaderProps) {
+export function SingleImageUploader({ value, onChange, folder }: SingleImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -34,6 +37,7 @@ export function SingleImageUploader({ value, onChange }: SingleImageUploaderProp
 
     const formData = new FormData();
     formData.append('file', file);
+    if (folder) formData.append('folder', folder);
 
     setUploading(true);
     try {

@@ -339,7 +339,7 @@ export function CategoriesClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Image">
                 <div className="space-y-2">
-                  <SingleImageUploader value={values.image} onChange={(url) => set('image', url)} />
+                  <SingleImageUploader value={values.image} onChange={(url) => set('image', url)} folder="categories" />
                   <Input
                     value={values.image}
                     onChange={(e) => set('image', e.target.value)}

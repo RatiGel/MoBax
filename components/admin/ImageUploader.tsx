@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 interface ImageUploaderProps {
   value: string[];
   onChange: (urls: string[]) => void;
+  /** Logical folder this upload belongs to — determines the Cloudinary
+   * folder and the RBAC module checked server-side. Defaults to 'products'. */
+  folder?: 'products' | 'categories' | 'services' | 'content' | 'theme';
 }
 
 interface UploadResult {
@@ -17,7 +20,7 @@ interface UploadResult {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export function ImageUploader({ value, onChange }: ImageUploaderProps) {
+export function ImageUploader({ value, onChange, folder }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -25,6 +28,7 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
   async function uploadOne(file: File): Promise<string | null> {
     const formData = new FormData();
     formData.append('file', file);
+    if (folder) formData.append('folder', folder);
 
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
