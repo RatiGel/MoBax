@@ -34,9 +34,16 @@ interface BilingualFieldProps {
  * rather than a theme-driven color. It is deliberately NOT `bg-cobalt` or any
  * CSS-var-backed token: those are meant for the brand accent, which the
  * `/admin/theme` override can relift in dark mode (see CLAUDE.md's note that
- * the lifted dark-mode cobalt drops white text to ~3.6:1). A literal, fixed
- * amber pair renders identically in both themes, so its contrast never
- * depends on which theme — or which brand override — is active.
+ * the lifted dark-mode cobalt drops white text to ~3.6:1). Both the light and
+ * dark pairs below are literal, fixed hex — never theme tokens — precisely so
+ * neither can be relifted by a brand override.
+ *
+ * The light pair (amber-200/amber-800) was judged against the dark admin
+ * surface (#141416) in Task 19 and read as a bright sticker glued onto a
+ * muted dark UI — legible, but visually discordant with everything around
+ * it. A second literal pair — amber-950 fill (#451A03) / amber-300 text
+ * (#FCD34D), ~10.4:1 — is gated on dark mode via Tailwind's `dark:` variant
+ * so it reads as an integrated dark-theme warning instead.
  */
 export function BilingualField({
   id,
@@ -81,8 +88,7 @@ export function BilingualField({
           <p
             id={warningId}
             role="alert"
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium"
-            style={{ backgroundColor: '#FDE68A', color: '#92400E' }}
+            className="flex items-center gap-1.5 rounded-md bg-[#FDE68A] px-2 py-1 text-xs font-medium text-[#92400E] dark:bg-[#451A03] dark:text-[#FCD34D]"
           >
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             Georgian translation missing

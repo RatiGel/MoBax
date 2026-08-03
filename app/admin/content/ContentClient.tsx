@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, Loader2, Save, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
+import { FileText, Plus, Trash2, Loader2, Save, ArrowUp, ArrowDown, HelpCircle, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,18 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { SectionEditor } from '@/components/admin/SectionEditor';
+import { SECTION_KINDS, emptyContent, type SectionKind } from '@/lib/page-sections';
 import { apiFetch } from '@/lib/admin-fetch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// MVP CMS: section `content` is edited as raw JSON in a textarea. A richer,
-// per-section-type structured editor is future work.
-
 const PAGE_KEYS = ['home', 'about', 'faq', 'contact', 'privacy', 'terms'] as const;
 type PageKey = (typeof PAGE_KEYS)[number];
 
-const SECTION_TYPES = ['hero', 'text', 'banner', 'faq', 'grid'] as const;
-type SectionType = (typeof SECTION_TYPES)[number];
+const SECTION_TYPES = SECTION_KINDS;
+type SectionType = SectionKind;
 
 const PAGE_LABELS: Record<PageKey, string> = {
   home: 'Home',
@@ -52,10 +52,12 @@ interface PageDoc {
   exists?: boolean;
 }
 
-// Editor section keeps content as a string so we can show invalid-JSON state
-// without throwing while the user types.
+// Editor section keeps typed `content` plus a raw JSON mirror. The JSON
+// string backs the "Edit as JSON" escape hatch and can hold invalid JSON
+// transiently while the user types there, without throwing.
 interface EditorSection {
   type: SectionType;
+  content: Record<string, unknown>;
   contentJson: string;
   isVisible: boolean;
   order: number;
@@ -79,10 +81,18 @@ function newFaqId(): string {
   }
 }
 
+function asContentRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 function toEditorSection(s: ApiSection): EditorSection {
+  const content = asContentRecord(s.content);
   return {
     type: s.type,
-    contentJson: JSON.stringify(s.content ?? {}, null, 2),
+    content,
+    contentJson: JSON.stringify(content, null, 2),
     isVisible: s.isVisible,
     order: s.order,
   };
@@ -99,6 +109,14 @@ export function ContentClient() {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
   const [sections, setSections] = useState<EditorSection[]>([]);
+
+  // Pending section-type change awaiting confirmation — content shapes
+  // differ per kind, so switching type resets content and that's destructive
+  // enough to confirm rather than silently discard hand-edited values.
+  const [pendingTypeChange, setPendingTypeChange] = useState<{
+    index: number;
+    newType: SectionType;
+  } | null>(null);
 
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [loadingFaq, setLoadingFaq] = useState(true);
@@ -164,12 +182,56 @@ export function ContentClient() {
     );
   }
 
+  /** Structured-editor changes are the source of truth; keep the JSON mirror in sync. */
+  function updateSectionContent(index: number, next: Record<string, unknown>) {
+    setSections((prev) =>
+      prev.map((s, i) =>
+        i === index ? { ...s, content: next, contentJson: JSON.stringify(next, null, 2) } : s
+      )
+    );
+  }
+
+  /** JSON-textarea edits are the source of truth for that field; sync `content` when it parses. */
+  function updateSectionJson(index: number, json: string) {
+    setSections((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) return s;
+        try {
+          const parsed = json.trim() === '' ? {} : JSON.parse(json);
+          return { ...s, contentJson: json, content: asContentRecord(parsed) };
+        } catch {
+          // Invalid JSON mid-edit — keep showing what the user typed, don't touch `content` yet.
+          return { ...s, contentJson: json };
+        }
+      })
+    );
+  }
+
+  function requestTypeChange(index: number, newType: SectionType) {
+    setPendingTypeChange({ index, newType });
+  }
+
+  function confirmTypeChange() {
+    if (!pendingTypeChange) return;
+    const { index, newType } = pendingTypeChange;
+    const content = emptyContent(newType);
+    setSections((prev) =>
+      prev.map((s, i) =>
+        i === index
+          ? { ...s, type: newType, content, contentJson: JSON.stringify(content, null, 2) }
+          : s
+      )
+    );
+  }
+
   function addSection() {
+    const content = emptyContent('text');
     setSections((prev) => [
       ...prev,
       {
         type: 'text',
-        contentJson: '{}',
+        content,
+        contentJson: JSON.stringify(content, null, 2),
         isVisible: true,
         order: prev.length,
       },
@@ -181,7 +243,9 @@ export function ContentClient() {
   }
 
   async function handleSave() {
-    // Parse every section's JSON up front; abort the whole save on the first error.
+    // The JSON mirror is kept in sync on every structured edit; the only way
+    // it can still hold invalid JSON is via unparsed text left in the escape
+    // hatch textarea. Guard for that up front and abort on the first error.
     const parsedSections: ApiSection[] = [];
     for (let i = 0; i < sections.length; i++) {
       const s = sections[i];
@@ -361,7 +425,7 @@ export function ContentClient() {
                             <Label>Type</Label>
                             <Select
                               value={s.type}
-                              onValueChange={(v) => updateSection(i, 'type', v as SectionType)}
+                              onValueChange={(v) => requestTypeChange(i, v as SectionType)}
                             >
                               <SelectTrigger className="w-36">
                                 <SelectValue />
@@ -408,16 +472,31 @@ export function ContentClient() {
                           </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                          <Label>Content (JSON)</Label>
-                          <Textarea
-                            rows={6}
-                            className="font-mono text-xs"
-                            value={s.contentJson}
-                            onChange={(e) => updateSection(i, 'contentJson', e.target.value)}
-                            spellCheck={false}
-                          />
-                        </div>
+                        <SectionEditor
+                          kind={s.type}
+                          content={s.content}
+                          onChange={(next) => updateSectionContent(i, next)}
+                        />
+
+                        <details className="group rounded-md border border-border-light dark:border-border-dark">
+                          <summary className="flex cursor-pointer list-none items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">
+                            <ChevronDown className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-180" />
+                            Edit as JSON
+                          </summary>
+                          <div className="space-y-1.5 border-t border-border-light p-3 dark:border-border-dark">
+                            <Textarea
+                              rows={6}
+                              className="font-mono text-xs"
+                              value={s.contentJson}
+                              onChange={(e) => updateSectionJson(i, e.target.value)}
+                              spellCheck={false}
+                            />
+                            <p className="text-[11px] text-neutral-500">
+                              Escape hatch for keys the form above doesn&apos;t cover. Unknown keys
+                              are preserved when saved.
+                            </p>
+                          </div>
+                        </details>
                       </div>
                     ))
                   )}
@@ -539,6 +618,18 @@ export function ContentClient() {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={pendingTypeChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingTypeChange(null);
+        }}
+        title="Change section type?"
+        description="Switching type resets this section's content to match the new type's fields. Anything entered for the current type will be lost."
+        confirmLabel="Change type"
+        destructive
+        onConfirm={confirmTypeChange}
+      />
     </div>
   );
 }
