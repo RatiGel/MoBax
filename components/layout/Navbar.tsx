@@ -28,6 +28,7 @@ export function Navbar({
   categories,
   brands,
   brandCounts,
+  categoryCounts,
   showDiscounts,
   navLinks,
 }: {
@@ -35,6 +36,8 @@ export function Navbar({
   categories: Category[];
   brands: Brand[];
   brandCounts: Record<string, number>;
+  /** Category slug → live product count (see getCategoryProductCounts). */
+  categoryCounts: Record<string, number>;
   /** Discounts is a virtual category — hidden entirely when nothing qualifies. */
   showDiscounts: boolean;
   /** Admin-managed extra nav links (Setting: nav). Empty/undefined → no extra links render. */
@@ -246,7 +249,7 @@ export function Navbar({
                                   {catName}
                                 </p>
                                 <p className="text-xs text-graphite mt-0.5">
-                                  {cat.productCount} {locale === 'ka' ? 'ნივთი' : 'items'}
+                                  {categoryCounts[cat.slug] ?? 0} {locale === 'ka' ? 'ნივთი' : 'items'}
                                 </p>
                               </div>
                             </Link>

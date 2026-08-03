@@ -10,7 +10,13 @@ import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
 import { HtmlLang } from '@/components/HtmlLang';
 import { getStoreTheme, themeOverrideCss, getNavSettings, getFooterSettings, getTypography } from '@/lib/theme';
-import { getParentCategories, getBrands, getBrandProductCounts, getDiscountedProducts } from '@/lib/catalog';
+import {
+  getParentCategories,
+  getBrands,
+  getBrandProductCounts,
+  getCategoryProductCounts,
+  getDiscountedProducts,
+} from '@/lib/catalog';
 
 const locales = ['en', 'ka'];
 
@@ -50,15 +56,23 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
   // Nav links and footer settings are also admin-managed (Settings: nav,
   // footer) and flow down the same way — both components render their own
   // hardcoded fallback content when the saved setting is empty.
-  const [navCategories, navBrands, brandCounts, discountedProducts, navSettings, footerSettings] =
-    await Promise.all([
-      getParentCategories(),
-      getBrands(),
-      getBrandProductCounts(),
-      getDiscountedProducts(),
-      getNavSettings(),
-      getFooterSettings(),
-    ]);
+  const [
+    navCategories,
+    navBrands,
+    brandCounts,
+    categoryCounts,
+    discountedProducts,
+    navSettings,
+    footerSettings,
+  ] = await Promise.all([
+    getParentCategories(),
+    getBrands(),
+    getBrandProductCounts(),
+    getCategoryProductCounts(),
+    getDiscountedProducts(),
+    getNavSettings(),
+    getFooterSettings(),
+  ]);
   // Discounts is a virtual category: it only appears in nav when at least one
   // product currently qualifies, so an admin who clears every sale doesn't
   // leave a dead link pointing at an empty page.
@@ -82,6 +96,7 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
               categories={navCategories}
               brands={navBrands}
               brandCounts={brandCounts}
+              categoryCounts={categoryCounts}
               showDiscounts={showDiscounts}
               navLinks={navSettings.links}
             />

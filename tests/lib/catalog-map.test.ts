@@ -108,7 +108,7 @@ describe('discountPercent', () => {
 
 describe('mapCategory / mapBrand', () => {
   it('maps a category, dropping a null parentSlug', () => {
-    const c = mapCategory({ _id: 'x', slug: 'cables', nameEn: 'Cables', nameKa: 'კაბელები', icon: '🔌', image: 'i.jpg', parentSlug: null, productCount: 4 } as never);
+    const c = mapCategory({ _id: 'x', slug: 'cables', nameEn: 'Cables', nameKa: 'კაბელები', icon: '🔌', image: 'i.jpg', parentSlug: null } as never);
     expect(c.parentSlug).toBeUndefined();
     expect(c.slug).toBe('cables');
   });

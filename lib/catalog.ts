@@ -175,3 +175,46 @@ export async function getBrandProductCounts(): Promise<Record<string, number>> {
   );
   return Object.fromEntries(entries);
 }
+
+/**
+ * Category slug → live product count, for the home category cards and the
+ * navbar mega-menu. Replaces the seeded `Category.productCount` fixture
+ * number, which never tracked real inventory (see plan.md final review).
+ *
+ * Products carry a LEAF categorySlug (e.g. `phone-cases`), but parent
+ * categories (e.g. `phone-protection`) are what render on these two pages.
+ * One aggregation gets leaf counts; parent totals are the sum of their
+ * children's leaf counts, computed here rather than stored, so this can
+ * never drift from the product table the way the old field did.
+ *
+ * "most-popular" is a /products listing filter, not a real category with
+ * members of its own — it has no children, so it always resolves to 0. Both
+ * call sites already exclude it from what they render.
+ */
+export async function getCategoryProductCounts(): Promise<Record<string, number>> {
+  await connectDB();
+  const leafCounts = await ProductModel.aggregate<{ _id: string; n: number }>([
+    { $match: { isActive: true } },
+    { $group: { _id: '$categorySlug', n: { $sum: 1 } } },
+  ]);
+  const leafMap = new Map(leafCounts.map((c) => [c._id, c.n]));
+
+  const allCategories = await getCategories();
+  const counts: Record<string, number> = {};
+  for (const cat of allCategories) {
+    if (cat.parentSlug) {
+      // Leaf category: its own count, defaulting to 0 when no active
+      // products carry this slug.
+      counts[cat.slug] = leafMap.get(cat.slug) ?? 0;
+    }
+  }
+  for (const cat of allCategories) {
+    if (!cat.parentSlug) {
+      // Parent category: sum of its children's leaf counts, not its own
+      // (parents are never a product's categorySlug).
+      const children = allCategories.filter((c) => c.parentSlug === cat.slug);
+      counts[cat.slug] = children.reduce((sum, child) => sum + (counts[child.slug] ?? 0), 0);
+    }
+  }
+  return counts;
+}

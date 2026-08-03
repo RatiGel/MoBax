@@ -20,7 +20,7 @@ describe('lib/types', () => {
   it('describes a category', () => {
     const c: Category = {
       id: 'p1', slug: 'phone-cases' as CategorySlug,
-      nameEn: 'Cases', nameKa: 'ქეისები', icon: '', image: '', productCount: 0,
+      nameEn: 'Cases', nameKa: 'ქეისები', icon: '', image: '',
     };
     expect(c.nameKa).toBe('ქეისები');
   });

@@ -59,7 +59,6 @@ async function seed() {
       image: c.image,
       parentSlug: c.parentSlug || null,
       isActive: true,
-      productCount: c.productCount,
     }))
   );
   console.log(`Seeded ${categories.length} categories`);

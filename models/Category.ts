@@ -10,7 +10,6 @@ export interface ICategory extends Document {
   image: string;
   parentSlug?: string | null;
   isActive: boolean;
-  productCount: number;
 }
 
 const CategorySchema = new Schema<ICategory>({
@@ -23,7 +22,6 @@ const CategorySchema = new Schema<ICategory>({
   image: { type: String, default: '' },
   parentSlug: { type: String, default: null },
   isActive: { type: Boolean, default: true },
-  productCount: { type: Number, default: 0 },
 });
 
 const Category: Model<ICategory> =

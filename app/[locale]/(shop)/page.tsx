@@ -6,7 +6,12 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { HeroProduct } from '@/components/shop/HeroProduct';
 import { Reveal } from '@/components/shop/Reveal';
 import { FaqSection } from '@/components/shop/FaqSection';
-import { getFeaturedProducts, getNewArrivals, getParentCategories } from '@/lib/catalog';
+import {
+  getFeaturedProducts,
+  getNewArrivals,
+  getParentCategories,
+  getCategoryProductCounts,
+} from '@/lib/catalog';
 
 interface HomePageProps {
   params: { locale: string };
@@ -25,10 +30,11 @@ export const revalidate = 60;
 export default async function HomePage({ params: { locale } }: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('home');
-  const [featured, newArrivals, allParents] = await Promise.all([
+  const [featured, newArrivals, allParents, categoryCounts] = await Promise.all([
     getFeaturedProducts(),
     getNewArrivals(),
     getParentCategories(),
+    getCategoryProductCounts(),
   ]);
   // Exclude the "most-popular" pseudo-category — it's a /products filter,
   // not a real product group, so it doesn't belong in the home grid.
@@ -139,7 +145,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                     <div className="flex flex-col gap-0.5 p-3.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3 sm:p-4">
                       <p className="text-sm font-semibold text-ink dark:text-white leading-tight">{name}</p>
                       <p className="shrink-0 text-xs text-graphite tabular-nums">
-                        {t('productsCount', { count: cat.productCount })}
+                        {t('productsCount', { count: categoryCounts[cat.slug] ?? 0 })}
                       </p>
                     </div>
                   </Link>

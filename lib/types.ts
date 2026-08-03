@@ -48,7 +48,6 @@ export interface Category {
   icon: string;
   image: string;
   parentSlug?: CategorySlug;
-  productCount: number;
 }
 
 export interface Product {

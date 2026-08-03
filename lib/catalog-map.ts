@@ -37,7 +37,6 @@ interface LeanCategory {
   nameEn: string; nameKa: string;
   icon?: string; image?: string;
   parentSlug?: string | null;
-  productCount?: number;
 }
 
 interface LeanBrand {
@@ -108,7 +107,6 @@ export function mapCategory(doc: LeanCategory): Category {
     icon: doc.icon ?? '',
     image: doc.image ?? '',
     parentSlug: doc.parentSlug ? (doc.parentSlug as CategorySlug) : undefined,
-    productCount: doc.productCount ?? 0,
   };
 }
 
