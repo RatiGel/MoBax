@@ -12,7 +12,7 @@ function isMediaFolder(value: unknown): value is MediaFolder {
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin({ module: 'content' });
+    await requireAdmin({ module: 'media' });
     await connectDB();
 
     const searchParams = req.nextUrl.searchParams;

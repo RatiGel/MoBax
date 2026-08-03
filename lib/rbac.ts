@@ -12,18 +12,19 @@ export type AdminModule =
   | 'content'
   | 'settings'
   | 'team'
-  | 'support';
+  | 'support'
+  | 'media';
 
 /** Which modules each role may access. */
 export const ROLE_MODULES: Record<UserRole, AdminModule[]> = {
   SUPER_ADMIN: [
     'analytics', 'products', 'categories', 'orders', 'customers',
-    'pricing', 'theme', 'content', 'settings', 'team', 'support',
+    'pricing', 'theme', 'content', 'settings', 'team', 'support', 'media',
   ],
   STORE_MANAGER: [
-    'analytics', 'products', 'categories', 'orders', 'customers', 'pricing', 'support',
+    'analytics', 'products', 'categories', 'orders', 'customers', 'pricing', 'support', 'media',
   ],
-  CONTENT_EDITOR: ['content', 'theme'],
+  CONTENT_EDITOR: ['content', 'theme', 'media'],
   CUSTOMER: [],
 };
 

@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MediaLibraryPicker } from '@/components/admin/MediaLibraryPicker';
 
 interface SingleImageUploaderProps {
   value: string;
@@ -65,71 +67,82 @@ export function SingleImageUploader({ value, onChange, folder }: SingleImageUplo
     if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]);
   }
 
-  if (value) {
-    return (
-      <div className="group relative aspect-video w-full max-w-xs overflow-hidden rounded border border-border-light dark:border-border-dark">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={value} alt="" className="h-full w-full object-cover" />
-        <button
-          type="button"
-          onClick={() => onChange('')}
-          className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
-          aria-label="Remove image"
-        >
-          <X className="h-3 w-3" />
-        </button>
-        {uploading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <Loader2 className="h-5 w-5 animate-spin text-white" />
+  return (
+    <Tabs defaultValue="upload">
+      <TabsList>
+        <TabsTrigger value="upload">Upload</TabsTrigger>
+        <TabsTrigger value="library">Library</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="upload">
+        {value ? (
+          <div className="group relative aspect-video w-full max-w-xs overflow-hidden rounded border border-border-light dark:border-border-dark">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+              aria-label="Remove image"
+            >
+              <X className="h-3 w-3" />
+            </button>
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                <Loader2 className="h-5 w-5 animate-spin text-white" />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => inputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={onDrop}
+            className={cn(
+              'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-6 text-center transition-colors hover:border-accent',
+              dragActive && 'border-accent bg-accent/5'
+            )}
+          >
+            {uploading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+            ) : (
+              <>
+                <ImagePlus className="h-6 w-6 text-neutral-400" />
+                <div className="text-sm text-neutral-600 dark:text-neutral-300">
+                  <span className="font-medium text-accent">Click to upload</span> or drag & drop
+                </div>
+                <p className="text-xs text-neutral-500">PNG, JPG, WEBP — max 5 MB</p>
+              </>
+            )}
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleFile(e.target.files[0]);
+                e.target.value = '';
+              }}
+            />
           </div>
         )}
-      </div>
-    );
-  }
+      </TabsContent>
 
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => inputRef.current?.click()}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          inputRef.current?.click();
-        }
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragActive(true);
-      }}
-      onDragLeave={() => setDragActive(false)}
-      onDrop={onDrop}
-      className={cn(
-        'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-6 text-center transition-colors hover:border-accent',
-        dragActive && 'border-accent bg-accent/5'
-      )}
-    >
-      {uploading ? (
-        <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
-      ) : (
-        <>
-          <ImagePlus className="h-6 w-6 text-neutral-400" />
-          <div className="text-sm text-neutral-600 dark:text-neutral-300">
-            <span className="font-medium text-accent">Click to upload</span> or drag & drop
-          </div>
-          <p className="text-xs text-neutral-500">PNG, JPG, WEBP — max 5 MB</p>
-        </>
-      )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          if (e.target.files?.[0]) handleFile(e.target.files[0]);
-          e.target.value = '';
-        }}
-      />
-    </div>
+      <TabsContent value="library">
+        <MediaLibraryPicker defaultFolder={folder} onSelect={onChange} />
+      </TabsContent>
+    </Tabs>
   );
 }

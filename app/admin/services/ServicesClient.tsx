@@ -720,7 +720,7 @@ export function ServicesClient() {
             </div>
 
             <Field label="Images" hint="First image is the cover">
-              <ImageUploader value={catalogValues.images} onChange={(urls) => setCat('images', urls)} />
+              <ImageUploader value={catalogValues.images} onChange={(urls) => setCat('images', urls)} folder="services" />
             </Field>
 
             <div className="flex items-center justify-between">

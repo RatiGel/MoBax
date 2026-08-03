@@ -17,9 +17,35 @@ function isValidId(id: string) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+export async function PATCH(req: NextRequest, { params }: Params) {
+  try {
+    await requireAdmin({ module: 'media' });
+    await connectDB();
+    if (!isValidId(params.id)) return notFound('Media not found');
+
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body.alt !== 'string') {
+      return fail('alt (string) is required', 400);
+    }
+
+    const media = await Media.findByIdAndUpdate(
+      params.id,
+      { alt: body.alt.trim() },
+      { new: true }
+    ).lean();
+    if (!media) return notFound('Media not found');
+
+    return ok(media);
+  } catch (err) {
+    if (err instanceof AdminAuthError) return fail(err.message, err.status);
+    console.error('[admin/media/:id PATCH]', err);
+    return fail('Failed to update media', 500);
+  }
+}
+
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
-    await requireAdmin({ module: 'content' });
+    await requireAdmin({ module: 'media' });
     await connectDB();
     if (!isValidId(params.id)) return notFound('Media not found');
 
