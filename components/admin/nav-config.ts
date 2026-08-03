@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Wrench,
   Image as ImageIcon,
+  Boxes,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Categories', href: '/admin/categories', icon: FolderTree, module: 'categories', group: 'Catalog' },
   { label: 'Brands', href: '/admin/brands', icon: Tag, module: 'categories', group: 'Catalog' },
   { label: 'Reviews', href: '/admin/reviews', icon: Star, module: 'products', group: 'Catalog' },
+  { label: 'Inventory', href: '/admin/inventory', icon: Boxes, module: 'products', group: 'Catalog' },
 
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart, module: 'orders', group: 'Sales' },
   { label: 'Customers', href: '/admin/customers', icon: Users, module: 'customers', group: 'Sales' },

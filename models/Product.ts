@@ -19,6 +19,8 @@ export interface IProduct extends Document<string> {
   salePriceEnd?: Date;
   sku: string;
   stock: number;
+  /** Below or equal to this, the product shows in the inventory low-stock list. */
+  lowStockThreshold: number;
   categorySlug: string;
   brand: string;
   tags: string[];
@@ -51,6 +53,7 @@ const ProductSchema = new Schema<IProduct>(
     salePriceEnd: { type: Date },
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number, default: 5 },
     categorySlug: { type: String, required: true },
     brand: { type: String, required: true },
     tags: [{ type: String }],

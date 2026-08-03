@@ -33,7 +33,7 @@ import { apiFetch } from '@/lib/admin-fetch';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
 
-type Summary = { todayRevenue: number; todayOrders: number; totalProducts: number; lowStockCount: number };
+type Summary = { todayRevenue: number; todayOrders: number; totalProducts: number };
 type RevenuePoint = { period: string; revenue: number; orders: number };
 type OrdersData = {
   byStatus: { status: string; count: number }[];
@@ -41,8 +41,9 @@ type OrdersData = {
 };
 type ProductsData = {
   topProducts: { productId: string; name: string; unitsSold: number; revenue: number }[];
-  lowStock: { id: string; name: string; sku: string; stock: number }[];
 };
+type InventoryItem = { id: string; nameEn: string; sku: string; stock: number; lowStockThreshold: number };
+type InventoryData = { items: InventoryItem[]; total: number; lowCount: number; outCount: number };
 
 export function DashboardClient() {
   const [range, setRange] = useState<DateRangeValue>({ preset: '30d' });
@@ -52,6 +53,7 @@ export function DashboardClient() {
   const [revenue, setRevenue] = useState<RevenuePoint[]>([]);
   const [orders, setOrders] = useState<OrdersData | null>(null);
   const [products, setProducts] = useState<ProductsData | null>(null);
+  const [inventory, setInventory] = useState<InventoryData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const q = rangeToQuery(range);
@@ -59,16 +61,20 @@ export function DashboardClient() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, r, o, p] = await Promise.all([
+      const [s, r, o, p, inv] = await Promise.all([
         apiFetch<Summary>('/api/admin/analytics/summary'),
         apiFetch<RevenuePoint[]>(`/api/admin/analytics/revenue?${q}&granularity=${granularity}`),
         apiFetch<OrdersData>(`/api/admin/analytics/orders?${q}`),
         apiFetch<ProductsData>(`/api/admin/analytics/products?${q}`),
+        // Sourced from the inventory endpoint (not analytics/summary's fixed
+        // ≤10 cutoff) so this card respects each product's own threshold.
+        apiFetch<InventoryData>('/api/admin/inventory?filter=low&limit=50'),
       ]);
       setSummary(s);
       setRevenue(r);
       setOrders(o);
       setProducts(p);
+      setInventory(inv);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to load analytics');
     } finally {
@@ -107,13 +113,15 @@ export function DashboardClient() {
           icon={Package}
           loading={loading}
         />
-        <StatCard
-          label="Low stock"
-          value={summary?.lowStockCount ?? '—'}
-          icon={AlertTriangle}
-          hint="≤ 10 units"
-          loading={loading}
-        />
+        <Link href="/admin/inventory?filter=low" className="block rounded-lg">
+          <StatCard
+            label="Low stock"
+            value={inventory?.lowCount ?? '—'}
+            icon={AlertTriangle}
+            hint="At or below each product's threshold"
+            loading={loading}
+          />
+        </Link>
       </div>
 
       {/* Revenue + granularity toggle */}
@@ -143,8 +151,11 @@ export function DashboardClient() {
 
       {/* Low stock table */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex-row items-center justify-between">
           <CardTitle className="text-base font-medium">Low stock products</CardTitle>
+          <Button asChild variant="link" size="sm">
+            <Link href="/admin/inventory?filter=low">View all in Inventory</Link>
+          </Button>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -153,7 +164,7 @@ export function DashboardClient() {
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : !products?.lowStock.length ? (
+          ) : !inventory?.items.length ? (
             <p className="py-8 text-center text-sm text-neutral-400">All products well stocked 🎉</p>
           ) : (
             <Table>
@@ -166,9 +177,9 @@ export function DashboardClient() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.lowStock.map((p) => (
+                {inventory.items.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-medium">{p.nameEn}</TableCell>
                     <TableCell className="text-neutral-500">{p.sku}</TableCell>
                     <TableCell>
                       <Badge variant={p.stock === 0 ? 'destructive' : 'secondary'}>

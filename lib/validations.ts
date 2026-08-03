@@ -120,6 +120,7 @@ export const CreateProductSchema = z.object({
   salePriceEnd: z.coerce.date().optional(),
   sku: z.string().min(1, 'SKU is required').max(64),
   stock: z.number().int().min(0).default(0),
+  lowStockThreshold: z.number().int().min(0).default(5),
   categorySlug: z.string().min(1, 'Category is required'),
   brand: z.string().min(1, 'Brand is required'),
   tags: z.array(z.string()).default([]),
@@ -135,6 +136,19 @@ export const CreateProductSchema = z.object({
 // create-only (see toUpdateSchema) so an omitted field is left untouched
 // rather than overwritten with its default.
 export const UpdateProductSchema = toUpdateSchema(CreateProductSchema);
+
+// --- Inventory admin ---
+
+export const InventoryAdjustReasonSchema = z.enum(['restock', 'damage', 'correction', 'return']);
+
+export const InventoryAdjustSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  delta: z.number().int().refine((d) => d !== 0, 'Delta must not be zero'),
+  reason: InventoryAdjustReasonSchema,
+  note: z.string().max(500).optional(),
+});
+
+export type InventoryAdjustInput = z.infer<typeof InventoryAdjustSchema>;
 
 export const CreateCategorySchema = z.object({
   slug: z.string().min(1).max(120).optional(), // auto-derived from nameEn if omitted

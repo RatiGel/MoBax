@@ -34,6 +34,7 @@ export interface ProductFormValues {
   price: string;
   originalPrice: string;
   stock: string;
+  lowStockThreshold: string;
   tags: string;
   images: string[];
   isActive: boolean;
@@ -45,6 +46,7 @@ type FullProduct = AdminProduct & {
   descriptionEn?: string;
   descriptionKa?: string;
   originalPrice?: number;
+  lowStockThreshold?: number;
   tags?: string[];
   isNewProduct?: boolean;
 };
@@ -61,6 +63,7 @@ const EMPTY: ProductFormValues = {
   price: '',
   originalPrice: '',
   stock: '0',
+  lowStockThreshold: '5',
   tags: '',
   images: [],
   isActive: true,
@@ -81,6 +84,7 @@ function fromProduct(p: FullProduct): ProductFormValues {
     price: p.price != null ? String(p.price) : '',
     originalPrice: p.originalPrice != null ? String(p.originalPrice) : '',
     stock: p.stock != null ? String(p.stock) : '0',
+    lowStockThreshold: p.lowStockThreshold != null ? String(p.lowStockThreshold) : '5',
     tags: (p.tags ?? []).join(', '),
     images: p.images ?? [],
     isActive: p.isActive ?? true,
@@ -129,6 +133,7 @@ export function ProductForm({ id }: { id?: string }) {
       categorySlug: values.categorySlug,
       price: Number(values.price),
       stock: Number(values.stock || 0),
+      lowStockThreshold: Number(values.lowStockThreshold || 5),
       tags: values.tags
         .split(',')
         .map((t) => t.trim())
@@ -298,6 +303,15 @@ export function ProductForm({ id }: { id?: string }) {
                   step="1"
                   value={values.stock}
                   onChange={(e) => set('stock', e.target.value)}
+                />
+              </Field>
+              <Field label="Low stock threshold" hint="Flags the product in Inventory at or below this level">
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={values.lowStockThreshold}
+                  onChange={(e) => set('lowStockThreshold', e.target.value)}
                 />
               </Field>
             </CardContent>
