@@ -27,10 +27,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!body || typeof body.alt !== 'string') {
       return fail('alt (string) is required', 400);
     }
+    const alt = body.alt.trim();
+    if (alt.length > 500) {
+      return fail('alt must be 500 characters or fewer', 400);
+    }
 
     const media = await Media.findByIdAndUpdate(
       params.id,
-      { alt: body.alt.trim() },
+      { alt },
       { new: true }
     ).lean();
     if (!media) return notFound('Media not found');

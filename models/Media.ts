@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { MEDIA_FOLDERS, type MediaFolder } from '@/lib/media-folders';
 
-export const MEDIA_FOLDERS = ['products', 'categories', 'services', 'content', 'theme'] as const;
-export type MediaFolder = (typeof MEDIA_FOLDERS)[number];
+// Re-exported for existing importers (several API routes import these names
+// from this model). Canonical definitions live in lib/media-folders.ts.
+export { MEDIA_FOLDERS, type MediaFolder };
 
 export interface IMedia extends Document {
   url: string;
@@ -26,7 +28,7 @@ const MediaSchema = new Schema<IMedia>(
     height: { type: Number, default: 0 },
     bytes: { type: Number, default: 0 },
     format: { type: String, default: '' },
-    alt: { type: String, default: '' },
+    alt: { type: String, default: '', maxlength: 500 },
     uploadedBy: { type: String },
   },
   { timestamps: true }

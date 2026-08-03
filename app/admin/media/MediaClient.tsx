@@ -17,14 +17,9 @@ import {
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/admin-fetch';
 import { toast } from 'sonner';
-
-// Mirrors models/Media.ts MEDIA_FOLDERS/MediaFolder. Kept as a plain literal
-// union here (not imported from the model) because that file pulls in
-// mongoose — fine in API routes, but importing it from a 'use client'
-// component drags the Node-only mongodb driver into the browser bundle and
-// breaks webpack module resolution (net/fs/tls/etc. "module not found").
-const MEDIA_FOLDERS = ['products', 'categories', 'services', 'content', 'theme'] as const;
-type MediaFolder = (typeof MEDIA_FOLDERS)[number];
+// MEDIA_FOLDERS/MediaFolder live in lib/media-folders.ts (a mongoose-free
+// module) specifically so client components like this one can import them.
+import { MEDIA_FOLDERS, type MediaFolder } from '@/lib/media-folders';
 
 export interface AdminMedia {
   _id: string;
@@ -245,6 +240,7 @@ export function MediaClient() {
                         value={altDraft}
                         onChange={(e) => setAltDraft(e.target.value)}
                         placeholder="Alt text…"
+                        maxLength={500}
                         className="h-7 text-xs"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') saveAlt(item);
