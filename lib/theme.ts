@@ -11,8 +11,10 @@
  * this keeps opacity modifiers (bg-cobalt/10) working.
  */
 
+import { draftMode } from 'next/headers';
 import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { connectDB } from '@/lib/mongodb';
+import { getAdminSession } from '@/lib/admin-auth';
 
 export interface StoreTheme {
   primary: string;     // hex, e.g. #1E2D5A
@@ -207,10 +209,40 @@ export function themeOverrideCss(theme: StoreTheme, typography?: Typography): st
 /**
  * Fetch the saved store theme, merged over defaults. Never throws — a DB hiccup
  * falls back to defaults so the storefront always renders.
+ *
+ * Draft preview: gated on Next's `draftMode()`, NOT on the raw `?theme=draft`
+ * query string. This matters for caching — `draftMode().isEnabled` is a plain
+ * cookie-derived boolean with no dynamic-rendering side effect (unlike
+ * `headers()`/`cookies()`), so calling it here does not force the ISR'd
+ * storefront layout/page into dynamic (SSR-every-request) rendering. Only
+ * requests that actually carry the `__prerender_bypass` cookie — set by
+ * /api/admin/theme/preview after it verifies an admin session — bypass the
+ * ISR cache (Next does that itself, per-request, at the cache-key layer).
+ * Everyone else, including the ISR background regeneration, still gets a
+ * cached render built from the LIVE theme, never the draft.
+ *
+ * Second gate: even with the bypass cookie present, we re-check
+ * `getAdminSession()` (the non-throwing variant — a failed check here must
+ * degrade to the live theme, not throw at a public visitor) before reading
+ * the draft. This call only happens inside the `isEnabled` branch, so it
+ * never runs for the normal cached path either.
  */
 export async function getStoreTheme(): Promise<StoreTheme> {
   try {
     await connectDB();
+
+    const { isEnabled: previewRequested } = draftMode();
+    if (previewRequested) {
+      const session = await getAdminSession();
+      if (session) {
+        const draft = await Setting.findOne({ key: SETTING_KEYS.THEME_DRAFT }).lean();
+        const draftValue = draft?.value;
+        if (draftValue && typeof draftValue === 'object') {
+          return { ...THEME_DEFAULTS, ...(draftValue as Partial<StoreTheme>) };
+        }
+      }
+    }
+
     const setting = await Setting.findOne({ key: SETTING_KEYS.THEME }).lean();
     const value = setting?.value;
     if (value && typeof value === 'object') {

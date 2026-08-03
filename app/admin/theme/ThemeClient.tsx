@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Save, RotateCcw } from 'lucide-react';
+import { Loader2, Save, RotateCcw, FileText, Eye, UploadCloud } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,12 +71,24 @@ function withTypographyDefaults(value: unknown): Typography {
   return { ...TYPOGRAPHY_DEFAULTS };
 }
 
+/** Locale used when opening the storefront preview from the admin panel. */
+const PREVIEW_LOCALE = 'en';
+
 export function ThemeClient() {
   const [theme, setTheme] = useState<Theme>(DEFAULTS);
   const [typography, setTypography] = useState<Typography>(TYPOGRAPHY_DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoUrlMode, setLogoUrlMode] = useState(false);
+
+  // Draft/publish state — separate from the "Save" button above, which still
+  // writes straight to the live theme. Draft tracks its own last-saved value
+  // so the "differs from live" banner compares what's on the server, not
+  // whatever the form happens to hold right now.
+  const [draftTheme, setDraftTheme] = useState<Theme | null>(null);
+  const [liveTheme, setLiveTheme] = useState<Theme>(DEFAULTS);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   function set<K extends keyof Theme>(key: K, val: Theme[K]) {
     setTheme((t) => ({ ...t, [key]: val }));
@@ -89,12 +101,16 @@ export function ThemeClient() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [themeData, settingsData] = await Promise.all([
+      const [themeData, settingsData, draftData] = await Promise.all([
         apiFetch<{ theme: unknown }>('/api/admin/theme'),
         apiFetch<{ settings: Record<string, unknown> }>('/api/admin/settings'),
+        apiFetch<{ draft: unknown }>('/api/admin/theme/draft'),
       ]);
-      setTheme(withDefaults(themeData.theme));
+      const live = withDefaults(themeData.theme);
+      setTheme(live);
+      setLiveTheme(live);
       setTypography(withTypographyDefaults(settingsData.settings?.typography));
+      setDraftTheme(draftData.draft ? withDefaults(draftData.draft) : null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to load theme');
     } finally {
@@ -119,6 +135,7 @@ export function ThemeClient() {
           body: JSON.stringify({ typography }),
         }),
       ]);
+      setLiveTheme(theme);
       toast.success('Theme saved');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to save theme');
@@ -126,6 +143,59 @@ export function ThemeClient() {
       setSaving(false);
     }
   }
+
+  /** Writes the current form values to theme_draft — never touches the live theme. */
+  async function saveDraft() {
+    setSavingDraft(true);
+    try {
+      const result = await apiFetch<{ draft: unknown }>('/api/admin/theme/draft', {
+        method: 'PATCH',
+        body: JSON.stringify(theme),
+      });
+      setDraftTheme(withDefaults(result.draft));
+      toast.success('Draft saved. Preview it before publishing.');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save draft');
+    } finally {
+      setSavingDraft(false);
+    }
+  }
+
+  /**
+   * Opens the storefront preview in a new tab. The link hits an authenticated
+   * route handler that verifies the admin session, flips on Next's draftMode
+   * cookie, and redirects to /{locale}?theme=draft — see the route and the
+   * comment on getStoreTheme() in lib/theme.ts for why an unauthenticated
+   * visitor hitting that same URL gets the live theme instead.
+   */
+  function preview() {
+    window.open(`/api/admin/theme/preview?locale=${PREVIEW_LOCALE}`, '_blank', 'noopener');
+  }
+
+  /** Copies theme_draft over the live theme and revalidates the storefront. */
+  async function publish() {
+    setPublishing(true);
+    try {
+      const result = await apiFetch<{ theme: unknown }>('/api/admin/theme/publish', {
+        method: 'POST',
+      });
+      const published = withDefaults(result.theme);
+      setLiveTheme(published);
+      toast.success('Theme published to the live storefront');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to publish theme');
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  const draftDiffersFromLive =
+    draftTheme !== null &&
+    (draftTheme.primary.toLowerCase() !== liveTheme.primary.toLowerCase() ||
+      draftTheme.accent.toLowerCase() !== liveTheme.accent.toLowerCase() ||
+      draftTheme.storeName !== liveTheme.storeName ||
+      draftTheme.logoUrl !== liveTheme.logoUrl ||
+      draftTheme.announcement !== liveTheme.announcement);
 
   if (loading) {
     return (
@@ -149,11 +219,47 @@ export function ThemeClient() {
         >
           <RotateCcw className="h-4 w-4" /> Reset to defaults
         </Button>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={saveDraft}
+          disabled={savingDraft}
+          className="gap-1"
+        >
+          {savingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+          Save draft
+        </Button>
+        <Button variant="outline" type="button" onClick={preview} className="gap-1">
+          <Eye className="h-4 w-4" /> Preview
+        </Button>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={publish}
+          disabled={publishing || !draftTheme}
+          className="gap-1"
+        >
+          {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+          Publish draft
+        </Button>
         <Button onClick={save} disabled={saving} className="gap-1">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save
         </Button>
       </PageHeader>
+
+      {draftDiffersFromLive && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <FileText className="h-4 w-4 shrink-0" />
+          <span>
+            The saved draft differs from the live theme.{' '}
+            <button type="button" onClick={preview} className="font-medium underline underline-offset-2">
+              Preview it
+            </button>{' '}
+            or publish it to update the storefront.
+          </span>
+        </div>
+      )}
 
       <Tabs defaultValue="branding">
         <TabsList className="mb-4 flex-wrap">
