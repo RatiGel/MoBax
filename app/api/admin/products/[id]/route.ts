@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail, notFound } from '@/lib/api';
@@ -12,8 +11,11 @@ export const dynamic = 'force-dynamic';
 
 type Params = { params: { id: string } };
 
+// Product._id is a String (models/Product.ts), not an ObjectId — seeded
+// products keep stable catalog ids like "1"-"23". Only reject ids that
+// can't possibly be a real document id: empty/whitespace, or absurdly long.
 function isValidId(id: string) {
-  return mongoose.Types.ObjectId.isValid(id);
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 200;
 }
 
 export async function GET(_req: NextRequest, { params }: Params) {
