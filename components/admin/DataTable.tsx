@@ -51,9 +51,16 @@ interface DataTableProps<T> {
 const CHECKBOX_CLASS =
   'data-[state=checked]:bg-[#2E5BFF] data-[state=checked]:border-[#2E5BFF] data-[state=indeterminate]:bg-[#2E5BFF] data-[state=indeterminate]:border-[#2E5BFF]';
 
-function defaultGetRowId<T>(row: T): string {
+// Exported for unit testing. Only ever called when `selectable` is on, so
+// failing loudly here is safe: a row with no `id`/`_id` would otherwise
+// stringify to "undefined" and collapse every such row onto one selection id.
+export function defaultGetRowId<T>(row: T): string {
   const r = row as { id?: string; _id?: string };
-  return String(r.id ?? r._id);
+  const id = r.id ?? r._id;
+  if (id == null) {
+    throw new Error('DataTable: selectable requires each row to have `id`/`_id`, or pass getRowId.');
+  }
+  return String(id);
 }
 
 export function DataTable<T>({
@@ -77,10 +84,17 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const selectedSet = new Set(selectedIds ?? []);
-  const pageRowIds = rows.map((row) => getRowId(row));
-  const selectedOnPageCount = pageRowIds.filter((id) => selectedSet.has(id)).length;
-  const allOnPageSelected = pageRowIds.length > 0 && selectedOnPageCount === pageRowIds.length;
-  const someOnPageSelected = selectedOnPageCount > 0 && !allOnPageSelected;
+  // `getRowId` must never run when selection is off: nine existing tables pass
+  // no selection props, and some of their row shapes have no `id`/`_id` — the
+  // default resolver throws for those. Everything derived from row ids is
+  // therefore gated on `selectable` too.
+  const pageRowIds = selectable ? rows.map((row) => getRowId(row)) : [];
+  const selectedOnPageCount = selectable
+    ? pageRowIds.filter((id) => selectedSet.has(id)).length
+    : 0;
+  const allOnPageSelected =
+    selectable && pageRowIds.length > 0 && selectedOnPageCount === pageRowIds.length;
+  const someOnPageSelected = selectable && selectedOnPageCount > 0 && !allOnPageSelected;
 
   function toggleSort(key: string) {
     if (!onSortChange) return;
@@ -179,15 +193,20 @@ export function DataTable<T>({
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => {
-              const id = getRowId(row);
+            rows.map((row, rowIndex) => {
+              // Gated: see the `pageRowIds` note above — resolving an id for a
+              // non-selectable table would throw on rows without `id`/`_id`.
+              const id = selectable ? pageRowIds[rowIndex] : undefined;
               return (
                 <TableRow
                   key={rowKey(row)}
                   className="hover:bg-neutral-50 dark:hover:bg-neutral-900/40 transition-colors"
                 >
-                  {selectable && (
-                    <TableCell>
+                  {selectable && id !== undefined && (
+                    // Stop clicks bubbling: `TableRow` carries a
+                    // `data-[state=selected]` style, so a row-level onClick may
+                    // land here later and must not fire on a checkbox tick.
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         className={CHECKBOX_CLASS}
                         checked={selectedSet.has(id)}
