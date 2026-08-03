@@ -15,6 +15,7 @@ import { useCartStore } from '@/lib/store';
 import type { Category, Brand } from '@/lib/types';
 import { canSeeAdminPanel } from '@/lib/rbac';
 import type { UserRole } from '@/models/User';
+import type { NavLink } from '@/lib/theme';
 
 export interface NavbarBranding {
   storeName: string;
@@ -28,6 +29,7 @@ export function Navbar({
   brands,
   brandCounts,
   showDiscounts,
+  navLinks,
 }: {
   branding?: NavbarBranding;
   categories: Category[];
@@ -35,6 +37,8 @@ export function Navbar({
   brandCounts: Record<string, number>;
   /** Discounts is a virtual category — hidden entirely when nothing qualifies. */
   showDiscounts: boolean;
+  /** Admin-managed extra nav links (Setting: nav). Empty/undefined → no extra links render. */
+  navLinks?: NavLink[];
 }) {
   const locale = useLocale();
   const t = useTranslations('nav');
@@ -290,6 +294,22 @@ export function Navbar({
               >
                 {locale === 'ka' ? 'სერვისები' : 'Services'}
               </Link>
+
+              {/* Admin-managed extra links (Setting: nav) — appended after the
+                  built-in Services link, never replacing it. */}
+              {navLinks?.map((link, i) => (
+                <Link
+                  key={`${link.href}-${i}`}
+                  href={link.href}
+                  className={`py-6 text-sm font-medium transition-colors ${
+                    isActive(link.href)
+                      ? 'text-ink dark:text-white'
+                      : 'text-graphite hover:text-ink dark:hover:text-white'
+                  }`}
+                >
+                  {locale === 'ka' ? link.labelKa || link.labelEn : link.labelEn}
+                </Link>
+              ))}
             </nav>
 
             {/* Search (desktop) — min-w-0 so it absorbs the squeeze instead of
@@ -387,6 +407,16 @@ export function Navbar({
             >
               {locale === 'ka' ? 'სერვისები' : 'Services'}
             </Link>
+            {navLinks?.map((link, i) => (
+              <Link
+                key={`${link.href}-${i}`}
+                href={link.href}
+                className="block py-3 text-sm font-medium text-ink dark:text-neutral-200 border-b border-border-light dark:border-border-dark break-words"
+                onClick={() => setMobileOpen(false)}
+              >
+                {locale === 'ka' ? link.labelKa || link.labelEn : link.labelEn}
+              </Link>
+            ))}
             <div className="pt-3 pb-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-graphite mb-2 px-0">
                 {locale === 'ka' ? 'ბრენდები' : 'Brands'}

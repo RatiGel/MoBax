@@ -84,6 +84,11 @@
 
   html {
     scroll-behavior: smooth;
+    /* --font-scale is emitted by the admin Typography setting (lib/theme.ts),
+       clamped server-side to [0.9, 1.15]. Multiplying the root size here moves
+       the whole rem-based type scale together. Defaults to 1 (no-op) when no
+       override is injected. */
+    font-size: calc(100% * var(--font-scale, 1));
   }
 
   body {
@@ -121,15 +126,24 @@
   font-family: 'BPG Nino Mtavruli', 'Noto Sans Georgian', sans-serif;
 }
 
-/* English: Inter everywhere, including display headings (overrides Space Grotesk) */
+/* English: body font everywhere; display headings pick up the admin-selected
+   display font. Both fall back to the pre-existing hardcoded values (Inter
+   everywhere, effectively overriding Space Grotesk) when no --font-display /
+   --font-body override has been injected — see lib/theme.ts themeOverrideCss.
+   Georgian intentionally does NOT read these vars: it has its own
+   higher-specificity rules below and always renders the Georgian typeface,
+   regardless of this setting. */
 [lang='en'],
 [lang='en'] body,
 [lang='en'] h1,
 [lang='en'] h2,
 [lang='en'] h3,
-[lang='en'] h4,
+[lang='en'] h4 {
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+}
+
 [lang='en'] .font-display {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display, 'Inter', system-ui, sans-serif);
 }
 
 [lang='ka'] {

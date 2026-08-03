@@ -3,8 +3,9 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
-import { UpdateSettingsSchema, FaqItemsSchema } from '@/lib/validations';
+import { UpdateSettingsSchema, FaqItemsSchema, NavSettingsSchema, FooterSettingsSchema, TypographySchema } from '@/lib/validations';
 import Setting, { SETTING_KEYS } from '@/models/Setting';
+import { revalidateStorefront } from '@/lib/revalidate';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,15 +38,36 @@ async function applyUpdate(req: NextRequest) {
     return fail(parsed.error.issues[0]?.message ?? 'Invalid settings data', 422);
   }
 
-  // The settings map is loose, but the FAQ list has a strict shape — validate
-  // it explicitly when present so a malformed payload can't corrupt the
-  // storefront's FAQ section.
+  // The settings map is loose, but a few keys have a strict shape — validate
+  // those explicitly when present so a malformed payload can't corrupt the
+  // storefront's FAQ, nav, footer, or typography.
   if (SETTING_KEYS.FAQ in parsed.data) {
     const faqParsed = FaqItemsSchema.safeParse(parsed.data[SETTING_KEYS.FAQ]);
     if (!faqParsed.success) {
       return fail(faqParsed.error.issues[0]?.message ?? 'Invalid FAQ data', 422);
     }
     parsed.data[SETTING_KEYS.FAQ] = faqParsed.data;
+  }
+  if (SETTING_KEYS.NAV in parsed.data) {
+    const navParsed = NavSettingsSchema.safeParse(parsed.data[SETTING_KEYS.NAV]);
+    if (!navParsed.success) {
+      return fail(navParsed.error.issues[0]?.message ?? 'Invalid nav data', 422);
+    }
+    parsed.data[SETTING_KEYS.NAV] = navParsed.data;
+  }
+  if (SETTING_KEYS.FOOTER in parsed.data) {
+    const footerParsed = FooterSettingsSchema.safeParse(parsed.data[SETTING_KEYS.FOOTER]);
+    if (!footerParsed.success) {
+      return fail(footerParsed.error.issues[0]?.message ?? 'Invalid footer data', 422);
+    }
+    parsed.data[SETTING_KEYS.FOOTER] = footerParsed.data;
+  }
+  if (SETTING_KEYS.TYPOGRAPHY in parsed.data) {
+    const typographyParsed = TypographySchema.safeParse(parsed.data[SETTING_KEYS.TYPOGRAPHY]);
+    if (!typographyParsed.success) {
+      return fail(typographyParsed.error.issues[0]?.message ?? 'Invalid typography data', 422);
+    }
+    parsed.data[SETTING_KEYS.TYPOGRAPHY] = typographyParsed.data;
   }
 
   const entries = Object.entries(parsed.data);
@@ -62,6 +84,18 @@ async function applyUpdate(req: NextRequest) {
   await logActivity(session, 'settings.update', 'Setting', undefined, {
     keys: entries.map(([k]) => k),
   });
+
+  // Nav, footer, and typography all render inside the locale layout — revalidate
+  // it so a save appears on the storefront immediately instead of after the
+  // 60s ISR window.
+  const keys = entries.map(([k]) => k);
+  const contentKeys: string[] = [SETTING_KEYS.NAV, SETTING_KEYS.FOOTER, SETTING_KEYS.FAQ];
+  if (keys.some((k) => contentKeys.includes(k))) {
+    revalidateStorefront('content');
+  }
+  if (keys.includes(SETTING_KEYS.TYPOGRAPHY)) {
+    revalidateStorefront('theme');
+  }
 
   // Return the full, fresh settings map so the client can resync.
   const docs = await Setting.find({}).lean();

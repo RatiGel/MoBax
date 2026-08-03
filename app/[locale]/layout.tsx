@@ -9,7 +9,7 @@ import { CartDrawer } from '@/components/shop/CartDrawer';
 import { ChatAssistant } from '@/components/shop/ChatAssistant';
 import { SessionProvider } from '@/components/SessionProvider';
 import { HtmlLang } from '@/components/HtmlLang';
-import { getStoreTheme, themeOverrideCss } from '@/lib/theme';
+import { getStoreTheme, themeOverrideCss, getNavSettings, getFooterSettings, getTypography } from '@/lib/theme';
 import { getParentCategories, getBrands, getBrandProductCounts, getDiscountedProducts } from '@/lib/catalog';
 
 const locales = ['en', 'ka'];
@@ -37,8 +37,8 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
 
   // Live store theme — admin-controlled colors + branding. The override block
   // recolors the brand CSS vars; branding flows to the Navbar as props.
-  const theme = await getStoreTheme();
-  const overrideCss = themeOverrideCss(theme);
+  const [theme, typography] = await Promise.all([getStoreTheme(), getTypography()]);
+  const overrideCss = themeOverrideCss(theme, typography);
   const branding = {
     storeName: theme.storeName,
     logoUrl: theme.logoUrl,
@@ -47,12 +47,18 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
 
   // Navbar categories/brands — Navbar is a client component and cannot query
   // Mongoose itself, so the DB reads happen here and flow down as props.
-  const [navCategories, navBrands, brandCounts, discountedProducts] = await Promise.all([
-    getParentCategories(),
-    getBrands(),
-    getBrandProductCounts(),
-    getDiscountedProducts(),
-  ]);
+  // Nav links and footer settings are also admin-managed (Settings: nav,
+  // footer) and flow down the same way — both components render their own
+  // hardcoded fallback content when the saved setting is empty.
+  const [navCategories, navBrands, brandCounts, discountedProducts, navSettings, footerSettings] =
+    await Promise.all([
+      getParentCategories(),
+      getBrands(),
+      getBrandProductCounts(),
+      getDiscountedProducts(),
+      getNavSettings(),
+      getFooterSettings(),
+    ]);
   // Discounts is a virtual category: it only appears in nav when at least one
   // product currently qualifies, so an admin who clears every sale doesn't
   // leave a dead link pointing at an empty page.
@@ -77,9 +83,10 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
               brands={navBrands}
               brandCounts={brandCounts}
               showDiscounts={showDiscounts}
+              navLinks={navSettings.links}
             />
             <main className="flex-1">{children}</main>
-            <Footer />
+            <Footer footerSettings={footerSettings} />
           </div>
           <CartDrawer />
           <ChatAssistant />

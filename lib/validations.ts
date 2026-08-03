@@ -301,6 +301,58 @@ export const FaqItemsSchema = z.array(FaqItemSchema).max(50);
 
 export type FaqItem = z.infer<typeof FaqItemSchema>;
 
+// Nav links stored under the `nav` setting key, rendered by Navbar after the
+// built-in Services link. Href is required but not shape-restricted — it may
+// be a relative storefront path or an absolute URL.
+export const NavLinkSchema = z.object({
+  labelEn: z.string().min(1, 'English label is required').max(60),
+  labelKa: z.string().max(60).default(''),
+  href: z.string().min(1, 'Link URL is required').max(500),
+});
+
+export const NavSettingsSchema = z.object({
+  links: z.array(NavLinkSchema).max(20),
+});
+
+// Footer columns/social/contact stored under the `footer` setting key.
+// Footer renders these when present and falls back to its hardcoded content
+// per-field when empty — see components/layout/Footer.tsx.
+export const FooterColumnSchema = z.object({
+  titleEn: z.string().min(1, 'English title is required').max(60),
+  titleKa: z.string().max(60).default(''),
+  links: z.array(NavLinkSchema).max(20),
+});
+
+export const FooterSettingsSchema = z.object({
+  columns: z.array(FooterColumnSchema).max(10),
+  social: z
+    .array(
+      z.object({
+        platform: z.string().min(1).max(40),
+        url: z.string().min(1).max(500),
+      })
+    )
+    .max(10),
+  contact: z.object({
+    phone: z.string().max(40).default(''),
+    email: z.string().max(200).default(''),
+    addressEn: z.string().max(300).default(''),
+    addressKa: z.string().max(300).default(''),
+  }),
+});
+
+// Typography stored under the `typography` setting key. Only Inter and Space
+// Grotesk are actually loaded by this app (see lib/theme.ts) — the enum is
+// deliberately narrower than fonts that were once considered but never
+// wired into app/globals.css. `scale` is clamped again server-side in
+// lib/theme.ts regardless of what passes validation here, since the admin
+// form is not the only possible writer to the Setting document.
+export const TypographySchema = z.object({
+  displayFont: z.enum(['Inter', 'Space Grotesk']),
+  bodyFont: z.enum(['Inter', 'System']),
+  scale: z.number().min(0.9).max(1.15),
+});
+
 // --- Team / Customers admin ---
 
 const AdminRoleEnum = z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR']);

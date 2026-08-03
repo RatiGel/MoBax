@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Instagram, Facebook } from 'lucide-react';
+import type { FooterSettings } from '@/lib/theme';
 
-export function Footer() {
+export function Footer({ footerSettings }: { footerSettings?: FooterSettings }) {
   const locale = useLocale();
   const t = useTranslations('footer');
 
@@ -14,6 +15,17 @@ export function Footer() {
     { slug: 'computer-accessories', nameEn: 'Computer', nameKa: 'კომპიუტერი' },
     { slug: 'original', nameEn: 'Genuine Products', nameKa: 'ორიგინალი პროდუქცია' },
   ];
+
+  // Saved settings win when present; nothing may disappear before the
+  // settings are first saved, so every field falls back independently to
+  // today's hardcoded content rather than the whole footer flipping at once.
+  const savedColumns = footerSettings?.columns ?? [];
+  const savedSocial = footerSettings?.social ?? [];
+  const contact = footerSettings?.contact;
+  const phone = contact?.phone?.trim() || '+995 555 123 456';
+  const email = contact?.email?.trim() || 'hello@mobax.ge';
+  const addressEn = contact?.addressEn?.trim() || 'Tbilisi, Georgia';
+  const addressKa = contact?.addressKa?.trim() || 'თბილისი, საქართველო';
 
   return (
     <footer className="bg-ink text-neutral-400">
@@ -29,29 +41,46 @@ export function Footer() {
             <p className="text-sm leading-relaxed text-neutral-400 max-w-xs">{t('tagline')}</p>
 
             <div className="flex gap-3 mt-7">
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
-              >
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                aria-label="TikTok"
-                className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.2v12.86a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.95a5.78 5.78 0 0 0-.77-.05A5.78 5.78 0 1 0 15.34 15.7V9.18a7.5 7.5 0 0 0 4.37 1.4V7.4a4.28 4.28 0 0 1-3.11-1.58Z" />
-                </svg>
-              </a>
+              {savedSocial.length > 0 ? (
+                savedSocial.map((s, i) => (
+                  <a
+                    key={`${s.platform}-${i}`}
+                    href={s.url}
+                    aria-label={s.platform}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                  >
+                    <SocialIcon platform={s.platform} />
+                  </a>
+                ))
+              ) : (
+                <>
+                  <a
+                    href="#"
+                    aria-label="Instagram"
+                    className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                  >
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="#"
+                    aria-label="Facebook"
+                    className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="#"
+                    aria-label="TikTok"
+                    className="h-10 w-10 flex items-center justify-center rounded-full border border-white/10 text-neutral-400 hover:border-cobalt-dark hover:text-cobalt-dark hover:bg-white/5 transition-colors"
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.2v12.86a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.95a5.78 5.78 0 0 0-.77-.05A5.78 5.78 0 1 0 15.34 15.7V9.18a7.5 7.5 0 0 0 4.37 1.4V7.4a4.28 4.28 0 0 1-3.11-1.58Z" />
+                    </svg>
+                  </a>
+                </>
+              )}
             </div>
           </div>
 
@@ -93,26 +122,46 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Contact — saved contact fields win per-field; unset fields keep
+              today's hardcoded value rather than the whole block disappearing. */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5">
               {locale === 'ka' ? 'კონტაქტი' : 'Contact'}
             </h3>
             <ul className="space-y-3 text-sm">
-              <li>{locale === 'ka' ? 'თბილისი, საქართველო' : 'Tbilisi, Georgia'}</li>
+              <li>{locale === 'ka' ? addressKa : addressEn}</li>
               <li>
-                <a href="tel:+995555123456" className="hover:text-white transition-colors">
-                  +995 555 123 456
+                <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-white transition-colors">
+                  {phone}
                 </a>
               </li>
               <li>
-                <a href="mailto:hello@mobax.ge" className="hover:text-white transition-colors">
-                  hello@mobax.ge
+                <a href={`mailto:${email}`} className="hover:text-white transition-colors">
+                  {email}
                 </a>
               </li>
               <li className="text-neutral-400 text-xs">10:00 – 22:00</li>
             </ul>
           </div>
+
+          {/* Admin-managed extra columns (Setting: footer) — appended after
+              the built-in columns, never replacing them. */}
+          {savedColumns.map((col, i) => (
+            <div key={`${col.titleEn}-${i}`}>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5 break-words">
+                {locale === 'ka' ? col.titleKa || col.titleEn : col.titleEn}
+              </h3>
+              <ul className="space-y-3">
+                {col.links.map((link, j) => (
+                  <li key={`${link.href}-${j}`}>
+                    <Link href={link.href} className="text-sm hover:text-white transition-colors break-words">
+                      {locale === 'ka' ? link.labelKa || link.labelEn : link.labelEn}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         {/* Bottom bar */}
@@ -133,5 +182,17 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/** Best-effort icon for an admin-entered social platform name; unknown platforms get a generic glyph. */
+function SocialIcon({ platform }: { platform: string }) {
+  const p = platform.trim().toLowerCase();
+  if (p.includes('instagram')) return <Instagram className="h-4 w-4" />;
+  if (p.includes('facebook')) return <Facebook className="h-4 w-4" />;
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.2v12.86a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.95a5.78 5.78 0 0 0-.77-.05A5.78 5.78 0 1 0 15.34 15.7V9.18a7.5 7.5 0 0 0 4.37 1.4V7.4a4.28 4.28 0 0 1-3.11-1.58Z" />
+    </svg>
   );
 }

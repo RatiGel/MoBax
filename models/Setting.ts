@@ -34,4 +34,7 @@ export const SETTING_KEYS = {
   STORE_INFO: 'store_info',
   NOTIFICATIONS: 'notifications',
   FAQ: 'faq',
+  NAV: 'nav',
+  FOOTER: 'footer',
+  TYPOGRAPHY: 'typography',
 } as const;

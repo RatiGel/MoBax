@@ -31,6 +31,78 @@ export const THEME_DEFAULTS: StoreTheme = {
   announcement: '',
 };
 
+export interface NavLink {
+  labelEn: string;
+  labelKa: string;
+  href: string;
+}
+
+export interface NavSettings {
+  links: NavLink[];
+}
+
+/** Empty by default — Navbar renders its current hardcoded links until an admin adds any. */
+export const NAV_DEFAULTS: NavSettings = { links: [] };
+
+export interface FooterColumn {
+  titleEn: string;
+  titleKa: string;
+  links: NavLink[];
+}
+
+export interface FooterSettings {
+  columns: FooterColumn[];
+  social: { platform: string; url: string }[];
+  contact: { phone: string; email: string; addressEn: string; addressKa: string };
+}
+
+/** Empty by default — Footer renders its current hardcoded content until an admin saves any. */
+export const FOOTER_DEFAULTS: FooterSettings = {
+  columns: [],
+  social: [],
+  contact: { phone: '', email: '', addressEn: '', addressKa: '' },
+};
+
+/**
+ * Only Inter and Space Grotesk are actually loaded by this app (see
+ * app/globals.css's Google Fonts @import and the [lang='en'] font-family
+ * rules) — deliberately narrower than an earlier draft of this feature that
+ * listed Manrope, Sora, and Georgia. Those are not loaded anywhere in the
+ * storefront, and adding a webfont to the critical path for an admin toggle
+ * that may never get used is not worth the extra network request. Georgian
+ * (`[lang='ka']`) always renders BPG Nino Mtavruli / Noto Sans Georgian
+ * regardless of this setting — it has its own higher-specificity CSS rule
+ * (see globals.css) and is intentionally not overridden here.
+ */
+export interface Typography {
+  displayFont: 'Inter' | 'Space Grotesk';
+  bodyFont: 'Inter' | 'System';
+  scale: number; // 0.9 – 1.15, multiplies the base font size
+}
+
+export const TYPOGRAPHY_DEFAULTS: Typography = {
+  displayFont: 'Space Grotesk',
+  bodyFont: 'Inter',
+  scale: 1,
+};
+
+const FONT_STACKS: Record<Typography['displayFont'] | Typography['bodyFont'], string> = {
+  Inter: "'Inter', system-ui, sans-serif",
+  'Space Grotesk': "'Space Grotesk', 'Inter', system-ui, sans-serif",
+  System: 'system-ui, -apple-system, sans-serif',
+};
+
+/**
+ * Clamp scale server-side to [0.9, 1.15]. `lib/theme.ts` runs on every page
+ * render and the admin form is not the only possible writer to the Setting
+ * document — an unclamped value (e.g. `scale: 5` written directly) would
+ * make the live storefront unusable.
+ */
+function clampScale(n: unknown): number {
+  const num = typeof n === 'number' && Number.isFinite(n) ? n : TYPOGRAPHY_DEFAULTS.scale;
+  return Math.min(1.15, Math.max(0.9, num));
+}
+
 type RGB = { r: number; g: number; b: number };
 
 /** Parse #rgb / #rrggbb into channels. Returns null for anything unparseable. */
@@ -93,20 +165,43 @@ const block = (selector: string, vars: Record<string, string>) =>
 
 /**
  * The CSS override string to inject in a <style> tag. Covers both light (:root)
- * and dark (.dark) so the recolor follows the user's theme toggle. Returns null
- * when the saved theme matches defaults (nothing to override — keep the static
- * tokens from globals.css and avoid an empty style tag).
+ * and dark (.dark) so the recolor follows the user's theme toggle. Also emits
+ * --font-display / --font-body / --font-scale on :root when typography
+ * differs from defaults (these are not theme-mode-dependent, so they only
+ * need to land once, not duplicated into .dark).
+ *
+ * Returns null when both the theme and typography match defaults (nothing to
+ * override — keep the static tokens from globals.css and avoid an empty
+ * style tag).
  */
-export function themeOverrideCss(theme: StoreTheme): string | null {
-  const isDefault =
+export function themeOverrideCss(theme: StoreTheme, typography?: Typography): string | null {
+  const isThemeDefault =
     theme.primary.toLowerCase() === THEME_DEFAULTS.primary.toLowerCase() &&
     theme.accent.toLowerCase() === THEME_DEFAULTS.accent.toLowerCase();
-  if (isDefault) return null;
 
-  return (
-    block(':root', deriveVars(theme.primary, theme.accent, 'light')) +
-    block('.dark', deriveVars(theme.primary, theme.accent, 'dark'))
-  );
+  const typo = typography ?? TYPOGRAPHY_DEFAULTS;
+  const scale = clampScale(typo.scale);
+  const isTypographyDefault =
+    typo.displayFont === TYPOGRAPHY_DEFAULTS.displayFont &&
+    typo.bodyFont === TYPOGRAPHY_DEFAULTS.bodyFont &&
+    scale === TYPOGRAPHY_DEFAULTS.scale;
+
+  if (isThemeDefault && isTypographyDefault) return null;
+
+  let css = '';
+  if (!isThemeDefault) {
+    css +=
+      block(':root', deriveVars(theme.primary, theme.accent, 'light')) +
+      block('.dark', deriveVars(theme.primary, theme.accent, 'dark'));
+  }
+  if (!isTypographyDefault) {
+    css += block(':root', {
+      '--font-display': FONT_STACKS[typo.displayFont],
+      '--font-body': FONT_STACKS[typo.bodyFont],
+      '--font-scale': String(scale),
+    });
+  }
+  return css || null;
 }
 
 /**
@@ -125,4 +220,64 @@ export async function getStoreTheme(): Promise<StoreTheme> {
     console.error('[getStoreTheme]', err);
   }
   return { ...THEME_DEFAULTS };
+}
+
+/**
+ * Fetch saved nav links. Never throws — falls back to an empty list, which
+ * tells Navbar to render its own hardcoded links rather than nothing.
+ */
+export async function getNavSettings(): Promise<NavSettings> {
+  try {
+    await connectDB();
+    const setting = await Setting.findOne({ key: SETTING_KEYS.NAV }).lean();
+    const value = setting?.value;
+    if (value && typeof value === 'object' && Array.isArray((value as NavSettings).links)) {
+      return { links: (value as NavSettings).links };
+    }
+  } catch (err) {
+    console.error('[getNavSettings]', err);
+  }
+  return { ...NAV_DEFAULTS };
+}
+
+/**
+ * Fetch saved footer settings. Never throws — falls back to empty columns,
+ * which tells Footer to render its own hardcoded content rather than
+ * anything disappearing before the settings are first saved.
+ */
+export async function getFooterSettings(): Promise<FooterSettings> {
+  try {
+    await connectDB();
+    const setting = await Setting.findOne({ key: SETTING_KEYS.FOOTER }).lean();
+    const value = setting?.value as Partial<FooterSettings> | undefined;
+    if (value && typeof value === 'object') {
+      return {
+        columns: Array.isArray(value.columns) ? value.columns : [],
+        social: Array.isArray(value.social) ? value.social : [],
+        contact: { ...FOOTER_DEFAULTS.contact, ...(value.contact ?? {}) },
+      };
+    }
+  } catch (err) {
+    console.error('[getFooterSettings]', err);
+  }
+  return { ...FOOTER_DEFAULTS, contact: { ...FOOTER_DEFAULTS.contact } };
+}
+
+/**
+ * Fetch saved typography, merged over defaults with scale clamped to
+ * [0.9, 1.15]. Never throws — a DB hiccup falls back to defaults.
+ */
+export async function getTypography(): Promise<Typography> {
+  try {
+    await connectDB();
+    const setting = await Setting.findOne({ key: SETTING_KEYS.TYPOGRAPHY }).lean();
+    const value = setting?.value;
+    if (value && typeof value === 'object') {
+      const merged = { ...TYPOGRAPHY_DEFAULTS, ...(value as Partial<Typography>) };
+      return { ...merged, scale: clampScale(merged.scale) };
+    }
+  } catch (err) {
+    console.error('[getTypography]', err);
+  }
+  return { ...TYPOGRAPHY_DEFAULTS };
 }
