@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -8,10 +7,13 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Middleware injects x-pathname; derive the locale so <html lang> is correct
-  // on the server's first paint (no font flash before hydration).
-  const pathname = headers().get('x-pathname') ?? '';
-  const lang = pathname.startsWith('/ka') ? 'ka' : 'en';
+  // Static default; ships lang="ka" before hydration. The client HtmlLang
+  // component (rendered in app/[locale]/layout.tsx) corrects this to the
+  // active locale on mount. Do NOT derive this from headers()/cookies() here
+  // — reading either opts the entire route tree into dynamic rendering and
+  // silently defeats the `revalidate = 60` ISR on the storefront pages
+  // (this happened once already; see task-10-report.md).
+  const lang = 'ka';
 
   return (
     <html lang={lang} suppressHydrationWarning>

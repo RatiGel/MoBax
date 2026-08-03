@@ -4,6 +4,7 @@ import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
 import { PageKeySchema, UpdatePageSchema } from '@/lib/validations';
+import { validateSection } from '@/lib/page-sections';
 import Page from '@/models/Page';
 
 export const dynamic = 'force-dynamic';
@@ -52,6 +53,18 @@ async function upsertPage(req: NextRequest, { params }: Params) {
   const parsed = UpdatePageSchema.safeParse(json);
   if (!parsed.success) {
     return fail(parsed.error.issues[0]?.message ?? 'Invalid page data', 422);
+  }
+
+  // Schema-level parsing above only checks shape (type is a known enum,
+  // content is present). It doesn't know per-kind required fields — that's
+  // `validateSection`, the same check the client runs. Abort on the first
+  // invalid section, matching the shape-validation error style above.
+  for (let i = 0; i < parsed.data.sections.length; i++) {
+    const section = parsed.data.sections[i];
+    const result = validateSection(section.type, section.content);
+    if (!result.ok) {
+      return fail(`Section ${i + 1}: ${result.errors[0]}`, 422);
+    }
   }
 
   const page = await Page.findOneAndUpdate(

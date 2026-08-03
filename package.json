@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node --env-file=.env.local --import tsx scripts/seed.ts"
+    "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "backfill:low-stock-threshold": "node --env-file=.env.local --import tsx scripts/backfill-low-stock-threshold.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.2",
@@ -43,6 +46,7 @@
     "react-hook-form": "^7.79.0",
     "recharts": "^3.8.1",
     "resend": "^6.14.0",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.6.0",
     "zod": "^4.4.3",
@@ -58,9 +62,11 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.35",
+    "playwright": "^1.62.1",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.22.4",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
   }
 }

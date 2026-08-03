@@ -1,5 +1,28 @@
 import { z } from 'zod';
 
+// Zod's `.partial()` makes every key optional but does NOT remove `.default(...)`
+// — an omitted key still gets its default filled in on parse. For a PATCH-style
+// update schema derived from a create schema, that silently reintroduces the
+// defaulted fields (e.g. `descriptionEn: ''`, `tags: []`, `isActive: true`) into
+// the parsed result even though the caller never sent them, and the route then
+// `$set`s the whole parsed object — wiping real data with defaults.
+//
+// This helper builds an update schema that keeps every constraint (`.max()`,
+// `.url()`, enum membership, nested object/array shapes, etc.) but drops the
+// `.default(...)` wrapper first, then applies `.partial()`. The result: an
+// omitted key stays omitted in the parsed output, while a present key is still
+// validated exactly as it would be on create.
+function toUpdateSchema<Shape extends z.ZodRawShape>(createSchema: z.ZodObject<Shape>) {
+  const shape = createSchema.shape;
+  const unwrapped = Object.fromEntries(
+    Object.entries(shape).map(([key, schema]) => [
+      key,
+      schema instanceof z.ZodDefault ? schema.removeDefault() : schema,
+    ])
+  ) as Shape;
+  return z.object(unwrapped).partial();
+}
+
 export const RegisterSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(1, 'Last name is required').max(50),
@@ -97,6 +120,7 @@ export const CreateProductSchema = z.object({
   salePriceEnd: z.coerce.date().optional(),
   sku: z.string().min(1, 'SKU is required').max(64),
   stock: z.number().int().min(0).default(0),
+  lowStockThreshold: z.number().int().min(0).default(5),
   categorySlug: z.string().min(1, 'Category is required'),
   brand: z.string().min(1, 'Brand is required'),
   tags: z.array(z.string()).default([]),
@@ -108,8 +132,23 @@ export const CreateProductSchema = z.object({
   specs: z.record(z.string(), z.string()).default({}),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateProductSchema = CreateProductSchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema) so an omitted field is left untouched
+// rather than overwritten with its default.
+export const UpdateProductSchema = toUpdateSchema(CreateProductSchema);
+
+// --- Inventory admin ---
+
+export const InventoryAdjustReasonSchema = z.enum(['restock', 'damage', 'correction', 'return']);
+
+export const InventoryAdjustSchema = z.object({
+  productId: z.string().min(1, 'Product is required'),
+  delta: z.number().int().refine((d) => d !== 0, 'Delta must not be zero'),
+  reason: InventoryAdjustReasonSchema,
+  note: z.string().max(500).optional(),
+});
+
+export type InventoryAdjustInput = z.infer<typeof InventoryAdjustSchema>;
 
 export const CreateCategorySchema = z.object({
   slug: z.string().min(1).max(120).optional(), // auto-derived from nameEn if omitted
@@ -123,8 +162,9 @@ export const CreateCategorySchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateCategorySchema = CreateCategorySchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdateCategorySchema = toUpdateSchema(CreateCategorySchema);
 
 export const ORDER_STATUSES = [
   'PENDING',
@@ -160,9 +200,13 @@ export type ReviewInput = z.infer<typeof ReviewSchema>;
 export const CreateBrandSchema = z.object({
   name: z.string().min(1, 'Brand name is required').max(120),
   logoUrl: z.string().url('Logo must be a valid URL').or(z.literal('')).default(''),
+  type: z.enum(['device', 'maker']).default('maker'),
+  compatTerms: z.array(z.string()).default([]),
 });
 
-export const UpdateBrandSchema = CreateBrandSchema.partial();
+// Defaults are create-only (see toUpdateSchema) so update never overwrites
+// logoUrl/type/compatTerms with their defaults when omitted.
+export const UpdateBrandSchema = toUpdateSchema(CreateBrandSchema);
 
 // --- Pricing & Promotions admin ---
 
@@ -183,7 +227,8 @@ export const CreateDiscountSchema = z.object({
 });
 
 // All fields optional on update; code is still uppercased when present.
-export const UpdateDiscountSchema = CreateDiscountSchema.partial();
+// Defaults are create-only (see toUpdateSchema).
+export const UpdateDiscountSchema = toUpdateSchema(CreateDiscountSchema);
 
 export const CreatePromotionSchema = z.object({
   name: z.string().min(1, 'Name is required').max(160),
@@ -195,8 +240,9 @@ export const CreatePromotionSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdatePromotionSchema = CreatePromotionSchema.partial();
+// All fields optional on update; same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdatePromotionSchema = toUpdateSchema(CreatePromotionSchema);
 
 export type CreateDiscountInput = z.infer<typeof CreateDiscountSchema>;
 export type UpdateDiscountInput = z.infer<typeof UpdateDiscountSchema>;
@@ -255,6 +301,58 @@ export const FaqItemsSchema = z.array(FaqItemSchema).max(50);
 
 export type FaqItem = z.infer<typeof FaqItemSchema>;
 
+// Nav links stored under the `nav` setting key, rendered by Navbar after the
+// built-in Services link. Href is required but not shape-restricted — it may
+// be a relative storefront path or an absolute URL.
+export const NavLinkSchema = z.object({
+  labelEn: z.string().min(1, 'English label is required').max(60),
+  labelKa: z.string().max(60).default(''),
+  href: z.string().min(1, 'Link URL is required').max(500),
+});
+
+export const NavSettingsSchema = z.object({
+  links: z.array(NavLinkSchema).max(20),
+});
+
+// Footer columns/social/contact stored under the `footer` setting key.
+// Footer renders these when present and falls back to its hardcoded content
+// per-field when empty — see components/layout/Footer.tsx.
+export const FooterColumnSchema = z.object({
+  titleEn: z.string().min(1, 'English title is required').max(60),
+  titleKa: z.string().max(60).default(''),
+  links: z.array(NavLinkSchema).max(20),
+});
+
+export const FooterSettingsSchema = z.object({
+  columns: z.array(FooterColumnSchema).max(10),
+  social: z
+    .array(
+      z.object({
+        platform: z.string().min(1).max(40),
+        url: z.string().min(1).max(500),
+      })
+    )
+    .max(10),
+  contact: z.object({
+    phone: z.string().max(40).default(''),
+    email: z.string().max(200).default(''),
+    addressEn: z.string().max(300).default(''),
+    addressKa: z.string().max(300).default(''),
+  }),
+});
+
+// Typography stored under the `typography` setting key. Only Inter and Space
+// Grotesk are actually loaded by this app (see lib/theme.ts) — the enum is
+// deliberately narrower than fonts that were once considered but never
+// wired into app/globals.css. `scale` is clamped again server-side in
+// lib/theme.ts regardless of what passes validation here, since the admin
+// form is not the only possible writer to the Setting document.
+export const TypographySchema = z.object({
+  displayFont: z.enum(['Inter', 'Space Grotesk']),
+  bodyFont: z.enum(['Inter', 'System']),
+  scale: z.number().min(0.9).max(1.15),
+});
+
 // --- Team / Customers admin ---
 
 const AdminRoleEnum = z.enum(['SUPER_ADMIN', 'STORE_MANAGER', 'CONTENT_EDITOR']);
@@ -290,8 +388,10 @@ export const CreateServiceSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateServiceSchema = CreateServiceSchema.partial();
+// All fields optional on update, same constraints when present. Defaults are
+// create-only (see toUpdateSchema) so an omitted field is left untouched
+// rather than overwritten with a default.
+export const UpdateServiceSchema = toUpdateSchema(CreateServiceSchema);
 
 export const UpdateServicePageSchema = z.object({
   headingEn: z.string().max(300).default(''),
@@ -337,8 +437,9 @@ export const CreateCatalogProductSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-// All fields optional on update; same constraints when present.
-export const UpdateCatalogProductSchema = CreateCatalogProductSchema.partial();
+// All fields optional on update, same constraints when present. Defaults are
+// create-only (see toUpdateSchema).
+export const UpdateCatalogProductSchema = toUpdateSchema(CreateCatalogProductSchema);
 
 export type CreateCatalogProductInput = z.infer<typeof CreateCatalogProductSchema>;
 export type UpdateCatalogProductInput = z.infer<typeof UpdateCatalogProductSchema>;

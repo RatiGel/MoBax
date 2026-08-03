@@ -1,3 +1,22 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "overrides": [
+    {
+      "files": ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.ts"],
+      "excludedFiles": ["lib/mock-data.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/mock-data", "@/lib/mock-data"],
+                "message": "Storefront data comes from lib/catalog.ts. lib/mock-data.ts is seed fixtures only."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

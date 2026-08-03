@@ -4,10 +4,15 @@ import { useRef, useState } from 'react';
 import { ImagePlus, Loader2, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MediaLibraryPicker } from '@/components/admin/MediaLibraryPicker';
 
 interface ImageUploaderProps {
   value: string[];
   onChange: (urls: string[]) => void;
+  /** Logical folder this upload belongs to — determines the Cloudinary
+   * folder and the RBAC module checked server-side. Defaults to 'products'. */
+  folder?: 'products' | 'categories' | 'services' | 'content' | 'theme';
 }
 
 interface UploadResult {
@@ -17,7 +22,7 @@ interface UploadResult {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-export function ImageUploader({ value, onChange }: ImageUploaderProps) {
+export function ImageUploader({ value, onChange, folder }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -25,6 +30,7 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
   async function uploadOne(file: File): Promise<string | null> {
     const formData = new FormData();
     formData.append('file', file);
+    if (folder) formData.append('folder', folder);
 
     const res = await fetch('/api/admin/upload', {
       method: 'POST',
@@ -102,44 +108,60 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
   return (
     <div className="space-y-3">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            inputRef.current?.click();
-          }
-        }}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragActive(true);
-        }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={onDrop}
-        className={cn(
-          'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-8 text-center transition-colors hover:border-accent',
-          dragActive && 'border-accent bg-accent/5'
-        )}
-      >
-        <ImagePlus className="h-6 w-6 text-neutral-400" />
-        <div className="text-sm text-neutral-600 dark:text-neutral-300">
-          <span className="font-medium text-accent">Click to upload</span> or drag & drop
-        </div>
-        <p className="text-xs text-neutral-500">PNG, JPG, WEBP — multiple allowed, max 5 MB each</p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={(e) => {
-            if (e.target.files?.length) handleFiles(e.target.files);
-            e.target.value = '';
-          }}
-        />
-      </div>
+      <Tabs defaultValue="upload">
+        <TabsList>
+          <TabsTrigger value="upload">Upload</TabsTrigger>
+          <TabsTrigger value="library">Library</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="upload">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => inputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={onDrop}
+            className={cn(
+              'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-8 text-center transition-colors hover:border-accent',
+              dragActive && 'border-accent bg-accent/5'
+            )}
+          >
+            <ImagePlus className="h-6 w-6 text-neutral-400" />
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">
+              <span className="font-medium text-accent">Click to upload</span> or drag & drop
+            </div>
+            <p className="text-xs text-neutral-500">PNG, JPG, WEBP — multiple allowed, max 5 MB each</p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.length) handleFiles(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="library">
+          <MediaLibraryPicker
+            defaultFolder={folder}
+            onSelect={(url) => onChange([...value, url])}
+          />
+        </TabsContent>
+      </Tabs>
 
       {(value.length > 0 || uploadingCount > 0) && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">

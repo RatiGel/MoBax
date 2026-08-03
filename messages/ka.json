@@ -45,6 +45,7 @@
     "heroRating": "შეფასება {rating} — {count}+ მომხმარებლისგან",
     "heroTrust": "10,000+ მომხმარებელი თბილისში",
     "heroShopFeatured": "იხილე",
+    "heroCarousel": "რჩეული სიახლეები",
     "categoriesSubtitle": "ყველაფერი შენი მოწყობილობისთვის",
     "productsCount": "{count}+ პროდუქტი",
     "viewAll": "ყველა",
@@ -218,7 +219,20 @@
     "emailRequired": "ელ. ფოსტა სავალდებულოა",
     "passwordRequired": "პაროლი სავალდებულოა",
     "passwordMin": "პაროლი უნდა შეიცავდეს მინიმუმ 8 სიმბოლოს",
-    "passwordMatch": "პაროლები არ ემთხვევა"
+    "passwordMatch": "პაროლები არ ემთხვევა",
+    "loginTitle": "შედით MoBax-ში",
+    "loginSubtitle": "თვალი ადევნეთ შეკვეთებს, შეინახეთ მისამართები და გაიარეთ სწრაფი გადახდა.",
+    "registerTitle": "შექმენით ანგარიში",
+    "registerSubtitle": "ერთი ანგარიში შეკვეთებისთვის, გარანტიისა და სწრაფი გადახდისთვის.",
+    "signingIn": "მიმდინარეობს შესვლა…",
+    "creatingAccount": "იქმნება ანგარიში…",
+    "invalidCredentials": "ელ. ფოსტა და პაროლი არ ემთხვევა არცერთ ანგარიშს.",
+    "registrationFailed": "ანგარიშის შექმნა ვერ მოხერხდა. სცადეთ თავიდან.",
+    "invalidEmail": "შეიყვანეთ სწორი ელ. ფოსტა",
+    "firstNameRequired": "სახელი სავალდებულოა",
+    "lastNameRequired": "გვარი სავალდებულოა",
+    "continueWithGoogle": "გაგრძელება Google-ით",
+    "emailPlaceholder": "you@example.com"
   },
   "categories": {
     "all": "ყველა კატეგორია",
@@ -366,5 +380,12 @@
     "noServices": "სერვისები მალე დაემატება.",
     "sectionCatalog": "პროდუქტების კატალოგი",
     "startsFrom": "იწყება {price} ₾-დან"
+  },
+  "discounts": {
+    "title": "ფასდაკლებები",
+    "subtitle": "ყველა პროდუქტი ფასდაკლებით",
+    "empty": "ამჟამად ფასდაკლებული პროდუქტი არ არის. შემოგვიარეთ მოგვიანებით.",
+    "badge": "-{percent}%",
+    "count": "{count} პროდუქტი ფასდაკლებით"
   }
 }

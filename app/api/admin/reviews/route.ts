@@ -12,7 +12,7 @@ function escapeRegex(s: string): string {
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin({ module: 'products' });
+    await requireAdmin({ module: 'reviews' });
     await connectDB();
 
     const { searchParams } = req.nextUrl;

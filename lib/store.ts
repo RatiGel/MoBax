@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Product } from './mock-data';
+import type { Product } from '@/lib/types';
 
 export interface CartItem {
   product: Product;

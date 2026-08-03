@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { CreateBrandSchema } from '@/lib/validations';
 import Brand from '@/models/Brand';
 
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin({ module: 'categories' });
+    await requireAdmin({ module: 'brands' });
     await connectDB();
 
     const search = req.nextUrl.searchParams.get('search')?.trim();
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAdmin({ module: 'categories' });
+    const session = await requireAdmin({ module: 'brands' });
     await connectDB();
 
     const json = await req.json();
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
     await logActivity(session, 'brand.create', 'Brand', String(brand._id), {
       name: brand.name,
     });
+
+    revalidateStorefront('brand');
 
     return ok(brand.toObject(), 201);
   } catch (err) {

@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
-import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail, notFound } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { UpdateProductSchema } from '@/lib/validations';
 import Product from '@/models/Product';
 
@@ -11,8 +11,11 @@ export const dynamic = 'force-dynamic';
 
 type Params = { params: { id: string } };
 
+// Product._id is a String (models/Product.ts), not an ObjectId — seeded
+// products keep stable catalog ids like "1"-"23". Only reject ids that
+// can't possibly be a real document id: empty/whitespace, or absurdly long.
 function isValidId(id: string) {
-  return mongoose.Types.ObjectId.isValid(id);
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 200;
 }
 
 export async function GET(_req: NextRequest, { params }: Params) {
@@ -65,6 +68,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       fields: Object.keys(data),
     });
 
+    revalidateStorefront('product', product.slug);
+
     return ok(product);
   } catch (err) {
     if (err instanceof AdminAuthError) return fail(err.message, err.status);
@@ -86,6 +91,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
       const deleted = await Product.findByIdAndDelete(params.id).lean();
       if (!deleted) return notFound('Product not found');
       await logActivity(session, 'product.delete', 'Product', params.id, { hard: true });
+      revalidateStorefront('product', deleted.slug);
       return ok({ id: params.id, deleted: true });
     }
 
@@ -96,6 +102,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     ).lean();
     if (!product) return notFound('Product not found');
     await logActivity(session, 'product.archive', 'Product', params.id);
+    revalidateStorefront('product', product.slug);
     return ok(product);
   } catch (err) {
     if (err instanceof AdminAuthError) return fail(err.message, err.status);

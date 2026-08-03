@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail, notFound } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { UpdateCategorySchema } from '@/lib/validations';
 import Category from '@/models/Category';
 import Product from '@/models/Product';
@@ -62,6 +63,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       fields: Object.keys(data),
     });
 
+    revalidateStorefront('category');
+
     return ok(category);
   } catch (err) {
     if (err instanceof AdminAuthError) return fail(err.message, err.status);
@@ -92,6 +95,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     await logActivity(session, 'category.delete', 'Category', params.id, {
       slug: category.slug,
     });
+
+    revalidateStorefront('category');
 
     return ok({ id: params.id, deleted: true });
   } catch (err) {

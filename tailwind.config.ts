@@ -14,7 +14,10 @@ const config: Config = {
         ink: '#0A0A0B',
         paper: '#FBFBFA',
         cloud: { light: '#F1F1EF', dark: '#1C1C1F' },
-        graphite: '#6B6B70',
+        /* Secondary text. Driven by a CSS var so it tracks the theme: the old
+           hardcoded #6B6B70 stayed identical in dark mode and failed WCAG AA
+           (~3.2-3.7:1 on ink) everywhere it was used. */
+        graphite: 'rgb(var(--graphite) / <alpha-value>)',
         /* Brand tokens reference CSS-var RGB channels so the admin Theme page
            can override them live at runtime (see app/globals.css + lib/theme.ts).
            `<alpha-value>` keeps opacity modifiers (bg-cobalt/10) working. */
@@ -53,6 +56,7 @@ const config: Config = {
         'fade-in': 'fadeIn 0.2s ease-out',
         'fade-up': 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both',
         'float': 'float 6s ease-in-out infinite',
+        'badge-pop': 'badgePop 0.34s cubic-bezier(0.34,1.56,0.64,1)',
       },
       keyframes: {
         slideDown: {
@@ -70,6 +74,11 @@ const config: Config = {
         float: {
           '0%,100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-12px)' },
+        },
+        badgePop: {
+          '0%': { transform: 'scale(0.4)', opacity: '0' },
+          '60%': { transform: 'scale(1.18)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
     },

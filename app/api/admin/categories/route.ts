@@ -3,8 +3,10 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { CreateCategorySchema } from '@/lib/validations';
 import { slugify } from '@/lib/utils';
+import { getCategoryProductCounts } from '@/lib/catalog';
 import Category from '@/models/Category';
 
 export const dynamic = 'force-dynamic';
@@ -24,7 +26,16 @@ export async function GET(req: NextRequest) {
 
     const categories = await Category.find(filter).sort('nameEn').lean();
 
-    return ok({ categories, total: categories.length });
+    // Counts are computed live rather than stored: a denormalised
+    // productCount has to be kept in sync across every product create,
+    // update, delete, bulk-sale and stock adjustment, and the stored one
+    // drifted so far it claimed 284 products against a catalog of 23.
+    // A parent's count is the sum of its children's, since products carry
+    // a leaf categorySlug.
+    const counts = await getCategoryProductCounts();
+    const withCounts = categories.map((c) => ({ ...c, productCount: counts[c.slug] ?? 0 }));
+
+    return ok({ categories: withCounts, total: withCounts.length });
   } catch (err) {
     if (err instanceof AdminAuthError) return fail(err.message, err.status);
     console.error('[admin/categories GET]', err);
@@ -58,6 +69,8 @@ export async function POST(req: NextRequest) {
       slug,
       nameEn: category.nameEn,
     });
+
+    revalidateStorefront('category');
 
     return ok(category.toObject(), 201);
   } catch (err) {

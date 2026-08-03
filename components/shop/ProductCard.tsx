@@ -6,7 +6,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ShoppingCart, Star } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 import { formatPrice } from '@/lib/utils';
-import type { Product } from '@/lib/mock-data';
+import { discountPercent } from '@/lib/catalog-map';
+import type { Product } from '@/lib/types';
 
 interface ProductCardProps {
   product: Product;
@@ -19,10 +20,18 @@ export function ProductCard({ product }: ProductCardProps) {
   const openCart = useCartStore((s) => s.openCart);
 
   const name = locale === 'ka' ? product.nameKa : product.nameEn;
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+  // salePrice (the admin-managed, time-windowed Discounts mechanism) takes
+  // precedence over the older originalPrice "was price" field when a product
+  // somehow has both set — otherwise we'd stack two badges and two struck-
+  // through prices on one card. isOnSale()/mapProduct() already only ever
+  // populate salePrice when the sale is currently active, so this check alone
+  // is enough to pick the right treatment.
+  const onSale = product.salePrice !== undefined;
+  const hasDiscount = !onSale && product.originalPrice && product.originalPrice > product.price;
   const discountPct = hasDiscount
     ? Math.round((1 - product.price / product.originalPrice!) * 100)
     : 0;
+  const salePct = onSale ? discountPercent(product) : 0;
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
@@ -50,9 +59,20 @@ export function ProductCard({ product }: ProductCardProps) {
                 {t('new')}
               </span>
             )}
+            {/* Discount badge stays on the darker cobalt in both themes: the
+                lifted dark-mode cobalt put white text at 3.63:1, under AA. */}
             {hasDiscount && (
-              <span className="bg-cobalt text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+              <span className="bg-[#2E5BFF] text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
                 −{discountPct}%
+              </span>
+            )}
+            {/* Sale badge (Discounts virtual category). Same pinned fill as
+                the originalPrice badge above, for the same AA reason. The two
+                badges are mutually exclusive — see the onSale precedence note
+                above `onSale` — so at most one ever renders. */}
+            {onSale && (
+              <span className="bg-[#2E5BFF] text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+                -{salePct}%
               </span>
             )}
           </div>
@@ -97,13 +117,26 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-ink dark:text-white tabular-nums">
-              {formatPrice(product.price)}
-            </span>
-            {hasDiscount && (
-              <span className="text-sm text-graphite/70 line-through tabular-nums">
-                {formatPrice(product.originalPrice!)}
-              </span>
+            {onSale ? (
+              <>
+                <span className="text-base font-semibold text-ink dark:text-white tabular-nums">
+                  {formatPrice(product.salePrice!)}
+                </span>
+                <span className="text-sm text-graphite/70 line-through tabular-nums">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-base font-semibold text-ink dark:text-white tabular-nums">
+                  {formatPrice(product.price)}
+                </span>
+                {hasDiscount && (
+                  <span className="text-sm text-graphite/70 line-through tabular-nums">
+                    {formatPrice(product.originalPrice!)}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

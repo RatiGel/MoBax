@@ -1,68 +1,14 @@
-export type CategorySlug =
-  // ── parents ──
-  | 'most-popular'
-  | 'phone-protection'
-  | 'chargers'
-  | 'headphones-speakers'
-  | 'car-accessories'
-  | 'computer-accessories'
-  | 'original'
-  // ── phone-protection ──
-  | 'screen-shields'
-  | 'phone-cases'
-  // ── chargers ──
-  | 'adapters'
-  | 'cables'
-  | 'charger-complect'
-  // ── headphones-speakers ──
-  | 'wireless-headphones'
-  | 'wired-headphones'
-  | 'bluetooth-speakers'
-  | 'aux-converters'
-  // ── car-accessories ──
-  | 'phone-holders'
-  | 'modulators'
-  | 'car-chargers'
-  // ── computer-accessories ──
-  | 'keyboards'
-  | 'mouse'
-  | 'usb-flash-drives'
-  // ── original ──
-  | 'apple'
-  | 'samsung'
-  | 'google';
+/**
+ * SEED FIXTURES ONLY.
+ *
+ * scripts/seed.ts is the only runtime consumer. The storefront reads MongoDB
+ * through lib/catalog.ts — importing this module from a page or component puts
+ * stale data on the live site. Canonical types live in lib/types.ts.
+ */
 
-export interface Category {
-  id: string;
-  slug: CategorySlug;
-  nameEn: string;
-  nameKa: string;
-  icon: string;
-  image: string;
-  parentSlug?: CategorySlug;
-  productCount: number;
-}
-
-export interface Product {
-  id: string;
-  slug: string;
-  nameEn: string;
-  nameKa: string;
-  descriptionEn: string;
-  descriptionKa: string;
-  price: number;
-  originalPrice?: number;
-  category: CategorySlug;
-  brand: string;
-  images: string[];
-  inStock: boolean;
-  isNew?: boolean;
-  isFeatured?: boolean;
-  rating: number;
-  reviewCount: number;
-  specs: Record<string, string>;
-  sku: string;
-}
+import type { CategorySlug, Category, Product, Brand } from './types';
+export type { CategorySlug, Category, Brand } from './types';
+export type { Product } from './types';
 
 export const categories: Category[] = [
   // ── Parent categories ──────────────────────────────────────
@@ -71,151 +17,144 @@ export const categories: Category[] = [
     nameEn: 'Most Popular', nameKa: 'პოპულარული',
     icon: '🔥',
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop',
-    productCount: 8,
   },
   {
     id: 'p1', slug: 'phone-protection',
     nameEn: 'Phone Protection', nameKa: 'ტელეფონის დაცვა',
     icon: '🛡️',
     image: 'https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=300&fit=crop',
-    productCount: 96,
   },
   {
     id: 'p2', slug: 'chargers',
     nameEn: 'Chargers', nameKa: 'დამტენები',
     icon: '⚡',
     image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=300&fit=crop',
-    productCount: 54,
   },
   {
     id: 'p3', slug: 'headphones-speakers',
     nameEn: 'Headphones & Speakers', nameKa: 'ყურსასმენები და დინამიკები',
     icon: '🎧',
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
-    productCount: 42,
   },
   {
     id: 'p4', slug: 'car-accessories',
     nameEn: 'Car Accessories', nameKa: 'ავტო აქსესუარები',
     icon: '🚗',
     image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop',
-    productCount: 36,
   },
   {
     id: 'p5', slug: 'computer-accessories',
     nameEn: 'Computer Accessories', nameKa: 'კომპიუტერის აქსესუარები',
     icon: '💻',
     image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=300&fit=crop',
-    productCount: 28,
   },
   {
     id: 'p6', slug: 'original',
     nameEn: 'Genuine Products', nameKa: 'ორიგინალი პროდუქცია',
     icon: '✨',
     image: 'https://images.unsplash.com/photo-1606229365485-93a3b8ee0385?w=400&h=300&fit=crop',
-    productCount: 20,
   },
 
   // ── Phone Protection ───────────────────────────────────────
   {
     id: 'c1', slug: 'screen-shields',
     nameEn: 'Screen Shields', nameKa: 'ეკრანის დამცავები',
-    icon: '🪟', image: '', parentSlug: 'phone-protection', productCount: 30,
+    icon: '🪟', image: '', parentSlug: 'phone-protection',
   },
   {
     id: 'c3', slug: 'phone-cases',
     nameEn: 'Phone Cases', nameKa: 'ქეისები',
-    icon: '📱', image: '', parentSlug: 'phone-protection', productCount: 44,
+    icon: '📱', image: '', parentSlug: 'phone-protection',
   },
 
   // ── Chargers ───────────────────────────────────────────────
   {
     id: 'c4', slug: 'adapters',
     nameEn: 'Adapters', nameKa: 'ადაპტერები',
-    icon: '🔌', image: '', parentSlug: 'chargers', productCount: 18,
+    icon: '🔌', image: '', parentSlug: 'chargers',
   },
   {
     id: 'c5', slug: 'cables',
     nameEn: 'Cables', nameKa: 'კაბელები',
-    icon: '🔗', image: '', parentSlug: 'chargers', productCount: 24,
+    icon: '🔗', image: '', parentSlug: 'chargers',
   },
   {
     id: 'c6', slug: 'charger-complect',
     nameEn: 'Charger Complect', nameKa: 'დამტენის კომპლექტი',
-    icon: '🧩', image: '', parentSlug: 'chargers', productCount: 12,
+    icon: '🧩', image: '', parentSlug: 'chargers',
   },
 
   // ── Headphones & Speakers ──────────────────────────────────
   {
     id: 'c7', slug: 'wireless-headphones',
     nameEn: 'Wireless Headphones', nameKa: 'უსადენო ყურსასმენები',
-    icon: '🎧', image: '', parentSlug: 'headphones-speakers', productCount: 16,
+    icon: '🎧', image: '', parentSlug: 'headphones-speakers',
   },
   {
     id: 'c8', slug: 'wired-headphones',
     nameEn: 'Wired Headphones', nameKa: 'სადენიანი ყურსასმენები',
-    icon: '🎵', image: '', parentSlug: 'headphones-speakers', productCount: 10,
+    icon: '🎵', image: '', parentSlug: 'headphones-speakers',
   },
   {
     id: 'c9', slug: 'bluetooth-speakers',
     nameEn: 'Bluetooth Speakers', nameKa: 'ბლუთუზ დინამიკები',
-    icon: '🔊', image: '', parentSlug: 'headphones-speakers', productCount: 12,
+    icon: '🔊', image: '', parentSlug: 'headphones-speakers',
   },
   {
     id: 'c10', slug: 'aux-converters',
     nameEn: 'AUX & Converters', nameKa: 'AUX და კონვერტერები',
-    icon: '🔀', image: '', parentSlug: 'headphones-speakers', productCount: 8,
+    icon: '🔀', image: '', parentSlug: 'headphones-speakers',
   },
 
   // ── Car Accessories ────────────────────────────────────────
   {
     id: 'c11', slug: 'phone-holders',
     nameEn: 'Phone Holders', nameKa: 'ტელეფონის სამაგრი',
-    icon: '📌', image: '', parentSlug: 'car-accessories', productCount: 14,
+    icon: '📌', image: '', parentSlug: 'car-accessories',
   },
   {
     id: 'c12', slug: 'modulators',
     nameEn: 'Modulators', nameKa: 'მოდულატორები',
-    icon: '📻', image: '', parentSlug: 'car-accessories', productCount: 10,
+    icon: '📻', image: '', parentSlug: 'car-accessories',
   },
   {
     id: 'c13', slug: 'car-chargers',
     nameEn: 'Car Chargers', nameKa: 'ავტო დამტენები',
-    icon: '🔋', image: '', parentSlug: 'car-accessories', productCount: 12,
+    icon: '🔋', image: '', parentSlug: 'car-accessories',
   },
 
   // ── Computer Accessories ───────────────────────────────────
   {
     id: 'c14', slug: 'keyboards',
     nameEn: 'Keyboards', nameKa: 'კლავიატურები',
-    icon: '⌨️', image: '', parentSlug: 'computer-accessories', productCount: 10,
+    icon: '⌨️', image: '', parentSlug: 'computer-accessories',
   },
   {
     id: 'c15', slug: 'mouse',
     nameEn: 'Mouse', nameKa: 'მაუსები',
-    icon: '🖱️', image: '', parentSlug: 'computer-accessories', productCount: 10,
+    icon: '🖱️', image: '', parentSlug: 'computer-accessories',
   },
   {
     id: 'c16', slug: 'usb-flash-drives',
     nameEn: 'USB Flash Drives', nameKa: 'USB ფლეშ დრაივები',
-    icon: '💾', image: '', parentSlug: 'computer-accessories', productCount: 8,
+    icon: '💾', image: '', parentSlug: 'computer-accessories',
   },
 
   // ── 100% Original ──────────────────────────────────────────
   {
     id: 'c17', slug: 'apple',
     nameEn: 'Apple', nameKa: 'Apple',
-    icon: '🍎', image: '', parentSlug: 'original', productCount: 8,
+    icon: '🍎', image: '', parentSlug: 'original',
   },
   {
     id: 'c18', slug: 'samsung',
     nameEn: 'Samsung', nameKa: 'Samsung',
-    icon: '📱', image: '', parentSlug: 'original', productCount: 7,
+    icon: '📱', image: '', parentSlug: 'original',
   },
   {
     id: 'c19', slug: 'google',
     nameEn: 'Google', nameKa: 'Google',
-    icon: '🔍', image: '', parentSlug: 'original', productCount: 5,
+    icon: '🔍', image: '', parentSlug: 'original',
   },
 ];
 
@@ -756,16 +695,6 @@ export const products: Product[] = [
 ];
 
 // ── Brands ───────────────────────────────────────────────────
-// `device` brands are phone makers — selecting one returns products made by
-// the brand AND third-party accessories compatible with its devices.
-// `maker` brands are accessory manufacturers — match on the product's brand only.
-export interface Brand {
-  slug: string;
-  name: string;
-  type: 'device' | 'maker';
-  // extra terms (besides `name`) to look for in specs.Compatibility for device brands
-  compatTerms?: string[];
-}
 
 export const brands: Brand[] = [
   { slug: 'apple', name: 'Apple', type: 'device', compatTerms: ['iPhone', 'iPad', 'AirPods', 'MagSafe', 'Apple'] },

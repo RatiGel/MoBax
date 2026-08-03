@@ -589,7 +589,7 @@ export function ServicesClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Image">
                 <div className="space-y-2">
-                  <SingleImageUploader value={values.image} onChange={(url) => set('image', url)} />
+                  <SingleImageUploader value={values.image} onChange={(url) => set('image', url)} folder="services" />
                   <Input
                     value={values.image}
                     onChange={(e) => set('image', e.target.value)}
@@ -720,7 +720,7 @@ export function ServicesClient() {
             </div>
 
             <Field label="Images" hint="First image is the cover">
-              <ImageUploader value={catalogValues.images} onChange={(urls) => setCat('images', urls)} />
+              <ImageUploader value={catalogValues.images} onChange={(urls) => setCat('images', urls)} folder="services" />
             </Field>
 
             <div className="flex items-center justify-between">

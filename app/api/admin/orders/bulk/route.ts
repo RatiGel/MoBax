@@ -1,9 +1,11 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { OrderStatusSchema } from '@/lib/validations';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
@@ -11,7 +13,10 @@ import Product from '@/models/Product';
 export const dynamic = 'force-dynamic';
 
 const BulkSchema = z.object({
-  ids: z.array(z.string()).min(1, 'Select at least one order'),
+  ids: z
+    .array(z.string())
+    .min(1, 'Select at least one order')
+    .refine((ids) => ids.every((id) => mongoose.Types.ObjectId.isValid(id)), 'Invalid order id'),
   status: OrderStatusSchema,
 });
 
@@ -49,6 +54,8 @@ export async function PATCH(req: NextRequest) {
       count: res.modifiedCount,
       status,
     });
+
+    revalidateStorefront('product');
 
     return ok({ updated: res.modifiedCount, status });
   } catch (err) {
