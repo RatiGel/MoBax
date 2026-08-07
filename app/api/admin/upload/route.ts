@@ -103,7 +103,12 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     if (err instanceof AdminAuthError) return fail(err.message, err.status);
     console.error('[admin/upload POST]', err);
-    return fail('Failed to upload image', 500);
+    // Surface Cloudinary's own message to the admin. This is a staff-only
+    // route, and "Failed to upload image" gave no way to tell a misconfigured
+    // deployment apart from a rejected file — a missing API key looked
+    // identical to a bad upload for as long as it took to read the logs.
+    const detail = err instanceof Error ? err.message : null;
+    return fail(detail ? `Failed to upload image: ${detail}` : 'Failed to upload image', 500);
   }
 }
 
