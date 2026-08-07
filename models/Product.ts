@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 /**
  * Default low-stock threshold for products that don't specify their own.
@@ -49,7 +49,15 @@ const ProductSchema = new Schema<IProduct>(
   {
     // String _id so seeded products keep their stable catalog id (e.g. "p1").
     // The storefront/cart reference products by this id; orders store it verbatim.
-    _id: { type: String },
+    //
+    // The default matters: declaring `_id` as a String replaces Mongoose's
+    // automatic ObjectId, and without a default nothing fills it in, so every
+    // create that didn't pass an explicit id (i.e. every product added through
+    // the admin panel) failed with "document must have an _id before saving".
+    // Seeding was unaffected because scripts/seed.ts supplies "p1", "p2", ….
+    // A fresh ObjectId hex keeps new ids unique and URL-safe while leaving the
+    // existing short seeded ids untouched.
+    _id: { type: String, default: () => new Types.ObjectId().toHexString() },
     slug: { type: String, required: true, unique: true },
     nameEn: { type: String, required: true },
     nameKa: { type: String, required: true },
