@@ -5,7 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSession, signOut } from 'next-auth/react';
-import { ShoppingCart, X, Menu, ChevronDown, LayoutDashboard } from 'lucide-react';
+import {
+  ShoppingCart,
+  X,
+  Menu,
+  ChevronDown,
+  LayoutDashboard,
+  User,
+  Package,
+  MessageSquare,
+} from 'lucide-react';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { AccountMenu } from './AccountMenu';
@@ -360,7 +369,12 @@ export function Navbar({
                 )}
               </button>
 
-              <div className="hidden md:flex items-center">
+              {/* Always visible. This was `hidden md:flex`, which left phones
+                  with no account control at all — no avatar in the bar and no
+                  profile links in the sheet either, so /account was
+                  unreachable below 768px. It fits at 360px now that the locale
+                  control is a single 36px button rather than a segmented pair. */}
+              <div className="flex items-center">
                 <AccountMenu />
               </div>
 
@@ -389,6 +403,104 @@ export function Navbar({
             <div className="mb-4">
               <SearchBar onNavigate={() => setMobileOpen(false)} />
             </div>
+
+            {/* Account links sit above the catalog, not below it: the admin
+                panel and sign-out used to be the last thing in the sheet,
+                past every brand and category, so reaching them meant
+                scrolling the whole menu. */}
+            {isAuthed && (
+              <div className="mb-4 rounded-2xl border border-border-light bg-cloud-light/60 p-2 dark:border-border-dark dark:bg-cloud-dark/40">
+                <div className="flex items-center gap-3 px-2 py-2">
+                  {session?.user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-ink/10 dark:ring-white/15"
+                    />
+                  ) : (
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4B72FF] to-[#2E5BFF] text-sm font-bold text-white ring-1 ring-inset ring-white/15">
+                      {(session?.user?.name || session?.user?.email || '?')
+                        .trim()
+                        .charAt(0)
+                        .toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-ink dark:text-neutral-100">
+                      {session?.user?.name || (locale === 'ka' ? 'ანგარიში' : 'Account')}
+                    </p>
+                    {session?.user?.email && (
+                      <p className="truncate text-xs text-graphite">{session.user.email}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-1 grid grid-cols-1">
+                  {[
+                    {
+                      href: `/${locale}/account`,
+                      icon: User,
+                      label: locale === 'ka' ? 'ჩემი პროფილი' : 'My profile',
+                    },
+                    {
+                      href: `/${locale}/account/orders`,
+                      icon: Package,
+                      label: locale === 'ka' ? 'შეკვეთები' : 'Orders',
+                    },
+                    {
+                      href: `/${locale}/account/messages`,
+                      icon: MessageSquare,
+                      label: locale === 'ka' ? 'შეტყობინებები' : 'Messages',
+                    },
+                  ].map(({ href, icon: Icon, label }) => (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-cobalt-soft dark:text-neutral-200 dark:hover:bg-cloud-dark"
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-graphite" strokeWidth={1.75} />
+                      <span className="break-words">{label}</span>
+                    </Link>
+                  ))}
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-cobalt-soft dark:text-neutral-200 dark:hover:bg-cloud-dark"
+                    >
+                      <LayoutDashboard className="h-4 w-4 shrink-0 text-graphite" strokeWidth={1.75} />
+                      <span className="break-words">
+                        {locale === 'ka' ? 'ადმინ პანელი' : 'Admin panel'}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Logged out: the sign-in pair used to live at the very bottom of
+                the sheet, below every brand and category. It belongs with the
+                account card's slot. */}
+            {!isAuthed && (
+              <div className="mb-4 flex gap-3">
+                <Link
+                  href={`/${locale}/login`}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 rounded-full border border-border-light py-3 text-center text-sm font-semibold text-ink transition-colors hover:border-cobalt hover:text-cobalt dark:border-border-dark dark:text-white"
+                >
+                  {t('login')}
+                </Link>
+                <Link
+                  href={`/${locale}/register`}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex-1 rounded-full bg-[#2E5BFF] py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                >
+                  {t('register')}
+                </Link>
+              </div>
+            )}
+
             <Link
               href={`/${locale}`}
               className="block py-3 text-sm font-medium text-ink dark:text-neutral-200 border-b border-border-light dark:border-border-dark"
@@ -461,18 +573,11 @@ export function Navbar({
                 </Link>
               )}
             </div>
-            <div className="pt-4 border-t border-border-light dark:border-border-dark space-y-3">
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-full bg-ink dark:bg-white text-white dark:text-ink hover:opacity-90 transition-opacity"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  {locale === 'ka' ? 'ადმინ პანელი' : 'Admin panel'}
-                </Link>
-              )}
-              {isAuthed ? (
+            {/* Only sign-out remains at the bottom — admin panel, profile
+                links and the logged-out login/register pair all moved to the
+                top of the sheet. Destructive action stays out of the way. */}
+            {isAuthed && (
+              <div className="pt-4 border-t border-border-light dark:border-border-dark">
                 <button
                   onClick={() => {
                     setMobileOpen(false);
@@ -482,25 +587,8 @@ export function Navbar({
                 >
                   {locale === 'ka' ? 'გასვლა' : 'Sign out'}
                 </button>
-              ) : (
-                <div className="flex gap-3">
-                  <Link
-                    href={`/${locale}/login`}
-                    className="flex-1 py-3 text-center text-sm font-semibold rounded-full border border-border-light dark:border-border-dark text-ink dark:text-white hover:border-cobalt hover:text-cobalt transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {t('login')}
-                  </Link>
-                  <Link
-                    href={`/${locale}/register`}
-                    className="flex-1 py-3 text-center text-sm font-semibold rounded-full bg-cobalt text-white hover:bg-cobalt/90 transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {t('register')}
-                  </Link>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
