@@ -42,14 +42,19 @@ export const OWNER_EMAIL = 'ratige12@gmail.com';
 
 /**
  * Whether the admin-panel entry point should be shown / accessible.
- * Allowed for: the owner email, or anyone with the CONTENT_EDITOR role.
+ * Allowed for: the owner email, or any admin role.
+ *
+ * This must stay in sync with the `/admin` guard in `middleware.ts`, which
+ * admits every role in ADMIN_ROLES. It once returned true only for
+ * CONTENT_EDITOR, so a SUPER_ADMIN could reach /admin by typing the URL but
+ * was never shown the link.
  */
 export function canSeeAdminPanel(
   email?: string | null,
   role?: UserRole | null,
 ): boolean {
   if (email && email.toLowerCase() === OWNER_EMAIL) return true;
-  return role === 'CONTENT_EDITOR';
+  return isAdminRole(role);
 }
 
 export function canAccessModule(role: UserRole | undefined | null, mod: AdminModule): boolean {
