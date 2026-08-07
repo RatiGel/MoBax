@@ -4,10 +4,38 @@ import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
+import Invite from '@/models/Invite';
 import { LoginSchema } from '@/lib/validations';
 import { OWNER_EMAIL } from '@/lib/rbac';
+import type { UserRole } from '@/models/User';
 
 const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+
+/**
+ * Consume a pending staff invite for `email` and return the role it grants.
+ *
+ * Staff invites hand out a `/register?invite=<token>` link, which only the
+ * credentials flow reads. An invited person who signs in with Google instead
+ * never touches that page, so before this existed their invite stayed unused
+ * and they landed as a CUSTOMER — a SUPER_ADMIN invite silently did nothing.
+ *
+ * Matching on the verified Google email (not the token) is what makes this
+ * safe: the invite was addressed to that mailbox, and Google has proven the
+ * person controls it.
+ */
+async function redeemInviteFor(email?: string | null): Promise<UserRole | null> {
+  if (!email) return null;
+  const invite = await Invite.findOneAndUpdate(
+    {
+      email: email.toLowerCase(),
+      used: false,
+      expiresAt: { $gt: new Date() },
+    },
+    { $set: { used: true } },
+    { new: false, sort: { createdAt: -1 } }
+  );
+  return invite ? invite.role : null;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: authSecret,
@@ -50,8 +78,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (!existing.googleId) {
             existing.googleId = account.providerAccountId;
             if (user.image && !existing.image) existing.image = user.image ?? undefined;
-            await existing.save();
           }
+          // A staff invite may have been issued after this account already
+          // existed as a customer; apply it on their next Google sign-in.
+          const invitedRole = await redeemInviteFor(user.email);
+          if (invitedRole) existing.role = invitedRole;
+          if (existing.isModified()) await existing.save();
           user.id = existing._id.toString();
           user.role = existing.role;
         } else {
@@ -59,16 +91,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const nameParts = (user.name ?? '').split(' ');
           const firstName = nameParts[0] || 'User';
           const lastName = nameParts.slice(1).join(' ') || '';
+          const role = (await redeemInviteFor(user.email)) ?? 'CUSTOMER';
           const newUser = await User.create({
             email: user.email!,
             firstName,
             lastName,
             googleId: account.providerAccountId,
             image: user.image ?? undefined,
-            role: 'CUSTOMER',
+            role,
           });
           user.id = newUser._id.toString();
-          user.role = 'CUSTOMER';
+          user.role = role;
         }
       }
       return true;
