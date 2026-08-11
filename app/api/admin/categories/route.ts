@@ -54,7 +54,10 @@ export async function POST(req: NextRequest) {
       return fail(parsed.error.issues[0]?.message ?? 'Invalid category data', 422);
     }
     const data = parsed.data;
-    const slug = (data.slug && data.slug.trim()) || slugify(data.nameEn);
+    // data.slug is already normalized by the schema; fall back to the name when
+    // the admin left the field blank.
+    const slug = data.slug || slugify(data.nameEn);
+    if (!slug) return fail('Could not derive a slug — set one explicitly', 422);
 
     const slugTaken = await Category.exists({ slug });
     if (slugTaken) return fail('A category with this slug already exists', 409);

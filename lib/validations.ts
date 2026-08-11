@@ -1,4 +1,21 @@
 import { z } from 'zod';
+import { slugify } from '@/lib/utils';
+
+/**
+ * A slug field that normalizes whatever the admin typed instead of trusting it.
+ *
+ * The storefront resolves /products/[slug] by exact match, so an unnormalized
+ * value ("IPhone 16 Pro Max Case") is a guaranteed 404. Normalizing in the
+ * schema means every route that parses through it — create, update, and any
+ * future caller — gets URL-safe slugs, rather than each one remembering to call
+ * slugify. A value that normalizes to empty is rejected so it can never be
+ * written; callers that omit the slug entirely fall back to slugify(nameEn).
+ */
+const slugField = z
+  .string()
+  .max(120)
+  .transform((s) => slugify(s))
+  .refine((s) => s.length > 0, 'Slug must contain at least one letter or number');
 
 // Zod's `.partial()` makes every key optional but does NOT remove `.default(...)`
 // — an omitted key still gets its default filled in on parse. For a PATCH-style
@@ -108,7 +125,7 @@ const ProductVariantSchema = z.object({
 });
 
 export const CreateProductSchema = z.object({
-  slug: z.string().min(1).max(120).optional(), // auto-derived from nameEn if omitted
+  slug: slugField.optional(), // auto-derived from nameEn if omitted
   nameEn: z.string().min(1, 'English name is required').max(160),
   nameKa: z.string().min(1, 'Georgian name is required').max(160),
   descriptionEn: z.string().max(5000).default(''),
@@ -151,7 +168,7 @@ export const InventoryAdjustSchema = z.object({
 export type InventoryAdjustInput = z.infer<typeof InventoryAdjustSchema>;
 
 export const CreateCategorySchema = z.object({
-  slug: z.string().min(1).max(120).optional(), // auto-derived from nameEn if omitted
+  slug: slugField.optional(), // auto-derived from nameEn if omitted
   nameEn: z.string().min(1, 'English name is required').max(160),
   nameKa: z.string().min(1, 'Georgian name is required').max(160),
   descriptionEn: z.string().max(5000).default(''),
