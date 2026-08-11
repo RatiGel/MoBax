@@ -35,6 +35,13 @@ export interface IOrder extends Document {
   guestEmail?: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  /**
+   * Set the moment one request wins the atomic claim to send the paid-order
+   * notifications. Deliberately separate from `paymentStatus` — the webhook and
+   * the browser-return handler both mark an order PAID, so status cannot double
+   * as "already notified" without one path silently swallowing the emails.
+   */
+  paidNotifiedAt?: Date;
   paymentMethod: string;
   trackingNumber?: string;
   notes?: string;
@@ -84,6 +91,7 @@ const OrderSchema = new Schema<IOrder>(
       enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'],
       default: 'PENDING',
     },
+    paidNotifiedAt: { type: Date },
     paymentMethod: { type: String, default: 'COD' },
     trackingNumber: { type: String },
     notes: { type: String },

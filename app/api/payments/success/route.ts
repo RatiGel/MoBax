@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Order from '@/models/Order';
-import { sendEmail } from '@/lib/email/send';
-import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
-import { sendTelegramOrderNotification } from '@/lib/telegram';
+import { notifyOrderPaid } from '@/lib/order-notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,52 +35,22 @@ async function handle(req: NextRequest) {
   if (orderId) {
     try {
       await connectDB();
-      // The matched-but-modified count tells us THIS request is the one that
-      // flipped the order to PAID — so the confirmation email is sent exactly
-      // once even if Flitt returns twice (e.g. GET + POST, or a retry).
-      const res = await Order.updateOne(
+      // Optimistically mark paid if the webhook hasn't already. Status matches
+      // the webhook's CONFIRMED — the two handlers race, so they must agree on
+      // the resulting status or it depends on who wins.
+      await Order.updateOne(
         { _id: orderId, paymentStatus: { $ne: 'PAID' } },
-        { $set: { paymentStatus: 'PAID', status: 'PROCESSING' } }
+        { $set: { paymentStatus: 'PAID', status: 'CONFIRMED' } }
       );
-      const justPaid = res.modifiedCount > 0;
 
       const order = await Order.findById(orderId).lean();
       guestEmail = (order?.guestEmail as string) || '';
 
-      if (justPaid && order) {
-        const customerEmail = (order.guestEmail as string) || (order.addressSnapshot?.email as string) || '';
-        if (customerEmail) {
-          const trackParams = new URLSearchParams({ paid: '1' });
-          if (guestEmail) trackParams.set('email', guestEmail);
-          void sendEmail({
-            to: customerEmail,
-            subject: `Order ${order.orderNumber} confirmed`,
-            react: OrderConfirmation({
-              orderNumber: order.orderNumber as string,
-              customerName: (order.addressSnapshot?.firstName as string) || 'there',
-              items: order.items as { nameSnapshot: string; quantity: number; priceSnapshot: number }[],
-              subtotal: order.subtotal as number,
-              shippingCost: order.shippingCost as number,
-              total: order.total as number,
-              deliveryMethod: order.deliveryMethod as 'pickup' | 'instant' | 'nextday' | 'regional',
-              trackUrl: `${origin}/en/orders/${orderId}?${trackParams.toString()}`,
-            }),
-          });
-        }
-
-        // Notify the team on Telegram — same once-per-order justPaid guard as
-        // the email above, so a duplicate Flitt return won't double-send.
-        const first = (order.addressSnapshot?.firstName as string) || '';
-        const last = (order.addressSnapshot?.lastName as string) || '';
-        const items = (order.items as { quantity: number }[]) || [];
-        void sendTelegramOrderNotification({
-          orderNumber: order.orderNumber as string,
-          customerName: `${first} ${last}`.trim() || 'Unknown',
-          total: order.total as number,
-          itemCount: items.reduce((n, it) => n + (it.quantity || 0), 0),
-          adminUrl: `${origin}/admin/orders/${orderId}`,
-        });
-      }
+      // Unconditional: notifyOrderPaid owns the once-only guard via its atomic
+      // claim on paidNotifiedAt. Gating here on "did I win the status update"
+      // was the original bug — the webhook usually flips PAID first, so this
+      // path found nothing modified and silently sent nothing.
+      await notifyOrderPaid(orderId, origin);
     } catch (err) {
       console.error('[payments/success]', err);
     }

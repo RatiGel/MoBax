@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Order from '@/models/Order';
 import { verifyFlittSignature, type FlittParams } from '@/lib/payments/flitt-signature';
+import { notifyOrderPaid } from '@/lib/order-notifications';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,14 +56,21 @@ export async function POST(req: NextRequest) {
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
     switch (orderStatus) {
-      case 'approved':
+      case 'approved': {
         // Idempotent: a retried approved callback for a PAID order is a no-op.
         if (order.paymentStatus !== 'PAID') {
           order.paymentStatus = 'PAID';
           if (order.status === 'PENDING') order.status = 'CONFIRMED';
           await order.save();
         }
+        // Awaited, not fire-and-forget: this runs on serverless, where the
+        // function can freeze the moment the response is returned and drop a
+        // pending promise. notifyOrderPaid claims atomically, so calling it on
+        // every approved callback (including retries) still sends exactly once.
+        const origin = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+        await notifyOrderPaid(orderId, origin);
         break;
+      }
       case 'declined':
       case 'expired':
         if (order.paymentStatus === 'PENDING') {
