@@ -46,10 +46,11 @@ interface DataTableProps<T> {
   getRowId?: (row: T) => string;
 }
 
-// Checkbox fills carrying a white check must be pinned to the literal
-// #2E5BFF, never `bg-primary`/`bg-cobalt` — see CLAUDE.md contrast rule.
+// Selection state is exactly what the amber signal is for. The check glyph is
+// ink, not white — white on amber is 2.03:1 (see CLAUDE.md), so the indicator
+// colour is set here alongside the fill rather than inherited.
 const CHECKBOX_CLASS =
-  'data-[state=checked]:bg-[#2E5BFF] data-[state=checked]:border-[#2E5BFF] data-[state=indeterminate]:bg-[#2E5BFF] data-[state=indeterminate]:border-[#2E5BFF]';
+  'data-[state=checked]:bg-cobalt data-[state=checked]:border-cobalt data-[state=checked]:text-ink data-[state=indeterminate]:bg-cobalt data-[state=indeterminate]:border-cobalt data-[state=indeterminate]:text-ink';
 
 // Exported for unit testing. Only ever called when `selectable` is on, so
 // failing loudly here is safe: a row with no `id`/`_id` would otherwise

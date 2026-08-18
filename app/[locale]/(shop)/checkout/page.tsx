@@ -593,7 +593,9 @@ export default function CheckoutPage() {
 
       {/* Mobile sticky pay bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border-light bg-surface-light/95 px-4 py-3 backdrop-blur dark:border-border-dark dark:bg-surface-dark/95 lg:hidden">
-        <Button className="w-full rounded-full font-semibold" size="lg" onClick={handlePlaceOrder} disabled={submitting}>
+        {/* The order-placing action carries the signal — it is the end of the
+            checkout spine (design principle #3). */}
+        <Button variant="accent" className="w-full font-semibold" size="lg" onClick={handlePlaceOrder} disabled={submitting}>
           <Lock className="mr-2 h-4 w-4" />
           {submitting ? t('redirecting') : `${t('placeOrder')} · ${formatPrice(payNow)}`}
         </Button>

@@ -206,10 +206,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
             <div className="space-y-1">
               <button
                 onClick={() => setSelectedCategory('all')}
-                className={`w-full text-left rounded-full px-3.5 py-2 text-sm transition-colors ${
+                className={`w-full text-left rounded-md px-3.5 py-2 text-sm transition-colors ${
                   selectedCategory === 'all'
-                    ? 'bg-ink text-white dark:bg-white dark:text-ink font-medium'
-                    : 'text-graphite hover:bg-cloud-light dark:hover:bg-cloud-dark'
+                    ? 'signal-quiet font-semibold'
+                    : 'text-graphite hover:bg-raised-light hover:text-ink dark:hover:bg-raised-dark dark:hover:text-white'
                 }`}
               >
                 {tCat('all')}
@@ -227,10 +227,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setSelectedCategory(parent.slug)}
-                        className={`flex-1 text-left rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${
+                        className={`flex-1 text-left rounded-md px-3.5 py-2 text-sm font-medium transition-colors ${
                           isParentActive || isSubActive
-                            ? 'bg-ink text-white dark:bg-white dark:text-ink'
-                            : 'text-ink dark:text-white hover:bg-cloud-light dark:hover:bg-cloud-dark'
+                            ? 'signal-quiet font-semibold'
+                            : 'text-ink hover:bg-raised-light dark:text-white dark:hover:bg-raised-dark'
                         }`}
                       >
                         {parentName}
@@ -260,10 +260,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
                             <button
                               key={sub.slug}
                               onClick={() => setSelectedCategory(sub.slug)}
-                              className={`w-full text-left rounded-full px-3 py-1.5 text-xs transition-colors ${
+                              className={`w-full text-left rounded-md px-3 py-1.5 text-xs transition-colors ${
                                 selectedCategory === sub.slug
-                                  ? 'bg-cobalt-soft text-cobalt dark:bg-cloud-dark dark:text-cobalt-dark font-medium'
-                                  : 'text-graphite hover:bg-cloud-light dark:hover:bg-cloud-dark'
+                                  ? 'signal-quiet font-semibold'
+                                  : 'text-graphite hover:bg-raised-light hover:text-ink dark:hover:bg-raised-dark dark:hover:text-white'
                               }`}
                             >
                               {subName}

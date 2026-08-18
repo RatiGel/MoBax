@@ -308,7 +308,7 @@ export function ProductsClient() {
         return (
           <div className="flex items-center gap-2">
             <span className="font-medium">{formatPrice(p.salePrice)}</span>
-            <Badge className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90">-{pct}%</Badge>
+            <Badge className="signal-fill tabular-nums">-{pct}%</Badge>
           </div>
         );
       },
@@ -390,7 +390,7 @@ export function ProductsClient() {
             </span>
             <Button
               size="sm"
-              className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90"
+              className="signal-fill"
               onClick={openSaleDialog}
             >
               Set sale
@@ -511,7 +511,7 @@ export function ProductsClient() {
                 <p className="mt-1 font-medium">
                   {formatPrice(firstSelected.price)} →{' '}
                   {salePreview != null ? (
-                    <span className="text-[#2E5BFF]">{formatPrice(salePreview)}</span>
+                    <span className="font-semibold tabular-nums text-amber-ink">{formatPrice(salePreview)}</span>
                   ) : (
                     <span className="text-error">not below current price</span>
                   )}

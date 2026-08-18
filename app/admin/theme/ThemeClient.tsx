@@ -28,11 +28,11 @@ interface Theme {
 }
 
 // Must mirror THEME_DEFAULTS in lib/theme.ts and the static tokens in
-// globals.css — primary navy + cobalt accent. "Reset to defaults" pushes these,
-// so a mismatch would recolor the live store on reset.
+// globals.css — Ink & Signal: ink primary + amber signal accent. "Reset to
+// defaults" pushes these, so a mismatch would recolor the live store on reset.
 const DEFAULTS: Theme = {
-  primary: '#1E2D5A',
-  accent: '#2E5BFF',
+  primary: '#0B0B0D',
+  accent: '#F5A623',
   storeName: 'MoBax',
   logoUrl: '',
   announcement: '',
@@ -418,7 +418,7 @@ export function ThemeClient() {
                       step={0.01}
                       value={typography.scale}
                       onChange={(e) => setTypo('scale', Number(e.target.value))}
-                      className="w-full accent-[#2E5BFF]"
+                      className="w-full accent-cobalt"
                       aria-label="Type scale"
                     />
                     <span className="w-14 shrink-0 text-right text-sm font-mono tabular-nums">

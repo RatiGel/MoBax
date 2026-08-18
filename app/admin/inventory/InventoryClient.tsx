@@ -316,7 +316,7 @@ export function InventoryClient() {
               <Button
                 type="submit"
                 disabled={saving || !hasValidDelta || (preview != null && preview < 0)}
-                className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90"
+                className="signal-fill"
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save adjustment

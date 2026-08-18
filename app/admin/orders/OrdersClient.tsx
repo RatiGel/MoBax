@@ -328,7 +328,7 @@ export function OrdersClient() {
             </Select>
             <Button
               size="sm"
-              className="bg-[#2E5BFF] text-white hover:bg-[#2E5BFF]/90"
+              className="signal-fill"
               onClick={() => setBulkConfirmOpen(true)}
             >
               Apply

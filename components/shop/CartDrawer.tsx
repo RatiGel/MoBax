@@ -27,7 +27,7 @@ export function CartDrawer() {
             <p className="text-5xl">🛒</p>
             <p className="font-medium text-graphite">{t('empty')}</p>
             <p className="text-sm text-graphite">{t('emptyDesc')}</p>
-            <Button variant="outline" className="rounded-full" onClick={closeCart} asChild>
+            <Button variant="outline" onClick={closeCart} asChild>
               <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>
             </Button>
           </div>
@@ -83,10 +83,12 @@ export function CartDrawer() {
                 <span className="text-ink dark:text-white">{t('total')}</span>
                 <span className="text-ink dark:text-white font-bold">{formatPrice(total)}</span>
               </div>
-              <Button className="w-full rounded-full font-semibold" size="lg" asChild onClick={closeCart}>
+              {/* Signal on checkout, quiet on the alternative — same hierarchy
+                  as the cart page so the spine reads identically everywhere. */}
+              <Button variant="accent" className="w-full font-semibold" size="lg" asChild onClick={closeCart}>
                 <Link href={`/${locale}/checkout`}>{t('checkout')}</Link>
               </Button>
-              <Button variant="outline" className="w-full rounded-full font-semibold" onClick={closeCart} asChild>
+              <Button variant="ghost" className="w-full font-medium" onClick={closeCart} asChild>
                 <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>
               </Button>
             </div>

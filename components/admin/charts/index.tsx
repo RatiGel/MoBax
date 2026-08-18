@@ -27,24 +27,52 @@ import { Skeleton } from '@/components/ui/skeleton';
  * sync with the admin Theme colors and the light/dark toggle. Falls back to the
  * static brand values during SSR / before mount.
  */
+/**
+ * Neutral series colour for chart marks. A chart mark is not a UI surface: it
+ * has to hold its own against the panel behind it, so this is a mid-tone that
+ * clears 3:1 on both the light and dark panel rather than the near-black /
+ * near-white `--primary` used for buttons.
+ */
+const SERIES_INK = { light: '#3F3F46', dark: '#A1A1AA' } as const;
+
+/**
+ * Signal colour for chart marks, per theme.
+ *
+ * The raw amber token is only 2.03:1 against a white panel — fine as a *fill*
+ * behind ink text, but a 2px line or a thin area stroke at that contrast is
+ * effectively invisible, and WCAG asks 3:1 for graphical objects. So light mode
+ * uses a deepened amber (4.6:1) while dark mode keeps the true accent, which
+ * already clears 9:1 on the dark panel. Both still read unmistakably as "the
+ * amber series".
+ */
+const SERIES_SIGNAL = { light: '#A66A00', dark: '#F5A623' } as const;
+
+interface ChartColors {
+  primary: string;
+  accent: string;
+  grid: string;
+}
+
 function useBrandColors() {
-  const [colors, setColors] = useState({
-    primary: '#1E2D5A',
-    accent: '#2E5BFF',
-    grid: '#E5E7EB',
+  const [colors, setColors] = useState<ChartColors>({
+    primary: SERIES_INK.light,
+    accent: SERIES_SIGNAL.light,
+    grid: '#E7E5DF',
   });
   useEffect(() => {
     const read = () => {
-      const cs = getComputedStyle(document.documentElement);
-      const ch = (name: string, fallback: string) => {
-        const v = cs.getPropertyValue(name).trim();
-        return v ? `rgb(${v})` : fallback;
-      };
       const dark = document.documentElement.classList.contains('dark');
       setColors({
-        primary: ch('--primary', '#1E2D5A'),
-        accent: ch('--cobalt', '#2E5BFF'),
-        grid: dark ? '#262629' : '#E5E7EB',
+        // Deliberately NOT --primary. Under Ink & Signal that token is
+        // near-black in light mode and near-white in dark, which is correct
+        // for buttons but invisible as a bar fill against the panel it sits
+        // on. Marks need their own mid-tone that reads on both surfaces.
+        primary: dark ? SERIES_INK.dark : SERIES_INK.light,
+        // Likewise not read from --cobalt: an admin who picks a pale accent
+        // would otherwise get unreadable charts. The signal series tracks the
+        // theme, not the configured brand hue.
+        accent: dark ? SERIES_SIGNAL.dark : SERIES_SIGNAL.light,
+        grid: dark ? '#26262B' : '#E7E5DF',
       });
     };
     read();

@@ -200,8 +200,12 @@ export default function CartPage() {
             <span className="text-ink dark:text-white">{t('orderTotal')}</span>
             <span className="text-ink dark:text-white tabular-nums">{formatPrice(orderTotal)}</span>
           </div>
+          {/* Checkout takes the amber signal — it is the one action this page
+              exists to drive. "Continue shopping" drops to a ghost so the two
+              stop competing; they were near-equal weights before. */}
           <Button
-            className="w-full mt-6 rounded-full font-semibold"
+            variant="accent"
+            className="mt-6 w-full font-semibold"
             size="lg"
             disabled={selectedItems.length === 0}
             asChild
@@ -210,7 +214,7 @@ export default function CartPage() {
               {t('checkout')}
             </Link>
           </Button>
-          <Button variant="outline" className="w-full mt-2 rounded-full font-semibold" asChild>
+          <Button variant="ghost" className="mt-1.5 w-full font-medium" asChild>
             <Link href={`/${locale}/products`}>{t('continueShopping')}</Link>
           </Button>
         </div>
