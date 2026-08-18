@@ -112,7 +112,7 @@ export function HeroProduct({ products }: { products: Product[] }) {
         {/* Viewport. The track holds every slide side by side and shifts by
             whole viewport widths, so images never re-mount mid-transition. */}
         <div
-          className="relative aspect-[4/5] sm:aspect-square overflow-hidden rounded-4xl bg-cloud-light dark:bg-cloud-dark"
+          className="relative aspect-square max-h-[300px] overflow-hidden rounded-3xl bg-cloud-light sm:aspect-[5/4] sm:max-h-[420px] lg:max-h-[460px] dark:bg-cloud-dark"
           aria-roledescription={canRotate ? 'carousel' : undefined}
           aria-label={canRotate ? t('heroCarousel') : undefined}
         >
@@ -140,7 +140,7 @@ export function HeroProduct({ products }: { products: Product[] }) {
                     fill
                     priority={i === 0}
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    className="object-contain p-6 pb-24 transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:p-8 sm:pb-24"
                   />
                 </Link>
               );

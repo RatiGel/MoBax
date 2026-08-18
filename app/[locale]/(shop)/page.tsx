@@ -98,8 +98,8 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
     <>
       {/* ── Hero — copy + proof left, product right ──────── */}
       <section className="relative overflow-hidden border-b border-hairline-light bg-paper dark:border-hairline-dark dark:bg-ink">
-        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-10 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
-          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 lg:px-8 lg:pb-14 lg:pt-12">
+          <div className="grid grid-cols-1 items-center gap-6 sm:gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
             {/* Copy + social proof */}
             <div className="animate-fade-up">
               <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-amber-ink">

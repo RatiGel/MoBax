@@ -55,6 +55,19 @@ const config: Config = {
         'border-light': '#E7E5DF',
         'border-dark': '#26262B',
       },
+      /* Tailwind's default `fill` scale resolves theme colours, but silently
+         drops any whose value is an `rgb(var(--x) / <alpha-value>)` function —
+         which is every brand token here. That is why `fill-star` and
+         `fill-cobalt` produced no CSS at all and rating stars rendered hollow
+         while `fill-ink` (a plain hex) worked. Declaring the fills we actually
+         use, with the alpha slot resolved, generates them properly. */
+      fill: {
+        current: 'currentColor',
+        none: 'none',
+        ink: '#0B0B0D',
+        star: 'rgb(var(--star))',
+        cobalt: 'rgb(var(--cobalt))',
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
