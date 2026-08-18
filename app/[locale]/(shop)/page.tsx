@@ -74,21 +74,26 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
   return (
     <>
       {/* ── Hero — copy + proof left, product right ──────── */}
-      <section className="relative overflow-hidden bg-paper dark:bg-ink">
-        <div className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-cobalt/10 blur-3xl dark:bg-cobalt-dark/10" />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+      <section className="relative overflow-hidden border-b border-hairline-light bg-paper dark:border-hairline-dark dark:bg-ink">
+        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-10 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
             {/* Copy + social proof */}
             <div className="animate-fade-up">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border-light dark:border-border-dark px-3.5 py-1.5 text-xs font-medium text-graphite">
-                <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
+              <span className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-amber-ink">
+                <span className="h-1 w-1 rounded-full bg-cobalt" />
                 {hero.badge}
               </span>
-              <h1 className="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-semibold text-ink dark:text-white leading-[1.04] tracking-display">
+              {/* Type scale is deliberately lower than before. At the old
+                  text-7xl a Georgian heading like "მობილურის პრემიუმ
+                  აქსესუარები საუკეთესო ფასად" filled the entire mobile
+                  viewport, pushing every product below the fold — the exact
+                  opposite of design principle #3 (fast path to checkout).
+                  Georgian also sets wider than Latin at equal size, so the
+                  ceiling here is set by the KA copy, not the EN. */}
+              <h1 className="mt-4 text-balance font-display text-[1.75rem] font-semibold leading-[1.1] tracking-display text-ink sm:text-4xl lg:text-5xl dark:text-white">
                 {hero.heading}
               </h1>
-              <p className="mt-6 text-lg text-graphite leading-relaxed max-w-md">
+              <p className="mt-4 max-w-[46ch] text-pretty text-base leading-relaxed text-graphite lg:text-lg">
                 {hero.subheading}
               </p>
 
@@ -96,7 +101,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               <div className="mt-7 flex items-center gap-3">
                 <div className="flex items-center gap-0.5" aria-hidden>
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="h-4 w-4 fill-cobalt text-cobalt dark:fill-cobalt-dark dark:text-cobalt-dark" />
+                    <Star key={i} className="h-3.5 w-3.5 fill-cobalt text-cobalt" />
                   ))}
                 </div>
                 <span className="text-sm font-medium text-ink dark:text-white">{hero.rating}</span>
@@ -104,16 +109,19 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
+                {/* One signal action, one quiet alternative. Both were
+                    equally weighted before, which left neither reading as
+                    the primary path. */}
                 <Link
                   href={hero.ctaHref}
-                  className="group inline-flex items-center gap-2.5 bg-ink dark:bg-white text-white dark:text-ink px-7 py-3.5 text-sm font-semibold rounded-full hover:bg-cobalt dark:hover:bg-cobalt dark:hover:text-white transition-colors"
+                  className="signal-fill group inline-flex items-center gap-2.5 rounded-md px-6 py-3.5 text-sm font-semibold transition-colors"
                 >
                   {hero.ctaLabel}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
                 </Link>
                 <Link
                   href={hero.ctaSecondaryHref}
-                  className="inline-flex items-center gap-2.5 border border-border-light dark:border-border-dark text-ink dark:text-white px-7 py-3.5 text-sm font-semibold rounded-full hover:border-ink dark:hover:border-white transition-colors"
+                  className="inline-flex items-center gap-2.5 rounded-md border border-hairline-light px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-ink dark:border-hairline-dark dark:text-white dark:hover:border-white"
                 >
                   {hero.ctaSecondaryLabel}
                 </Link>
@@ -135,10 +143,10 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
         <section className="pt-4 pb-16 lg:pt-6 lg:pb-24 bg-paper dark:bg-ink">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <Reveal className="mb-8">
-              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
+              <h2 className="font-display text-2xl font-semibold tracking-display text-ink sm:text-3xl dark:text-white">
                 {t('categoriesTitle')}
               </h2>
-              <p className="mt-2 text-base text-graphite">{t('categoriesSubtitle')}</p>
+              <p className="mt-1.5 text-sm text-graphite">{t('categoriesSubtitle')}</p>
             </Reveal>
 
             {/* 3-up on desktop, not 6: at 1440px a six-column row left each tile
@@ -151,10 +159,10 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                   <Link
                     key={cat.id}
                     href={`/${locale}/products?category=${cat.slug}`}
-                    className="group relative overflow-hidden rounded-2xl border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark transition-colors hover:border-cobalt/40"
+                    className="group relative overflow-hidden rounded-lg border border-hairline-light bg-panel-light transition-colors hover:border-cobalt dark:border-hairline-dark dark:bg-panel-dark"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden bg-cloud-light dark:bg-cloud-dark">
-                      {cat.image && (
+                    <div className="relative aspect-[16/10] overflow-hidden bg-raised-light dark:bg-raised-dark">
+                      {cat.image ? (
                         <Image
                           src={cat.image}
                           alt={name}
@@ -162,6 +170,20 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                           sizes="(max-width: 640px) 50vw, 33vw"
                           className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                         />
+                      ) : (
+                        /* Most categories have no image yet (18 of 25 at the
+                           time of writing), and an empty grey box reads as a
+                           broken image. A typographic tile is a deliberate
+                           state instead: the category's own initial, set
+                           large and quiet, with the accent kept for hover. */
+                        <div
+                          aria-hidden
+                          className="flex h-full w-full items-center justify-center bg-raised-light dark:bg-raised-dark"
+                        >
+                          <span className="select-none font-display text-4xl font-semibold text-graphite/25 transition-colors group-hover:text-cobalt/45 sm:text-5xl">
+                            {name.trim().charAt(0)}
+                          </span>
+                        </div>
                       )}
                     </div>
                     {/* Stacked on small screens: side-by-side made long names wrap

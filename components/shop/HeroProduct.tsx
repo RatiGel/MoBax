@@ -160,7 +160,7 @@ export function HeroProduct({ products }: { products: Product[] }) {
             onClick={quickAdd}
             disabled={!active.inStock}
             aria-label={`${t('heroShopFeatured')} — ${activeName}`}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#2E5BFF] px-4 py-2.5 text-xs font-semibold text-white transition-all hover:bg-[#2E5BFF]/90 active:scale-[0.97] disabled:opacity-50 motion-reduce:active:scale-100"
+            className="signal-fill inline-flex shrink-0 items-center gap-1.5 rounded-md px-4 py-2.5 text-xs font-semibold transition-all active:scale-[0.97] disabled:opacity-50 motion-reduce:active:scale-100"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('heroShopFeatured')}
@@ -184,7 +184,7 @@ export function HeroProduct({ products }: { products: Product[] }) {
                 aria-current={current ? 'true' : undefined}
                 className={`h-2 rounded-full transition-all duration-300 motion-reduce:transition-none ${
                   current
-                    ? 'w-6 bg-[#2E5BFF]'
+                    ? 'w-6 bg-cobalt'
                     : 'w-2 bg-border-light hover:bg-graphite dark:bg-border-dark dark:hover:bg-graphite'
                 }`}
               />

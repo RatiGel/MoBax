@@ -123,19 +123,31 @@ stock thresholds, All/Low/Out filters, audited adjustments via `ActivityLog`).
 `PRODUCT.md` holds the brand and accessibility commitments. Enforced in
 `app/globals.css` + `tailwind.config.ts`.
 
-**Color.** Neutral-led with a single cobalt accent (`#2E5BFF`, lifted to
-`#5C7CFF` in dark mode). Brand tokens are stored as space-separated RGB channels
-(`--cobalt: 46 91 255`) so Tailwind opacity modifiers like `bg-cobalt/10` work
-via `rgb(var(--x) / <alpha-value>)`, and so `/admin/theme` can override the brand
-at runtime (`lib/theme.ts` injects the override block).
+**Color — "Ink & Signal".** Near-neutral surfaces carry the page; a single amber
+signal (`#F5A623`) marks actions, selection, and state, never decoration. Ink
+(`--primary`) carries neutral primary actions and inverts by theme. Brand tokens
+are stored as space-separated RGB channels (`--cobalt: 245 166 35` — the token
+name is historical, the value is amber) so Tailwind opacity modifiers like
+`bg-cobalt/10` work via `rgb(var(--x) / <alpha-value>)`, and so `/admin/theme`
+can override the brand at runtime (`lib/theme.ts` injects the override block).
+`THEME_DEFAULTS` must stay in sync with the `:root` defaults in `globals.css`,
+or the injected block silently overrides them.
 
 **Contrast is a hard requirement — WCAG 2.1 AA, verified in both themes.**
 - Semantic text colors must be var-driven so they track the theme. `graphite`
   (secondary text) was once hardcoded in `tailwind.config.ts`, so it stayed
   identical in dark mode and silently failed AA everywhere it was used.
-- Pin interactive fills to `#2E5BFF` rather than `bg-cobalt` where white text
-  sits on them: the lifted dark-mode cobalt puts white at ~3.6:1, under the
-  4.5:1 floor.
+- **Never put white text on an amber fill.** White on `#F5A623` is 2.03:1. Amber
+  is a light color in both themes, so text on it must be ink (9.70:1). Use the
+  `.signal-fill` component class rather than hand-rolling the pair; it owns this
+  rule in one place. (The old palette had the mirror-image problem — the lifted
+  dark-mode cobalt failed with white text — which is why ~20 literal
+  `bg-[#2E5BFF] text-white` fills existed. Don't reintroduce that pattern.)
+- **Amber is not a text color in light mode.** `#F5A623` on paper is 1.94:1. Use
+  `text-amber-ink` (a deep burnt amber, 5.9:1 on paper) which resolves to real
+  amber in dark mode where it clears AA at 9.1:1.
+- Focus rings use `--ring` (ink on light, amber on dark). A single amber ring is
+  invisible on paper.
 
 **Motion.** Reveal animations must enhance an already-visible default. Never gate
 content behind a viewport/class trigger — observers don't fire during prerender,

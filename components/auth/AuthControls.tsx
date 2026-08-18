@@ -6,9 +6,10 @@ import { cn } from '@/lib/utils';
 /**
  * Submit button.
  *
- * The fill is pinned to the literal #2E5BFF rather than `bg-cobalt`: dark mode
- * lifts the cobalt token to #5C7CFF, which puts white text at ~3.6:1 — under
- * the 4.5:1 floor. See the contrast note in CLAUDE.md.
+ * Uses `.signal-fill`, which owns the ink-on-amber pairing: amber is light in
+ * both themes, so white text on it is 2.03:1 while ink is 9.70:1. (This button
+ * previously pinned a literal cobalt hex to dodge the mirror-image problem —
+ * white on the lifted dark-mode cobalt. See the contrast notes in CLAUDE.md.)
  */
 export function AuthSubmit({
   loading,
@@ -23,7 +24,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={loading}
-      className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#2E5BFF] text-[0.9375rem] font-medium text-white transition-colors hover:bg-[#2449CC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-ink"
+      className="signal-fill flex h-11 w-full items-center justify-center gap-2 rounded-lg text-[0.9375rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-ink"
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
       {loading ? loadingLabel : children}

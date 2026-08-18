@@ -11,9 +11,19 @@ const config: Config = {
     extend: {
       colors: {
         /* storefront semantic palette — neutral-led + single cobalt accent */
-        ink: '#0A0A0B',
-        paper: '#FBFBFA',
-        cloud: { light: '#F1F1EF', dark: '#1C1C1F' },
+        ink: '#0B0B0D',
+        paper: '#FAFAF8',
+        cloud: { light: '#F2F1ED', dark: '#1B1B1F' },
+        /* Ink & Signal surface scale. Dark is the direction's home register,
+           so the ink ramp is explicit rather than opacity-hacked: panels sit
+           on ink, raised sits on panel. Measured AA in globals.css. */
+        panel: { light: '#FFFFFF', dark: '#141417' },
+        raised: { light: '#F2F1ED', dark: '#1B1B1F' },
+        hairline: { light: '#E7E5DF', dark: '#26262B' },
+        /* Amber that is legible as text: real amber in dark mode, a deep
+           burnt amber in light (raw #F5A623 on paper is 1.94:1 and fails). */
+        'amber-ink': 'rgb(var(--amber-ink) / <alpha-value>)',
+        ring: 'rgb(var(--ring) / <alpha-value>)',
         /* Secondary text. Driven by a CSS var so it tracks the theme: the old
            hardcoded #6B6B70 stayed identical in dark mode and failed WCAG AA
            (~3.2-3.7:1 on ink) everywhere it was used. */
@@ -36,12 +46,12 @@ const config: Config = {
           dark: 'rgb(var(--accent-dark) / <alpha-value>)',
           light: 'rgb(var(--accent-light) / <alpha-value>)',
         },
-        surface: { light: '#FFFFFF', dark: '#141416' },
-        background: { light: '#FBFBFA', dark: '#0A0A0B' },
+        surface: { light: '#FFFFFF', dark: '#141417' },
+        background: { light: '#FAFAF8', dark: '#0B0B0D' },
         success: '#30A46C',
         error: '#E5484D',
-        'border-light': '#E8E8E5',
-        'border-dark': '#262629',
+        'border-light': '#E7E5DF',
+        'border-dark': '#26262B',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -24,58 +24,87 @@
 
 @layer base {
   :root {
-    /* storefront palette — neutral-led, single cobalt accent */
-    --background: #FBFBFA;   /* paper */
-    --foreground: #0A0A0B;   /* ink */
+    /* ── Ink & Signal ────────────────────────────────────────────────
+       Surfaces are near-neutral with a whisper of chroma toward the
+       amber accent's own hue (not a default "warm tint" — see the
+       0.005-0.015 tinted-neutral rule). Amber is a SIGNAL: actions,
+       selection, and state only, never decoration.
+
+       Contrast, measured (WCAG 2.1 AA):
+         ink on paper .......... 18.8:1
+         graphite on paper ......5.1:1
+         amber-ink on paper .....5.9:1  (amber text in light mode)
+       Light mode deliberately does NOT use raw amber for text —
+       #F5A623 on paper is 1.94:1 and fails. It fills, ink writes. */
+    --background: #FAFAF8;   /* paper */
+    --foreground: #0B0B0D;   /* ink */
     --surface: #FFFFFF;
-    --cloud: #F1F1EF;        /* raised surface */
+    --cloud: #F2F1ED;        /* raised surface */
     /* Secondary text, as RGB channels so `text-graphite/70` still works.
-       #6B6B70 = 5.9:1 on paper — clears AA. */
+       #6B6B70 = 5.1:1 on paper — clears AA. */
     --graphite: 107 107 112;
     --text-secondary: #6B6B70;
-    --border: #E8E8E5;
+    --border: #E7E5DF;
     --success: #16A34A;
     --error: #E5484D;
+
+    /* Amber that is legible as TEXT on light surfaces (5.9:1). Raw
+       --amber is for fills only here. */
+    --amber-ink: 138 86 0;
+    --rule: 231 229 223;
+    /* Focus ring. Amber rings vanish on paper (1.94:1), so light mode
+       rings in ink and dark mode rings in amber. */
+    --ring: 11 11 13;
 
     /* Brand tokens are admin-controllable. Stored as space-separated RGB
        CHANNELS so Tailwind opacity modifiers (bg-cobalt/10) work via
        rgb(var(--x) / <alpha-value>). The storefront layout injects an
        override block from the saved Theme setting (see lib/theme.ts).
        Variant shades (dark/soft/light) derive from the two base hues. */
-    --cobalt: 46 91 255;          /* #2E5BFF — the one accent */
-    --cobalt-dark: 92 124 255;    /* #5C7CFF */
-    --cobalt-soft: 234 240 255;   /* #EAF0FF — accent tint */
-    --primary: 30 45 90;          /* #1E2D5A */
-    --primary-dark: 22 34 71;     /* #162247 */
-    --primary-light: 42 63 122;   /* #2A3F7A */
-    --accent: 46 91 255;          /* mirrors cobalt by default */
-    --accent-dark: 92 124 255;
-    --accent-light: 234 240 255;
+    --cobalt: 245 166 35;         /* #F5A623 — the signal (amber) */
+    --cobalt-dark: 217 138 11;    /* #D98A0B — pressed / heavier fill */
+    --cobalt-soft: 253 242 222;   /* #FDF2DE — signal tint */
+    --primary: 11 11 13;          /* #0B0B0D — ink carries primary actions */
+    --primary-dark: 0 0 0;
+    --primary-light: 42 42 48;    /* #2A2A30 */
+    --accent: 245 166 35;         /* mirrors the signal by default */
+    --accent-dark: 217 138 11;
+    --accent-light: 253 242 222;
   }
 
   .dark {
-    --background: #0A0A0B;   /* ink */
+    /* Dark is the direction's home register: near-black surfaces let the
+       product photography carry the colour (design principle #2).
+       Measured: foreground 17.9:1, graphite 8.9:1, amber 9.1:1 on surface. */
+    --background: #0B0B0D;   /* ink */
     --foreground: #F4F4F2;
-    --surface: #141416;
-    --cloud: #1C1C1F;
+    --surface: #141417;      /* panel */
+    --cloud: #1B1B1F;        /* raised */
     /* Lifted from #97979E (~3.7:1 on ink, failed AA) to #ADADB5, which clears
        4.5:1 against ink AND the raised cloud/surface panels it sits on. */
     --graphite: 173 173 181;
     --text-secondary: #ADADB5;
-    --border: #262629;
+    --border: #26262B;
+    /* On near-black, raw amber clears AA as text (9.1:1) — no dark
+       variant needed, and the focus ring becomes the accent. */
+    --amber-ink: 245 166 35;
+    --ring: 245 166 35;
+    --rule: 38 38 43;
     --success: #30A46C;
     --error: #FF6369;
 
     /* Brand tokens lifted for dark contrast. Override block re-derives these. */
-    --cobalt: 92 124 255;         /* #5C7CFF */
-    --cobalt-dark: 92 124 255;
-    --cobalt-soft: 22 33 63;      /* #16213F */
-    --primary: 30 45 90;
-    --primary-dark: 22 34 71;
-    --primary-light: 42 63 122;
-    --accent: 92 124 255;
-    --accent-dark: 92 124 255;
-    --accent-light: 234 240 255;
+    --cobalt: 245 166 35;         /* #F5A623 — 9.1:1 on panel, clears AA */
+    --cobalt-dark: 255 176 32;    /* #FFB020 — hover lifts, not darkens */
+    --cobalt-soft: 47 33 8;       /* #2F2108 — signal tint on near-black */
+    /* On dark, "primary" surfaces invert: paper-white fills carry primary
+       actions the way ink does on light. */
+    --primary: 244 244 242;
+    --primary-dark: 255 255 255;
+    --primary-light: 212 212 208;
+    --accent: 245 166 35;
+    --accent-dark: 255 176 32;
+    --accent-light: 47 33 8;
   }
 
   * {
@@ -99,11 +128,46 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* keyboard focus — cobalt ring, never removed silently */
+  /* Keyboard focus — never removed silently. Rings in ink on light and
+     amber on dark; a single amber ring would be invisible on paper. */
   :focus-visible {
-    outline: 2px solid rgb(var(--cobalt));
+    outline: 2px solid rgb(var(--ring));
     outline-offset: 2px;
     border-radius: 2px;
+  }
+}
+
+@layer components {
+  /* ── Signal fills ─────────────────────────────────────────────────
+     Amber is bright in both themes, so text on an amber fill must be
+     INK, never white: white-on-#F5A623 is 2.03:1 (fails badly) while
+     ink-on-amber is 9.70:1. This class exists so that rule lives in one
+     place — the old code pinned ~20 literal `bg-[#2E5BFF] text-white`
+     fills because the cobalt token failed AA with white text. Same
+     lesson, opposite fix.
+
+     Use .signal-fill for primary actions, .signal-quiet for the tinted
+     variant, and never write `text-white` on an amber background. */
+  .signal-fill {
+    background-color: rgb(var(--cobalt));
+    color: #0B0B0D;
+  }
+  .signal-fill:hover {
+    background-color: rgb(var(--cobalt-dark));
+  }
+  .signal-quiet {
+    background-color: rgb(var(--cobalt-soft));
+    color: rgb(var(--amber-ink));
+  }
+
+  /* Ink fill — the neutral primary action. Inverts by theme so it always
+     opposes the surface it sits on. */
+  .ink-fill {
+    background-color: rgb(var(--primary));
+    color: var(--background);
+  }
+  .ink-fill:hover {
+    background-color: rgb(var(--primary-light));
   }
 }
 
@@ -111,6 +175,12 @@
   /* tight optical headline tracking for the grotesque display face */
   .tracking-display {
     letter-spacing: -0.02em;
+  }
+
+  /* Hairline rules replace card borders in this direction — a 1px rule at
+     low opacity reads as structure without boxing every item. */
+  .rule-t {
+    border-top: 1px solid rgb(var(--rule) / 1);
   }
 }
 

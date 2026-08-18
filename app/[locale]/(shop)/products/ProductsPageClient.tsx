@@ -50,10 +50,20 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
 
   const parentCategories = categories.filter((c) => !c.parentSlug);
 
-  const brands = useMemo(
-    () => Array.from(new Set(products.map((p) => p.brand))),
-    [products]
-  );
+  // Dedupe case-insensitively and sort. A plain `new Set(...)` over the raw
+  // strings listed "Apple" and "apple" as two separate filters whenever the
+  // catalogue held both spellings; scripts/normalize-brand-casing.ts cleans
+  // existing rows, and this keeps the filter honest if bad data returns.
+  const brands = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const p of products) {
+      const raw = p.brand?.trim();
+      if (!raw) continue;
+      const key = raw.toLowerCase();
+      if (!seen.has(key)) seen.set(key, raw);
+    }
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  }, [products]);
 
   const activeBrand = brandLanding ? brandRegistry.find((b) => b.slug === brandLanding) : null;
 
@@ -80,7 +90,12 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
       }
     }
 
-    if (selectedBrand !== 'all') result = result.filter((p) => p.brand === selectedBrand);
+    // Case-insensitive to match the deduped `brands` list above: an exact
+    // compare would return zero results for a spelling variant.
+    if (selectedBrand !== 'all') {
+      const want = selectedBrand.toLowerCase();
+      result = result.filter((p) => p.brand?.trim().toLowerCase() === want);
+    }
 
     switch (sortBy) {
       case 'priceAsc': result.sort((a, b) => a.price - b.price); break;
@@ -271,10 +286,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
             <div className="space-y-0.5">
               <button
                 onClick={() => setSelectedBrand('all')}
-                className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
                   selectedBrand === 'all'
-                    ? 'bg-primary text-white dark:bg-[#2E5BFF] dark:text-white font-medium'
-                    : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                    ? 'signal-quiet border-l-0 font-semibold'
+                    : 'text-graphite hover:bg-raised-light hover:text-ink dark:hover:bg-raised-dark dark:hover:text-white'
                 }`}
               >
                 {locale === 'ka' ? 'ყველა ბრენდი' : 'All Brands'}
@@ -283,10 +298,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
                 <button
                   key={brand}
                   onClick={() => setSelectedBrand(brand)}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                  className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
                     selectedBrand === brand
-                      ? 'bg-primary text-white dark:bg-[#2E5BFF] dark:text-white font-medium'
-                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                      ? 'signal-quiet font-semibold'
+                      : 'text-graphite hover:bg-raised-light hover:text-ink dark:hover:bg-raised-dark dark:hover:text-white'
                   }`}
                 >
                   {brand}

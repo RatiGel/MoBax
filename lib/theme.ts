@@ -17,8 +17,8 @@ import { connectDB } from '@/lib/mongodb';
 import { getAdminSession } from '@/lib/admin-auth';
 
 export interface StoreTheme {
-  primary: string;     // hex, e.g. #1E2D5A
-  accent: string;      // hex, e.g. #2E5BFF
+  primary: string;     // hex, e.g. #0B0B0D
+  accent: string;      // hex, e.g. #F5A623
   storeName: string;
   logoUrl: string;
   announcement: string;
@@ -26,8 +26,10 @@ export interface StoreTheme {
 
 /** Mirrors the admin ThemeClient defaults and the static tokens in globals.css. */
 export const THEME_DEFAULTS: StoreTheme = {
-  primary: '#1E2D5A',
-  accent: '#2E5BFF',
+  // Ink & Signal: ink carries primary actions, amber is the signal accent.
+  // Keep in sync with the :root defaults in app/globals.css.
+  primary: '#0B0B0D',
+  accent: '#F5A623',
   storeName: 'MoBax',
   logoUrl: '',
   announcement: '',

@@ -362,7 +362,7 @@ export function Navbar({
                      in the cart" is the badge moving, not just changing. */
                   <span
                     key={itemCount}
-                    className="absolute -right-0.5 -top-0.5 z-10 flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-full bg-[#2E5BFF] px-[5px] text-[10px] font-bold leading-none tracking-tight text-white shadow-[0_1px_4px_rgba(46,91,255,0.45)] ring-2 ring-paper motion-reduce:animate-none dark:ring-ink"
+                    className="signal-fill absolute -right-0.5 -top-0.5 z-10 flex h-[18px] min-w-[18px] animate-badge-pop items-center justify-center rounded-full px-[5px] text-[10px] font-bold leading-none tracking-tight tabular-nums ring-2 ring-paper motion-reduce:animate-none dark:ring-ink"
                   >
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
@@ -419,7 +419,7 @@ export function Navbar({
                       className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-ink/10 dark:ring-white/15"
                     />
                   ) : (
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4B72FF] to-[#2E5BFF] text-sm font-bold text-white ring-1 ring-inset ring-white/15">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-raised-light text-sm font-bold text-ink ring-1 ring-inset ring-hairline-light dark:bg-raised-dark dark:text-white dark:ring-hairline-dark">
                       {(session?.user?.name || session?.user?.email || '?')
                         .trim()
                         .charAt(0)
@@ -494,7 +494,7 @@ export function Navbar({
                 <Link
                   href={`/${locale}/register`}
                   onClick={() => setMobileOpen(false)}
-                  className="flex-1 rounded-full bg-[#2E5BFF] py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  className="signal-fill flex-1 rounded-md py-3 text-center text-sm font-semibold transition-opacity"
                 >
                   {t('register')}
                 </Link>

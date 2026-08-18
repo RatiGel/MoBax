@@ -42,8 +42,10 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/${locale}/products/${product.slug}`} className="group block">
       <div>
-        {/* Image container — product floats on cloud */}
-        <div className="relative overflow-hidden rounded-2xl bg-cloud-light dark:bg-cloud-dark aspect-square transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-ink/5">
+        {/* Image container. A hairline-ruled panel rather than a floating
+            rounded card: the direction structures the grid with rules, and
+            the product photo — not the container — carries the colour. */}
+        <div className="relative aspect-square overflow-hidden rounded-lg border border-hairline-light bg-panel-light transition-colors duration-200 group-hover:border-cobalt/50 dark:border-hairline-dark dark:bg-panel-dark">
           <Image
             src={product.images[0]}
             alt={name}
@@ -52,26 +54,25 @@ export function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
 
-          {/* Badges */}
-          <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+          {/* Badges. "New" is a quiet outline — it's information, not an
+              action — while a price cut earns the amber signal, since it's
+              the one thing on a card worth interrupting the scan for.
+              `signal-fill` owns the ink-on-amber contrast pairing. */}
+          <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
             {product.isNew && (
-              <span className="bg-ink/90 text-white text-[10px] font-medium tracking-wide px-2.5 py-1 rounded-full backdrop-blur">
+              <span className="rounded-sm bg-ink/75 px-2 py-0.5 text-[10px] font-medium tracking-wide text-white backdrop-blur">
                 {t('new')}
               </span>
             )}
-            {/* Discount badge stays on the darker cobalt in both themes: the
-                lifted dark-mode cobalt put white text at 3.63:1, under AA. */}
+            {/* The two price-cut badges are mutually exclusive — see the
+                onSale precedence note above — so at most one renders. */}
             {hasDiscount && (
-              <span className="bg-[#2E5BFF] text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+              <span className="signal-fill rounded-sm px-2 py-0.5 text-[10px] font-bold tabular-nums tracking-wide">
                 −{discountPct}%
               </span>
             )}
-            {/* Sale badge (Discounts virtual category). Same pinned fill as
-                the originalPrice badge above, for the same AA reason. The two
-                badges are mutually exclusive — see the onSale precedence note
-                above `onSale` — so at most one ever renders. */}
             {onSale && (
-              <span className="bg-[#2E5BFF] text-white text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full">
+              <span className="signal-fill rounded-sm px-2 py-0.5 text-[10px] font-bold tabular-nums tracking-wide">
                 -{salePct}%
               </span>
             )}
@@ -93,7 +94,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={handleAddToCart}
               aria-label={t('addToCart')}
-              className="absolute bottom-3 left-3 right-3 bg-ink/90 dark:bg-white/90 text-white dark:text-ink text-xs font-semibold py-2.5 rounded-full opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur hover:bg-cobalt dark:hover:bg-cobalt hover:text-white motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none"
+              className="signal-fill absolute bottom-2 left-2 right-2 flex translate-y-1 items-center justify-center gap-2 rounded-md py-2.5 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
               {t('addToCart')}
@@ -102,24 +103,31 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Card body */}
-        <div className="pt-3.5 pb-5 px-0.5">
-          <p className="text-[11px] font-medium tracking-wide text-graphite mb-1">
+        <div className="px-0.5 pb-5 pt-3">
+          <p className="mb-1 text-[11px] font-medium tracking-wide text-graphite">
             {product.brand}
           </p>
-          <h3 className="text-sm font-medium text-ink dark:text-neutral-100 line-clamp-2 leading-snug mb-2">
+          <h3 className="mb-2 line-clamp-2 text-sm font-medium leading-snug text-ink dark:text-neutral-100">
             {name}
           </h3>
 
-          <div className="flex items-center gap-1 mb-2.5">
-            <Star className="h-3 w-3 fill-ink text-ink dark:fill-white dark:text-white flex-shrink-0" />
-            <span className="text-xs font-medium text-graphite">{product.rating}</span>
-            <span className="text-xs text-graphite/70">({product.reviewCount})</span>
-          </div>
+          {/* Only show a rating once one exists. "0 (0)" reads as a BAD
+              rating rather than "not yet reviewed", which actively costs
+              trust on a catalogue where over half the items are new. */}
+          {product.reviewCount > 0 && (
+            <div className="mb-2.5 flex items-center gap-1">
+              <Star className="h-3 w-3 flex-shrink-0 fill-cobalt text-cobalt" />
+              <span className="text-xs font-medium text-ink dark:text-white tabular-nums">
+                {product.rating}
+              </span>
+              <span className="text-xs text-graphite tabular-nums">({product.reviewCount})</span>
+            </div>
+          )}
 
           <div className="flex items-baseline gap-2">
             {onSale ? (
               <>
-                <span className="text-base font-semibold text-ink dark:text-white tabular-nums">
+                <span className="text-base font-semibold tabular-nums text-amber-ink">
                   {formatPrice(product.salePrice!)}
                 </span>
                 <span className="text-sm text-graphite/70 line-through tabular-nums">

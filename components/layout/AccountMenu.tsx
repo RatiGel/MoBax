@@ -62,10 +62,10 @@ export function AccountMenu({ onNavigate }: { onNavigate?: () => void }) {
             className="h-8 w-8 rounded-full object-cover ring-1 ring-ink/10 transition-shadow group-hover:ring-2 group-hover:ring-cobalt/40 dark:ring-white/15"
           />
         ) : (
-          /* Gradient base pinned to #2E5BFF, not the `cobalt` token: the token
-             lifts to #5C7CFF in dark mode, which puts white under the 4.5:1
-             floor. The old `text-primary` (navy) on cobalt was ~2.6:1. */
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4B72FF] to-[#2E5BFF] text-[0.8125rem] font-bold text-white ring-1 ring-inset ring-white/15 transition-shadow group-hover:shadow-[0_0_0_3px_rgba(46,91,255,0.18)]">
+          /* Flat ink chip rather than a gradient: this direction spends colour
+             on actions and state, and an avatar is neither. Avoids the contrast
+             trap the old gradient had to work around — see CLAUDE.md. */
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-raised-light text-[0.8125rem] font-bold text-ink ring-1 ring-inset ring-hairline-light transition-colors group-hover:ring-cobalt dark:bg-raised-dark dark:text-white dark:ring-hairline-dark">
             {initial}
           </span>
         )}
