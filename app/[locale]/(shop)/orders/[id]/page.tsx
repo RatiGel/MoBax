@@ -175,7 +175,7 @@ function OrderTrackingInner() {
                     <span
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${
                         done
-                          ? 'bg-cobalt text-white'
+                          ? 'signal-fill'
                           : 'bg-cloud-light text-graphite dark:bg-cloud-dark'
                       }`}
                     >
@@ -204,7 +204,7 @@ function OrderTrackingInner() {
             <div className="overflow-hidden rounded-2xl border border-border-light dark:border-border-dark">
               <div className="flex items-start justify-between gap-3 p-5">
                 <div className="flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-amber-ink" />
                   <div>
                     <p className="font-medium text-ink dark:text-white">
                       {isKa ? 'აიღეთ ჩვენი მაღაზიიდან' : 'Pick up from our store'}
@@ -221,7 +221,7 @@ function OrderTrackingInner() {
                   href={STORE_LOCATION.mapsLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex shrink-0 items-center gap-1 text-sm font-semibold text-cobalt hover:underline dark:text-cobalt-dark"
+                  className="flex shrink-0 items-center gap-1 text-sm font-semibold text-amber-ink hover:underline"
                 >
                   {isKa ? 'გახსენით რუკაზე' : 'Open in Maps'}
                   <ExternalLink className="h-3.5 w-3.5" />

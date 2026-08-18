@@ -277,7 +277,7 @@ export function ChatAssistant() {
                       <button
                         key={o}
                         onClick={() => send(o)}
-                        className="rounded-full bg-cobalt/10 px-3 py-1.5 text-xs font-medium text-cobalt transition-colors hover:bg-cobalt/20 dark:bg-cobalt-dark/15 dark:text-cobalt-dark dark:hover:bg-cobalt-dark/25"
+                        className="rounded-full bg-cobalt/10 px-3 py-1.5 text-xs font-medium text-amber-ink transition-colors hover:bg-cobalt/20 dark:bg-cobalt-dark/15 dark:hover:bg-cobalt-dark/25"
                       >
                         {o}
                       </button>
@@ -309,7 +309,7 @@ export function ChatAssistant() {
                     onClick={() => send()}
                     disabled={loading || !input.trim()}
                     aria-label="Send"
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ink dark:bg-white text-white dark:text-ink disabled:opacity-40 hover:bg-cobalt dark:hover:bg-cobalt dark:hover:text-white transition-colors"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ink dark:bg-white text-white dark:text-ink disabled:opacity-40 hover:bg-cobalt hover:text-ink dark:hover:bg-cobalt dark:hover:text-ink transition-colors"
                   >
                     <Send className="h-4 w-4" />
                   </button>

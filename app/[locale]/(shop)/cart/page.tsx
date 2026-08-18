@@ -130,7 +130,7 @@ export default function CartPage() {
                   <div className="flex items-start justify-between gap-2">
                     <Link
                       href={`/${locale}/products/${item.product.slug}`}
-                      className="font-medium text-ink dark:text-white hover:text-cobalt dark:hover:text-cobalt-dark line-clamp-2 transition-colors"
+                      className="font-medium text-ink dark:text-white hover:text-amber-ink line-clamp-2 transition-colors"
                     >
                       {name}
                     </Link>
@@ -165,7 +165,7 @@ export default function CartPage() {
                           {formatPrice(item.product.originalPrice! * item.quantity)}
                         </span>
                       )}
-                      <span className="font-semibold text-cobalt dark:text-cobalt-dark tabular-nums">
+                      <span className="font-semibold text-amber-ink tabular-nums">
                         {formatPrice(item.product.price * item.quantity)}
                       </span>
                     </div>

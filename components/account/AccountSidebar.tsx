@@ -31,8 +31,8 @@ export function AccountSidebar() {
           href={href}
           className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
             isActive(href, exact)
-              ? 'bg-cobalt text-white'
-              : 'text-graphite hover:bg-cloud-light dark:hover:bg-cloud-dark'
+              ? 'signal-quiet'
+              : 'text-graphite hover:bg-raised-light hover:text-ink dark:hover:bg-raised-dark dark:hover:text-white'
           }`}
         >
           <Icon className="h-4 w-4" />

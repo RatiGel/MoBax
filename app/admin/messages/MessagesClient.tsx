@@ -246,14 +246,14 @@ export function MessagesClient() {
                         className={cn(
                           'max-w-[70%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap',
                           m.senderRole === 'staff'
-                            ? 'rounded-br-md bg-primary text-white dark:bg-accent dark:text-primary'
+                            ? 'rounded-br-md ink-fill'
                             : 'bg-neutral-100 dark:bg-neutral-800 text-ink dark:text-neutral-100 w-fit'
                         )}
                       >
                         {m.body}
                         <p className={cn(
                           'mt-1 text-[10px]',
-                          m.senderRole === 'staff' ? 'text-white/60 dark:text-primary/60' : 'text-neutral-400'
+                          m.senderRole === 'staff' ? 'opacity-60' : 'text-neutral-400'
                         )}>
                           {formatTime(m.createdAt)}
                         </p>

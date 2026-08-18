@@ -85,9 +85,9 @@ export function Header({ role, name, email }: HeaderProps) {
                           onClick={() => setMobileOpen(false)}
                           aria-current={active ? 'page' : undefined}
                           className={cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
                             active
-                              ? 'bg-primary/10 text-primary dark:bg-accent/15 dark:text-accent'
+                              ? 'bg-cobalt/10 text-amber-ink'
                               : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                           )}
                         >
@@ -126,7 +126,7 @@ export function Header({ role, name, email }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white text-sm font-medium dark:bg-accent dark:text-primary">
+              <span className="ink-fill flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium">
                 {name.charAt(0).toUpperCase()}
               </span>
               <span className="hidden sm:inline text-sm font-medium">{name}</span>
@@ -136,7 +136,7 @@ export function Header({ role, name, email }: HeaderProps) {
             <DropdownMenuLabel>
               <div className="font-medium">{name}</div>
               <div className="text-xs text-neutral-500 font-normal">{email}</div>
-              <div className="text-xs text-accent font-normal mt-0.5">{ROLE_LABELS[role]}</div>
+              <div className="text-xs text-amber-ink font-normal mt-0.5">{ROLE_LABELS[role]}</div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

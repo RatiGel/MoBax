@@ -88,7 +88,7 @@ export default function LoginPage() {
           action={
             <button
               type="button"
-              className="text-xs font-medium text-cobalt underline-offset-4 hover:underline dark:text-cobalt-dark"
+              className="text-xs font-medium text-amber-ink underline-offset-4 hover:underline"
             >
               {t('forgotPassword')}
             </button>

@@ -29,12 +29,12 @@ export function Sidebar({ role }: { role: UserRole }) {
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col border-r border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark transition-all duration-200',
+                'hidden md:flex flex-col border-r border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark transition-all duration-200',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       <div className="flex items-center gap-2.5 h-16 px-4 border-b border-border-light dark:border-border-dark">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-white dark:bg-accent dark:text-primary">
+        <span className="ink-fill flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
           <Smartphone className="h-5 w-5" />
         </span>
         {!collapsed && (
@@ -57,21 +57,21 @@ export function Sidebar({ role }: { role: UserRole }) {
                   title={collapsed ? item.label : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                     collapsed && 'justify-center px-0',
                     active
-                      ? 'bg-primary/10 text-primary dark:bg-accent/15 dark:text-accent'
+                      ? 'bg-cobalt/10 text-amber-ink'
                       : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
                   )}
                 >
                   {/* Active indicator bar — clearer than a full fill, on-brand. */}
                   <span
                     className={cn(
-                      'absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary dark:bg-accent transition-opacity',
+                'absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-cobalt transition-opacity',
                       active ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  <Icon className={cn('h-[18px] w-[18px] shrink-0', active && 'text-primary dark:text-accent')} />
+                  <Icon className={cn('h-[18px] w-[18px] shrink-0', active && 'text-amber-ink')} />
                   {!collapsed && <span className="truncate">{item.label}</span>}
                   {!collapsed && item.href === '/admin/messages' && <UnreadMessagesBadge />}
                 </Link>
@@ -88,7 +88,7 @@ export function Sidebar({ role }: { role: UserRole }) {
         rel="noopener noreferrer"
         title={collapsed ? 'View store' : undefined}
         className={cn(
-          'flex items-center gap-3 border-t border-border-light dark:border-border-dark px-4 py-3 text-sm font-medium text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
+                'flex items-center gap-3 border-t border-border-light dark:border-border-dark px-4 py-3 text-sm font-medium text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
           collapsed && 'justify-center px-0'
         )}
       >

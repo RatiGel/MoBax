@@ -175,7 +175,7 @@ export function SearchBar({ onNavigate }: { onNavigate?: () => void }) {
           <button
             type="button"
             onClick={submit}
-            className="block w-full border-t border-border-light bg-cloud-light/50 px-4 py-3 text-center text-sm font-medium text-cobalt hover:opacity-70 dark:border-border-dark dark:bg-cloud-dark dark:text-cobalt-dark transition-opacity"
+            className="block w-full border-t border-border-light bg-cloud-light/50 px-4 py-3 text-center text-sm font-medium text-amber-ink hover:opacity-70 dark:border-border-dark dark:bg-cloud-dark transition-opacity"
           >
             {t('seeAll')} →
           </button>

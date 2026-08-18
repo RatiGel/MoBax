@@ -37,7 +37,7 @@ export default function AccountOrdersPage() {
     return (
       <div className="rounded-2xl border border-border-light p-10 text-center dark:border-border-dark">
         <p className="text-graphite">{t('ordersEmpty')}</p>
-        <Link href={`/${locale}/products`} className="mt-3 inline-block font-semibold text-cobalt hover:underline dark:text-cobalt-dark">
+        <Link href={`/${locale}/products`} className="mt-3 inline-block font-semibold text-amber-ink hover:underline">
           {t('ordersShopLink')}
         </Link>
       </div>

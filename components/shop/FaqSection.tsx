@@ -38,7 +38,7 @@ export async function FaqSection({ locale }: FaqSectionProps) {
                 <span className="text-base font-semibold text-ink dark:text-white">
                   {faq.q}
                 </span>
-                <ChevronDown className="h-5 w-5 flex-shrink-0 text-graphite transition-transform group-open:rotate-180 group-open:text-cobalt" />
+                <ChevronDown className="h-5 w-5 flex-shrink-0 text-graphite transition-transform group-open:rotate-180 group-open:text-star" />
               </summary>
               <p className="mt-4 text-sm text-graphite leading-relaxed whitespace-pre-line">
                 {faq.a}

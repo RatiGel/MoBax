@@ -23,6 +23,8 @@ const config: Config = {
         /* Amber that is legible as text: real amber in dark mode, a deep
            burnt amber in light (raw #F5A623 on paper is 1.94:1 and fails). */
         'amber-ink': 'rgb(var(--amber-ink) / <alpha-value>)',
+        /* Rating stars: deepened on light so a filled glyph clears 3:1. */
+        star: 'rgb(var(--star) / <alpha-value>)',
         ring: 'rgb(var(--ring) / <alpha-value>)',
         /* Secondary text. Driven by a CSS var so it tracks the theme: the old
            hardcoded #6B6B70 stayed identical in dark mode and failed WCAG AA

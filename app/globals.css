@@ -51,6 +51,10 @@
     /* Amber that is legible as TEXT on light surfaces (5.9:1). Raw
        --amber is for fills only here. */
     --amber-ink: 138 86 0;
+    /* Rating stars are filled graphics, not text: raw amber is 1.94:1 on paper,
+       under the 3:1 floor for graphical objects. This deepened amber clears it
+       while still reading unmistakably as the accent. */
+    --star: 176 110 0;
     --rule: 231 229 223;
     /* Focus ring. Amber rings vanish on paper (1.94:1), so light mode
        rings in ink and dark mode rings in amber. */
@@ -88,6 +92,8 @@
     /* On near-black, raw amber clears AA as text (9.1:1) — no dark
        variant needed, and the focus ring becomes the accent. */
     --amber-ink: 245 166 35;
+    /* On near-black the true accent already clears 9.7:1. */
+    --star: 245 166 35;
     --ring: 245 166 35;
     --rule: 38 38 43;
     --success: #30A46C;

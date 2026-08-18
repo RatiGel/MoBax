@@ -37,7 +37,7 @@ export function StarRating({ rating, reviewCount, size = 'md', emptyLabel }: Sta
           className={cn(
             iconClass,
             star <= Math.round(rating)
-              ? 'fill-cobalt text-cobalt'
+              ? 'fill-star text-star'
               : 'text-hairline-light dark:text-hairline-dark'
           )}
         />

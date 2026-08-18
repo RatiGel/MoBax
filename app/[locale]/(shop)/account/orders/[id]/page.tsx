@@ -41,7 +41,7 @@ export default function AccountOrderDetailPage() {
     <div className="space-y-6">
       <Link
         href={`/${locale}/account/orders`}
-        className="inline-flex items-center gap-1 text-sm font-medium text-cobalt hover:underline dark:text-cobalt-dark"
+        className="inline-flex items-center gap-1 text-sm font-medium text-amber-ink hover:underline"
       >
         <ArrowLeft className="h-4 w-4" />
         {t('orderBackToList')}

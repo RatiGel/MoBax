@@ -124,7 +124,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               <div className="mt-7 flex items-center gap-3">
                 <div className="flex items-center gap-0.5" aria-hidden>
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-cobalt text-cobalt" />
+                    <Star key={i} className="h-3.5 w-3.5 fill-star text-star" />
                   ))}
                 </div>
                 <span className="text-sm font-medium text-ink dark:text-white">{hero.rating}</span>
@@ -204,7 +204,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                           aria-hidden
                           className="flex h-full w-full items-center justify-center bg-raised-light dark:bg-raised-dark"
                         >
-                          <span className="select-none font-display text-4xl font-semibold text-graphite/25 transition-colors group-hover:text-cobalt/45 sm:text-5xl">
+                          <span className="select-none font-display text-4xl font-semibold text-graphite/25 transition-colors group-hover:text-star/50 sm:text-5xl">
                             {name.trim().charAt(0)}
                           </span>
                         </div>
@@ -244,7 +244,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               </h2>
               <Link
                 href={`/${locale}/products`}
-                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-amber-ink transition-colors"
               >
                 {t('viewAll')} <ArrowRight className="h-4 w-4" />
               </Link>
@@ -271,7 +271,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               </h2>
               <Link
                 href={`/${locale}/products`}
-                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-graphite hover:text-amber-ink transition-colors"
               >
                 {t('viewAll')} <ArrowRight className="h-4 w-4" />
               </Link>
@@ -321,7 +321,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
               ] as const
             ).map((badge) => (
               <div key={badge.title} className="flex flex-col items-center text-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cobalt-soft dark:bg-cloud-dark text-cobalt dark:text-cobalt-dark">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cobalt-soft dark:bg-cloud-dark text-amber-ink">
                   <badge.Icon className="h-5 w-5" />
                 </div>
                 <div>

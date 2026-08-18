@@ -50,7 +50,7 @@ function Stars({ value }: { value: number }) {
         <Star
           key={i}
           className={
-            i < value ? 'h-3.5 w-3.5 fill-accent text-accent' : 'h-3.5 w-3.5 text-neutral-300'
+            i < value ? 'h-3.5 w-3.5 fill-star text-star' : 'h-3.5 w-3.5 text-neutral-300'
           }
         />
       ))}

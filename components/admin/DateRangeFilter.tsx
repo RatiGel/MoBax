@@ -36,7 +36,7 @@ export function DateRangeFilter({
             className={cn(
               'px-3 py-1.5 text-sm font-medium transition-colors',
               value.preset === p.value
-                ? 'bg-primary text-white dark:bg-accent dark:text-primary'
+                ? 'signal-fill'
                 : 'bg-surface-light dark:bg-surface-dark text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
             )}
           >

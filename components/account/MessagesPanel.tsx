@@ -73,8 +73,8 @@ export function MessagesPanel() {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
                     mine
-                      ? 'bg-cobalt text-white'
-                      : 'bg-cloud-light text-ink dark:bg-cloud-dark dark:text-white'
+                      ? 'ink-fill'
+                      : 'bg-raised-light text-ink dark:bg-raised-dark dark:text-white'
                   }`}
                 >
                   <p className="mb-0.5 text-[11px] opacity-70">{mine ? t('you') : t('supportTeam')}</p>

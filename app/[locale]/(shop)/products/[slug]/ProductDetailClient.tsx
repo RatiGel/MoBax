@@ -49,7 +49,7 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
       <div className="mb-10">
         <Link
           href={`/${locale}/products`}
-          className="inline-flex items-center gap-1.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors font-medium"
+          className="inline-flex items-center gap-1.5 text-sm text-graphite hover:text-amber-ink transition-colors font-medium"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           {tP('title')}
@@ -71,12 +71,12 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
             {/* Badges */}
             <div className="absolute left-4 top-4 flex flex-col gap-2">
               {product.isNew && (
-                <span className="bg-cobalt text-white text-[10px] font-medium px-3 py-1 rounded-full">
+                <span className="signal-fill text-[10px] font-semibold px-3 py-1 rounded-sm">
                   {tP('new')}
                 </span>
               )}
               {hasDiscount && (
-                <span className="bg-cobalt text-white text-[10px] font-medium px-3 py-1 rounded-full">
+                <span className="signal-fill text-[10px] font-semibold px-3 py-1 rounded-sm">
                   -{discountPct}%
                 </span>
               )}
@@ -105,7 +105,7 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
         {/* ── Product Info ──────────────────────────── */}
         <div className="space-y-7">
           <div>
-            <p className="text-xs font-medium text-cobalt dark:text-cobalt-dark mb-3">
+            <p className="text-xs font-medium text-amber-ink mb-3">
               {product.brand}
             </p>
             <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-display text-ink dark:text-white leading-tight">
@@ -130,7 +130,7 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
                 <span className="text-xl text-graphite line-through">
                   {formatPrice(product.originalPrice!)}
                 </span>
-                <span className="text-sm font-semibold text-cobalt dark:text-cobalt-dark">
+                <span className="text-sm font-semibold text-amber-ink">
                   Save {discountPct}%
                 </span>
               </>

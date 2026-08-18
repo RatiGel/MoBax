@@ -116,7 +116,7 @@ export function ProductCard({ product }: ProductCardProps) {
               trust on a catalogue where over half the items are new. */}
           {product.reviewCount > 0 && (
             <div className="mb-2.5 flex items-center gap-1">
-              <Star className="h-3 w-3 flex-shrink-0 fill-cobalt text-cobalt" />
+              <Star className="h-3 w-3 flex-shrink-0 fill-star text-star" />
               <span className="text-xs font-medium text-ink dark:text-white tabular-nums">
                 {product.rating}
               </span>

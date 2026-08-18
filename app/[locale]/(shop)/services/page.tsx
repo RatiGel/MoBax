@@ -136,7 +136,7 @@ export default async function ServicesPage({ params: { locale } }: Props) {
         <div className="mt-14 grid gap-6 rounded-3xl border border-border-light bg-cloud-light/50 p-8 dark:border-border-dark dark:bg-cloud-dark/30 sm:grid-cols-3">
           {perks.map((p) => (
             <div key={p.title} className="flex gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-light text-cobalt dark:bg-surface-dark dark:text-cobalt-dark">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-light text-amber-ink dark:bg-surface-dark">
                 <p.icon className="h-5 w-5" />
               </div>
               <div>
@@ -180,7 +180,7 @@ export default async function ServicesPage({ params: { locale } }: Props) {
                     <div className="p-6">
                       <h3 className="font-display text-lg font-semibold text-ink dark:text-white">{name}</h3>
                       {desc && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-graphite">{desc}</p>}
-                      <p className="mt-3 font-semibold text-cobalt dark:text-cobalt-dark">
+                      <p className="mt-3 font-semibold text-amber-ink">
                         {t('startsFrom', { price: c.priceFrom })}
                       </p>
                     </div>
@@ -201,10 +201,10 @@ export default async function ServicesPage({ params: { locale } }: Props) {
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {steps.map((step, i) => (
               <div key={step.title} className="relative text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cobalt-soft text-cobalt dark:bg-cloud-dark dark:text-cobalt-dark">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-cobalt-soft text-amber-ink dark:bg-cloud-dark">
                   <step.icon className="h-6 w-6" />
                 </div>
-                <span className="mt-4 block font-display text-sm font-semibold text-cobalt dark:text-cobalt-dark">
+                <span className="mt-4 block font-display text-sm font-semibold text-amber-ink">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-1 font-semibold text-ink dark:text-white">{step.title}</h3>
@@ -225,12 +225,12 @@ export default async function ServicesPage({ params: { locale } }: Props) {
               </h2>
               {address && (
                 <div className="mt-6 flex items-start gap-3">
-                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-amber-ink" />
                   <p className="text-graphite">{address}</p>
                 </div>
               )}
               <div className="mt-4 flex items-start gap-3">
-                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-amber-ink" />
                 <p className="text-graphite">
                   {isKa ? 'ორშ–შაბ 11:00–20:00' : 'Mon–Sat 11:00–20:00'}
                 </p>

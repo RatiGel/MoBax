@@ -286,7 +286,7 @@ export function ThemeClient() {
                       <button
                         type="button"
                         onClick={() => setLogoUrlMode((m) => !m)}
-                        className="text-xs font-medium text-accent underline-offset-2 hover:underline"
+                        className="text-xs font-medium text-amber-ink underline-offset-2 hover:underline"
                       >
                         {logoUrlMode ? 'Upload instead' : 'Paste a URL instead'}
                       </button>
@@ -452,8 +452,7 @@ export function ThemeClient() {
 }
 
 const FONT_STACKS: Record<Typography['displayFont'] | Typography['bodyFont'], string> = {
-  Inter: "'Inter', system-ui, sans-serif",
-  'Space Grotesk': "'Space Grotesk', 'Inter', system-ui, sans-serif",
+  Inter: "'Inter', system-ui, sans-serif", 'Space Grotesk': "'Space Grotesk', 'Inter', system-ui, sans-serif",
   System: 'system-ui, -apple-system, sans-serif',
 };
 

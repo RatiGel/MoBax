@@ -90,7 +90,7 @@ export function SupportChat({ active }: { active: boolean }) {
         <p className="text-sm text-ink dark:text-neutral-100">{t('loginPrompt')}</p>
         <Link
           href={`/${locale}/login`}
-          className="flex items-center gap-2 rounded-full bg-ink dark:bg-white px-5 py-2.5 text-sm font-medium text-white dark:text-ink hover:bg-cobalt dark:hover:bg-cobalt dark:hover:text-white transition-colors"
+          className="flex items-center gap-2 rounded-full bg-ink dark:bg-white px-5 py-2.5 text-sm font-medium text-white dark:text-ink hover:bg-cobalt hover:text-ink dark:hover:bg-cobalt dark:hover:text-ink transition-colors"
         >
           <LogIn className="h-4 w-4" />
           {t('loginCta')}
@@ -164,7 +164,7 @@ export function SupportChat({ active }: { active: boolean }) {
             onClick={send}
             disabled={sending || !input.trim()}
             aria-label={t('send')}
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ink dark:bg-white text-white dark:text-ink disabled:opacity-40 hover:bg-cobalt dark:hover:bg-cobalt dark:hover:text-white transition-colors"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ink dark:bg-white text-white dark:text-ink disabled:opacity-40 hover:bg-cobalt hover:text-ink dark:hover:bg-cobalt dark:hover:text-ink transition-colors"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>

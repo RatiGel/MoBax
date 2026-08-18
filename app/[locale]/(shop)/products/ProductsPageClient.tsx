@@ -125,7 +125,7 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
       {/* Page header */}
       <div className="mb-10 border-b border-border-light dark:border-border-dark pb-8">
         {activeBrand && (
-          <p className="text-xs font-medium text-cobalt dark:text-cobalt-dark mb-2">
+          <p className="text-xs font-medium text-amber-ink mb-2">
             {activeBrand.type === 'device'
               ? (locale === 'ka' ? 'აქსესუარები' : 'Accessories for')
               : (locale === 'ka' ? 'ბრენდი' : 'Brand')}

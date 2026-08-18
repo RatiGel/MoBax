@@ -295,7 +295,7 @@ export default function CheckoutPage() {
                 <p className="text-sm text-graphite">{t('loginPrompt')}</p>
                 <Link
                   href={`/${locale}/login?callbackUrl=/${locale}/checkout`}
-                  className="text-sm font-semibold text-cobalt hover:underline dark:text-cobalt-dark"
+                  className="text-sm font-semibold text-amber-ink hover:underline"
                 >
                   {t('signIn')}
                 </Link>
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                               : 'border-border-light hover:border-cobalt/50 dark:border-border-dark'}
                             ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                         >
-                          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? 'bg-cobalt text-white' : 'bg-cloud-light text-graphite dark:bg-cloud-dark'}`}>
+                          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${selected ? 'signal-fill' : 'bg-raised-light text-graphite dark:bg-raised-dark'}`}>
                             <Icon className="h-5 w-5" />
                           </span>
                           <span className="min-w-0 flex-1">
@@ -416,7 +416,7 @@ export default function CheckoutPage() {
                             <span className={`font-semibold tabular-nums ${fee === 0 ? 'text-success' : 'text-ink dark:text-white'}`}>
                               {fee === 0 ? t('free') : formatPrice(fee)}
                             </span>
-                            {selected && <Check className="h-4 w-4 text-cobalt" />}
+                            {selected && <Check className="h-4 w-4 text-amber-ink" />}
                           </span>
                         </button>
                         {m === 'instant' && (
@@ -428,7 +428,7 @@ export default function CheckoutPage() {
                         {m === 'pickup' && selected && (
                           <div className="mt-3 flex items-start justify-between gap-3 rounded-xl border border-border-light p-4 dark:border-border-dark">
                             <div className="flex items-start gap-3">
-                              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-amber-ink" />
                               <div>
                                 <p className="font-medium text-ink dark:text-white">{t('storeAddressTitle')}</p>
                                 <p className="text-sm text-graphite">{isKa ? STORE_LOCATION.addressKa : STORE_LOCATION.addressEn}</p>
@@ -439,7 +439,7 @@ export default function CheckoutPage() {
                               href={STORE_LOCATION.mapsLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex shrink-0 items-center gap-1 text-sm font-semibold text-cobalt hover:underline dark:text-cobalt-dark"
+                              className="flex shrink-0 items-center gap-1 text-sm font-semibold text-amber-ink hover:underline"
                             >
                               {t('openInMaps')}
                               <ExternalLink className="h-3.5 w-3.5" />
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {trustItems.map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-2 rounded-xl border border-border-light px-3 py-2.5 dark:border-border-dark">
-                <Icon className="h-4 w-4 shrink-0 text-cobalt dark:text-cobalt-dark" />
+                <Icon className="h-4 w-4 shrink-0 text-amber-ink" />
                 <span className="text-[11px] leading-tight text-graphite">{label}</span>
               </div>
             ))}
@@ -503,7 +503,7 @@ export default function CheckoutPage() {
                             {formatPrice(item.product.originalPrice! * item.quantity)}
                           </span>
                         )}
-                        <span className="font-semibold text-cobalt dark:text-cobalt-dark tabular-nums">
+                        <span className="font-semibold text-amber-ink tabular-nums">
                           {formatPrice(item.product.price * item.quantity)}
                         </span>
                       </div>
@@ -555,7 +555,7 @@ export default function CheckoutPage() {
                 <div className="space-y-2 border-t border-border-light px-6 py-4 dark:border-border-dark">
                   <div className="flex items-baseline justify-between rounded-xl border border-cobalt/20 bg-cobalt-soft px-3 py-2.5 dark:bg-cloud-dark">
                     <span className="text-sm font-bold text-ink dark:text-white">{t('payNowLabel')}</span>
-                    <span className="text-base font-bold text-cobalt dark:text-cobalt-dark tabular-nums">{formatPrice(payNow)}</span>
+                    <span className="text-base font-bold text-amber-ink tabular-nums">{formatPrice(payNow)}</span>
                   </div>
                   <div className="flex items-baseline justify-between px-3">
                     <span className="text-xs text-graphite">{t('payCourierLabel')}</span>

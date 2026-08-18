@@ -40,7 +40,7 @@ export function AuthShell({
           {footerText}{' '}
           <Link
             href={footerHref}
-            className="font-medium text-cobalt underline-offset-4 hover:underline dark:text-cobalt-dark"
+            className="font-medium text-amber-ink underline-offset-4 hover:underline"
           >
             {footerLinkLabel}
           </Link>

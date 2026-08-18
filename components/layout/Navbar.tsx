@@ -130,7 +130,7 @@ export function Navbar({
               ) : (
                 <span className="font-display text-2xl font-semibold tracking-display">
                   <span className="text-ink dark:text-white">{logoHead}</span>
-                  <span className="text-cobalt dark:text-cobalt-dark">{logoTail}</span>
+                  <span className="text-amber-ink">{logoTail}</span>
                 </span>
               )}
             </Link>
@@ -218,7 +218,7 @@ export function Navbar({
                       <div className="border-t border-border-light bg-cloud-light p-3.5 dark:border-border-dark dark:bg-cloud-dark">
                         <Link
                           href={`/${locale}/products`}
-                          className="flex items-center gap-1 text-xs font-semibold text-cobalt transition-opacity hover:opacity-70 dark:text-cobalt-dark"
+                          className="flex items-center gap-1 text-xs font-semibold text-amber-ink transition-opacity hover:opacity-70"
                         >
                           {locale === 'ka' ? 'ყველა პროდუქტი →' : 'View all products →'}
                         </Link>
@@ -254,7 +254,7 @@ export function Navbar({
                               className="flex items-center gap-3 p-4 bg-surface-light dark:bg-surface-dark hover:bg-cobalt-soft dark:hover:bg-cloud-dark group transition-colors"
                             >
                               <div>
-                                <p className="text-sm font-semibold text-ink dark:text-neutral-100 group-hover:text-cobalt dark:group-hover:text-cobalt-dark transition-colors">
+                                <p className="text-sm font-semibold text-ink dark:text-neutral-100 group-hover:text-amber-ink transition-colors">
                                   {catName}
                                 </p>
                                 <p className="text-xs text-graphite mt-0.5">
@@ -272,7 +272,7 @@ export function Navbar({
                             className="flex items-center gap-3 p-4 bg-surface-light dark:bg-surface-dark hover:bg-cobalt-soft dark:hover:bg-cloud-dark group transition-colors"
                           >
                             <div>
-                              <p className="text-sm font-semibold text-ink dark:text-neutral-100 group-hover:text-cobalt dark:group-hover:text-cobalt-dark transition-colors">
+                              <p className="text-sm font-semibold text-ink dark:text-neutral-100 group-hover:text-amber-ink transition-colors">
                                 {locale === 'ka' ? 'ფასდაკლებები' : 'Discounts'}
                               </p>
                               <p className="text-xs text-graphite mt-0.5">
@@ -285,7 +285,7 @@ export function Navbar({
                       <div className="p-3.5 bg-cloud-light dark:bg-cloud-dark border-t border-border-light dark:border-border-dark">
                         <Link
                           href={`/${locale}/products`}
-                          className="text-xs font-semibold text-cobalt dark:text-cobalt-dark hover:opacity-70 transition-opacity flex items-center gap-1"
+                          className="text-xs font-semibold text-amber-ink hover:opacity-70 transition-opacity flex items-center gap-1"
                         >
                           {locale === 'ka' ? 'ყველა კატეგორია →' : 'View all categories →'}
                         </Link>
@@ -487,7 +487,7 @@ export function Navbar({
                 <Link
                   href={`/${locale}/login`}
                   onClick={() => setMobileOpen(false)}
-                  className="flex-1 rounded-full border border-border-light py-3 text-center text-sm font-semibold text-ink transition-colors hover:border-cobalt hover:text-cobalt dark:border-border-dark dark:text-white"
+                  className="flex-1 rounded-full border border-border-light py-3 text-center text-sm font-semibold text-ink transition-colors hover:border-cobalt hover:text-amber-ink dark:border-border-dark dark:text-white"
                 >
                   {t('login')}
                 </Link>
@@ -541,7 +541,7 @@ export function Navbar({
                   <Link
                     key={b.slug}
                     href={`/${locale}/products?brand=${b.slug}`}
-                    className="py-2.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                    className="py-2.5 text-sm text-graphite hover:text-amber-ink transition-colors"
                     onClick={() => setMobileOpen(false)}
                   >
                     {b.name}
@@ -557,7 +557,7 @@ export function Navbar({
                 <Link
                   key={cat.id}
                   href={`/${locale}/products?category=${cat.slug}`}
-                  className="flex items-center gap-3 py-2.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                  className="flex items-center gap-3 py-2.5 text-sm text-graphite hover:text-amber-ink transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   {locale === 'ka' ? cat.nameKa : cat.nameEn}
@@ -566,7 +566,7 @@ export function Navbar({
               {showDiscounts && (
                 <Link
                   href={`/${locale}/products/discounts`}
-                  className="flex items-center gap-3 py-2.5 text-sm text-graphite hover:text-cobalt dark:hover:text-cobalt-dark transition-colors"
+                  className="flex items-center gap-3 py-2.5 text-sm text-graphite hover:text-amber-ink transition-colors"
                   onClick={() => setMobileOpen(false)}
                 >
                   {locale === 'ka' ? 'ფასდაკლებები' : 'Discounts'}

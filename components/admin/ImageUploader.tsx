@@ -132,13 +132,13 @@ export function ImageUploader({ value, onChange, folder }: ImageUploaderProps) {
             onDragLeave={() => setDragActive(false)}
             onDrop={onDrop}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-8 text-center transition-colors hover:border-accent',
+                'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-light dark:border-border-dark px-4 py-8 text-center transition-colors hover:border-cobalt',
               dragActive && 'border-accent bg-accent/5'
             )}
           >
             <ImagePlus className="h-6 w-6 text-neutral-400" />
             <div className="text-sm text-neutral-600 dark:text-neutral-300">
-              <span className="font-medium text-accent">Click to upload</span> or drag & drop
+              <span className="font-medium text-amber-ink">Click to upload</span> or drag & drop
             </div>
             <p className="text-xs text-neutral-500">PNG, JPG, WEBP — multiple allowed, max 5 MB each</p>
             <input

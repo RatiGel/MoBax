@@ -38,8 +38,8 @@ export function StatCard({
               className={cn(
                 'flex h-10 w-10 items-center justify-center rounded-lg',
                 accent
-                  ? 'bg-accent/15 text-accent'
-                  : 'bg-primary/10 text-primary dark:bg-accent/15 dark:text-accent'
+                  ? 'bg-cobalt/15 text-amber-ink'
+                  : 'bg-raised-light text-graphite dark:bg-raised-dark'
               )}
             >
               <Icon className="h-5 w-5" />
