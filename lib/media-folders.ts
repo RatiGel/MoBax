@@ -3,5 +3,5 @@
 // models/Media.ts, which imports mongoose and would drag the Node-only
 // mongodb driver into the browser bundle if imported from a client component.
 
-export const MEDIA_FOLDERS = ['products', 'categories', 'services', 'content', 'theme'] as const;
+export const MEDIA_FOLDERS = ['products', 'categories', 'services', 'content', 'theme', 'brands'] as const;
 export type MediaFolder = (typeof MEDIA_FOLDERS)[number];

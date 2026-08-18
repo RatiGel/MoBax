@@ -23,6 +23,7 @@ const FOLDER_MODULES: Record<MediaFolder, AdminModule[]> = {
   services: ['content'],
   content: ['content'],
   theme: ['theme'],
+  brands: ['brands', 'content'],
 };
 
 function isMediaFolder(value: unknown): value is MediaFolder {

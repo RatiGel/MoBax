@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Brand } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface BrandStripProps {
   brands: Brand[];
@@ -47,18 +48,36 @@ export function BrandStrip({ brands, locale, title, viewAllLabel }: BrandStripPr
             <li key={brand.slug}>
               <Link
                 href={`/${locale}/products?brand=${brand.slug}`}
-                className="group flex h-24 items-center justify-center bg-panel-light px-4 transition-colors hover:bg-raised-light dark:bg-panel-dark dark:hover:bg-raised-dark"
+                /* Logo tiles keep a near-white plate in dark mode: brand marks
+                   are supplied for a light background and must not be
+                   recoloured, so the surface adapts instead of the logo.
+                   Wordmark tiles follow the theme normally. */
+                className={cn(
+                  'group flex h-24 items-center justify-center px-4 transition-colors',
+                  brand.logoUrl
+                    ? 'bg-white hover:bg-neutral-50 dark:bg-neutral-100 dark:hover:bg-white'
+                    : 'bg-panel-light hover:bg-raised-light dark:bg-panel-dark dark:hover:bg-raised-dark'
+                )}
               >
                 {brand.logoUrl ? (
-                  <span className="relative block h-8 w-full">
+                  /* Logos arrive in mixed aspect ratios, so the box is sized
+                     generously and `contain` fits the mark inside it — a wide
+                     wordmark and a square glyph both land at a comparable
+                     optical weight without cropping either.
+
+                     No colour filtering here. An `invert` would rescue a solid
+                     black mark on the dark panel but wreck every coloured one
+                     (Google's four colours, JBL's orange), and brand marks are
+                     the one asset a store must not recolour. Instead the tile
+                     keeps a near-white plate in both themes so logos sit on the
+                     background they were designed for. */
+                  <span className="relative block h-10 w-full px-2">
                     <Image
                       src={brand.logoUrl}
                       alt={brand.name}
                       fill
-                      sizes="150px"
-                      /* Logos arrive in mixed aspect ratios and colours;
-                         `contain` keeps them whole instead of cropping. */
-                      className="object-contain object-center"
+                      sizes="(max-width: 640px) 45vw, 200px"
+                      className="object-contain object-center transition-transform duration-200 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     />
                   </span>
                 ) : (

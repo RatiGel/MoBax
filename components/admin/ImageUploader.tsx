@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { ImagePlus, Loader2, Star, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import type { MediaFolder } from '@/lib/media-folders';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MediaLibraryPicker } from '@/components/admin/MediaLibraryPicker';
 
@@ -12,7 +13,7 @@ interface ImageUploaderProps {
   onChange: (urls: string[]) => void;
   /** Logical folder this upload belongs to — determines the Cloudinary
    * folder and the RBAC module checked server-side. Defaults to 'products'. */
-  folder?: 'products' | 'categories' | 'services' | 'content' | 'theme';
+  folder?: MediaFolder;
 }
 
 interface UploadResult {

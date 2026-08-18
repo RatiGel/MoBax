@@ -7,6 +7,7 @@ import { DataTable, type Column } from '@/components/admin/DataTable';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SingleImageUploader } from '@/components/admin/SingleImageUploader';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -214,12 +215,17 @@ export function BrandsClient() {
             <Field label="Name" required>
               <Input value={values.name} onChange={(e) => set('name', e.target.value)} />
             </Field>
-            <Field label="Logo URL">
-              <Input
+            <Field label="Logo">
+              <SingleImageUploader
                 value={values.logoUrl}
-                onChange={(e) => set('logoUrl', e.target.value)}
-                placeholder="https://…"
+                onChange={(url) => set('logoUrl', url)}
+                folder="brands"
               />
+              <p className="mt-1.5 text-[11px] text-neutral-500">
+                Shown in the All Brands strip on the home page. Brands without a
+                logo fall back to their name as text. A transparent PNG or SVG
+                works best — the logo is fitted, never cropped.
+              </p>
             </Field>
 
             <DialogFooter>
