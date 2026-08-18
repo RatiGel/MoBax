@@ -22,6 +22,7 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
   const locale = useLocale();
   const t = useTranslations('product');
   const tP = useTranslations('products');
+  const tReviews = useTranslations('reviews');
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -111,7 +112,11 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
               {name}
             </h1>
             <div className="mt-4">
-              <StarRating rating={product.rating} reviewCount={product.reviewCount} />
+              <StarRating
+                rating={product.rating}
+                reviewCount={product.reviewCount}
+                emptyLabel={tReviews('noReviewsShort')}
+              />
             </div>
           </div>
 
@@ -176,8 +181,9 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
                 longer than "Add to cart", and 0.15em on top of it overflows the
                 button at 390px. Latin keeps the original letter-spacing. */}
             <Button
+              variant="accent"
               className={cn(
-                'flex-1 h-12 text-xs font-bold uppercase min-w-0',
+                'h-12 min-w-0 flex-1 text-xs font-bold uppercase',
                 locale === 'ka' ? 'tracking-normal' : 'tracking-[0.15em]'
               )}
               onClick={handleAddToCart}

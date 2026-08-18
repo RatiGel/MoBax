@@ -307,7 +307,8 @@
     "signIn": "Sign in",
     "pendingNotice": "Thanks! Your review was submitted and will appear after approval.",
     "verified": "Verified purchase",
-    "basedOn": "Based on {count} reviews"
+    "basedOn": "Based on {count} reviews",
+    "noReviewsShort": "No reviews yet"
   },
   "support": {
     "tabAi": "Mobi AI",

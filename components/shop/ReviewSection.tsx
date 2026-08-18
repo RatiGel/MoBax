@@ -89,7 +89,7 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
         </h2>
         {data.count > 0 && (
           <div className="flex items-center gap-3">
-            <StarRating rating={data.averageRating} reviewCount={data.count} />
+            <StarRating rating={data.averageRating} reviewCount={data.count} emptyLabel={false} />
             <span className="text-xs text-graphite">
               {t('basedOn', { count: data.count })}
             </span>
@@ -110,7 +110,7 @@ export function ReviewSection({ productSlug }: { productSlug: string }) {
                   className="rounded-2xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-5"
                 >
                   <div className="mb-1.5 flex items-center gap-2">
-                    <StarRating rating={r.rating} size="sm" />
+                    <StarRating rating={r.rating} size="sm" emptyLabel={false} />
                     {r.isVerifiedPurchase && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
                         <BadgeCheck className="h-3.5 w-3.5" />
