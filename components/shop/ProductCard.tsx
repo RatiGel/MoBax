@@ -94,7 +94,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={handleAddToCart}
               aria-label={t('addToCart')}
-              className="signal-fill absolute bottom-2 left-2 right-2 flex translate-y-1 items-center justify-center gap-2 rounded-md py-2.5 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none"
+              className="signal-fill absolute bottom-2 left-2 right-2 hidden translate-y-1 items-center justify-center gap-2 rounded-md py-2.5 text-xs font-semibold opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 focus-visible:translate-y-0 focus-visible:opacity-100 motion-reduce:transition-none [@media(hover:hover)]:flex"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
               {t('addToCart')}

@@ -150,7 +150,7 @@ export function HeroProduct({ products }: { products: Product[] }) {
 
         {/* Floating chip — name, price, one-tap add. Sits outside the track so
             it never slides; it swaps to the active product's details. */}
-        <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-border-light/60 bg-surface-light/90 px-4 py-3 backdrop-blur dark:border-border-dark/60 dark:bg-surface-dark/90">
+        <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-border-light/60 bg-surface-light/90 py-3 pl-4 pr-16 backdrop-blur sm:pr-4 dark:border-border-dark/60 dark:bg-surface-dark/90">
           <div className="min-w-0" aria-live="polite" aria-atomic>
             <p className="truncate text-sm font-semibold text-ink dark:text-white">{activeName}</p>
             <p className="text-sm font-medium text-graphite tabular-nums">{formatPrice(active.price)}</p>

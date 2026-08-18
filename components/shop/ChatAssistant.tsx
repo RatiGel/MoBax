@@ -138,14 +138,14 @@ export function ChatAssistant() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t.open}
-        className="fixed bottom-5 right-5 z-50 h-14 w-14 rounded-full bg-ink dark:bg-white text-white dark:text-ink shadow-xl shadow-ink/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-3 right-3 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-ink text-white shadow-xl shadow-ink/20 transition-transform hover:scale-105 active:scale-95 sm:bottom-5 sm:right-5 sm:h-14 sm:w-14 dark:bg-white dark:text-ink"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-24 right-5 z-50 flex h-[560px] max-h-[calc(100vh-7rem)] w-[calc(100vw-2.5rem)] max-w-sm flex-col overflow-hidden rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-2xl shadow-ink/20 animate-slide-down">
+        <div className="fixed bottom-[4.25rem] right-3 z-50 flex h-[560px] sm:bottom-24 sm:right-5 max-h-[calc(100vh-7rem)] w-[calc(100vw-1.5rem)] max-w-sm sm:w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-2xl shadow-ink/20 animate-slide-down">
           {/* Tabs */}
           <div className="flex border-b border-border-light dark:border-border-dark">
             {(
