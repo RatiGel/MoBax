@@ -12,14 +12,20 @@ import {
   getParentCategories,
   getCategoryProductCounts,
 } from '@/lib/catalog';
+import { getPageSection, getPageSeo, pickLocalized, pickPlain } from '@/lib/page-content';
 
 interface HomePageProps {
   params: { locale: string };
 }
 
 export async function generateMetadata({ params: { locale } }: HomePageProps) {
+  // SEO title/description are admin-editable (Admin → Content → Home → SEO).
+  // Blank or unsaved falls back to the built-in default.
+  const seo = await getPageSeo('home');
+  const fallback = `MoBax — ${locale === 'ka' ? 'პრემიუმ მობილური აქსესუარები' : 'Premium Mobile Accessories'}`;
   return {
-    title: `MoBax — ${locale === 'ka' ? 'პრემიუმ მობილური აქსესუარები' : 'Premium Mobile Accessories'}`,
+    title: seo?.title || fallback,
+    ...(seo?.description ? { description: seo.description } : {}),
   };
 }
 
@@ -30,12 +36,30 @@ export const revalidate = 60;
 export default async function HomePage({ params: { locale } }: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('home');
-  const [featured, newArrivals, allParents, categoryCounts] = await Promise.all([
+  const [featured, newArrivals, allParents, categoryCounts, heroContent] = await Promise.all([
     getFeaturedProducts(),
     getNewArrivals(),
     getParentCategories(),
     getCategoryProductCounts(),
+    getPageSection('home', 'hero'),
   ]);
+
+  // Hero copy is admin-editable (Admin → Content → Home → Hero section). Every
+  // field falls back to the i18n default, so an unsaved or partly-filled hero
+  // section renders exactly as it did before the CMS was wired in.
+  const hero = {
+    badge:
+      pickLocalized(heroContent, 'badge', locale) ??
+      (locale === 'ka' ? '5+ წლიანი გამოცდილება' : '5+ Years of Experience'),
+    heading: pickLocalized(heroContent, 'heading', locale) ?? t('heroTitle'),
+    subheading: pickLocalized(heroContent, 'subheading', locale) ?? t('heroSubtitle'),
+    rating: pickPlain(heroContent, 'rating') ?? '4.8',
+    trust: pickLocalized(heroContent, 'trust', locale) ?? t('heroTrust'),
+    ctaLabel: pickLocalized(heroContent, 'ctaLabel', locale) ?? t('heroShop'),
+    ctaHref: pickPlain(heroContent, 'ctaHref') ?? `/${locale}/products`,
+    ctaSecondaryLabel: pickLocalized(heroContent, 'ctaSecondaryLabel', locale) ?? t('heroBrowse'),
+    ctaSecondaryHref: pickPlain(heroContent, 'ctaSecondaryHref') ?? `/${locale}/products`,
+  };
   // Exclude the "most-popular" pseudo-category — it's a /products filter,
   // not a real product group, so it doesn't belong in the home grid.
   const categories = allParents.filter((c) => c.slug !== 'most-popular');
@@ -59,13 +83,13 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
             <div className="animate-fade-up">
               <span className="inline-flex items-center gap-2 rounded-full border border-border-light dark:border-border-dark px-3.5 py-1.5 text-xs font-medium text-graphite">
                 <span className="h-1.5 w-1.5 rounded-full bg-cobalt" />
-                {locale === 'ka' ? '5+ წლიანი გამოცდილება' : '5+ Years of Experience'}
+                {hero.badge}
               </span>
               <h1 className="mt-6 font-display text-5xl sm:text-6xl lg:text-7xl font-semibold text-ink dark:text-white leading-[1.04] tracking-display">
-                {t('heroTitle')}
+                {hero.heading}
               </h1>
               <p className="mt-6 text-lg text-graphite leading-relaxed max-w-md">
-                {t('heroSubtitle')}
+                {hero.subheading}
               </p>
 
               {/* Social proof — stars + customer count, the moment trust is built */}
@@ -75,23 +99,23 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                     <Star key={i} className="h-4 w-4 fill-cobalt text-cobalt dark:fill-cobalt-dark dark:text-cobalt-dark" />
                   ))}
                 </div>
-                <span className="text-sm font-medium text-ink dark:text-white">4.8</span>
-                <span className="text-sm text-graphite">· {t('heroTrust')}</span>
+                <span className="text-sm font-medium text-ink dark:text-white">{hero.rating}</span>
+                <span className="text-sm text-graphite">· {hero.trust}</span>
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  href={`/${locale}/products`}
+                  href={hero.ctaHref}
                   className="group inline-flex items-center gap-2.5 bg-ink dark:bg-white text-white dark:text-ink px-7 py-3.5 text-sm font-semibold rounded-full hover:bg-cobalt dark:hover:bg-cobalt dark:hover:text-white transition-colors"
                 >
-                  {t('heroShop')}
+                  {hero.ctaLabel}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
                 <Link
-                  href={`/${locale}/products`}
+                  href={hero.ctaSecondaryHref}
                   className="inline-flex items-center gap-2.5 border border-border-light dark:border-border-dark text-ink dark:text-white px-7 py-3.5 text-sm font-semibold rounded-full hover:border-ink dark:hover:border-white transition-colors"
                 >
-                  {t('heroBrowse')}
+                  {hero.ctaSecondaryLabel}
                 </Link>
               </div>
             </div>

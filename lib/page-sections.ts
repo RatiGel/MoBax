@@ -23,6 +23,12 @@ export interface SectionFieldSpec {
   label: string;
   type: SectionFieldType;
   bilingual: boolean;
+  /**
+   * Optional fields may be left blank. The storefront falls back to its own
+   * built-in default for these (see the hero fields below), so requiring them
+   * would block a save for no benefit. Omitted means required.
+   */
+  optional?: boolean;
 }
 
 function isSectionKind(value: unknown): value is SectionKind {
@@ -31,11 +37,16 @@ function isSectionKind(value: unknown): value is SectionKind {
 
 export const SECTION_SCHEMAS: Record<SectionKind, SectionFieldSpec[]> = {
   hero: [
+    { key: 'badge', label: 'Badge (small pill above heading)', type: 'text', bilingual: true, optional: true },
     { key: 'heading', label: 'Heading', type: 'text', bilingual: true },
     { key: 'subheading', label: 'Subheading', type: 'textarea', bilingual: true },
     { key: 'image', label: 'Image', type: 'image', bilingual: false },
-    { key: 'ctaLabel', label: 'Button label', type: 'text', bilingual: true },
-    { key: 'ctaHref', label: 'Button link', type: 'url', bilingual: false },
+    { key: 'rating', label: 'Rating shown next to stars (e.g. 4.8)', type: 'text', bilingual: false },
+    { key: 'trust', label: 'Trust line (next to rating)', type: 'text', bilingual: true, optional: true },
+    { key: 'ctaLabel', label: 'Primary button label', type: 'text', bilingual: true, optional: true },
+    { key: 'ctaHref', label: 'Primary button link', type: 'url', bilingual: false },
+    { key: 'ctaSecondaryLabel', label: 'Secondary button label', type: 'text', bilingual: true, optional: true },
+    { key: 'ctaSecondaryHref', label: 'Secondary button link', type: 'url', bilingual: false },
   ],
   text: [{ key: 'body', label: 'Body', type: 'textarea', bilingual: true }],
   banner: [
@@ -106,7 +117,9 @@ export function validateSection(
   for (const field of schema) {
     if (field.bilingual) {
       // Only the English side is required. Georgian is warned about in the
-      // UI (BilingualField), never blocked here.
+      // UI (BilingualField), never blocked here. Fields marked `optional` are
+      // skipped entirely — the storefront has a fallback for them.
+      if (field.optional) continue;
       const enKey = `${field.key}En`;
       if (!isFilled(record[enKey], field.type)) {
         errors.push(`${enKey} is required`);

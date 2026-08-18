@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
+import { revalidateStorefront } from '@/lib/revalidate';
 import { PageKeySchema, UpdatePageSchema } from '@/lib/validations';
 import { validateSection } from '@/lib/page-sections';
 import Page from '@/models/Page';
@@ -76,6 +77,10 @@ async function upsertPage(req: NextRequest, { params }: Params) {
   await logActivity(session, 'page.update', 'Page', pageKey, {
     sections: parsed.data.sections.length,
   });
+
+  // Storefront pages are ISR at 60s; without this a content edit takes up to a
+  // minute to show. Same treatment catalog and settings writes already get.
+  revalidateStorefront('content');
 
   return ok({ ...page, exists: true });
 }

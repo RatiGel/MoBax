@@ -19,6 +19,15 @@ function asString(value: unknown): string {
 }
 
 /**
+ * Optional fields get an explicit hint: blank is a valid choice there and the
+ * storefront falls back to its built-in default, which isn't obvious from an
+ * empty box alone.
+ */
+function fieldLabel(field: { label: string; optional?: boolean }): string {
+  return field.optional ? `${field.label} — optional` : field.label;
+}
+
+/**
  * Typed per-kind form for a page section's `content`. Renders one control per
  * `SECTION_SCHEMAS[kind]` entry — bilingual fields via `BilingualField`, images
  * via `SingleImageUploader`, everything else via a plain Input/Switch.
@@ -44,7 +53,7 @@ export function SectionEditor({ kind, content, onChange }: SectionEditorProps) {
             <BilingualField
               key={field.key}
               id={`section-${field.key}`}
-              label={field.label}
+              label={fieldLabel(field)}
               variant={field.type === 'textarea' ? 'textarea' : 'text'}
               valueEn={asString(content[enKey])}
               valueKa={asString(content[kaKey])}
@@ -58,7 +67,7 @@ export function SectionEditor({ kind, content, onChange }: SectionEditorProps) {
           case 'image':
             return (
               <div key={field.key} className="space-y-1.5">
-                <Label>{field.label}</Label>
+                <Label>{fieldLabel(field)}</Label>
                 <SingleImageUploader
                   value={asString(content[field.key])}
                   onChange={(url) => set(field.key, url)}
@@ -69,7 +78,7 @@ export function SectionEditor({ kind, content, onChange }: SectionEditorProps) {
           case 'url':
             return (
               <div key={field.key} className="space-y-1.5">
-                <Label htmlFor={`section-${field.key}`}>{field.label}</Label>
+                <Label htmlFor={`section-${field.key}`}>{fieldLabel(field)}</Label>
                 <Input
                   id={`section-${field.key}`}
                   type="url"
@@ -81,7 +90,7 @@ export function SectionEditor({ kind, content, onChange }: SectionEditorProps) {
           case 'number':
             return (
               <div key={field.key} className="space-y-1.5">
-                <Label htmlFor={`section-${field.key}`}>{field.label}</Label>
+                <Label htmlFor={`section-${field.key}`}>{fieldLabel(field)}</Label>
                 <Input
                   id={`section-${field.key}`}
                   type="number"
@@ -107,7 +116,7 @@ export function SectionEditor({ kind, content, onChange }: SectionEditorProps) {
           default:
             return (
               <div key={field.key} className="space-y-1.5">
-                <Label htmlFor={`section-${field.key}`}>{field.label}</Label>
+                <Label htmlFor={`section-${field.key}`}>{fieldLabel(field)}</Label>
                 <Input
                   id={`section-${field.key}`}
                   value={asString(content[field.key])}
