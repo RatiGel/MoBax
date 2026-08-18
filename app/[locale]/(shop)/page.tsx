@@ -261,7 +261,11 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
         </section>
       )}
 
-      {/* ── New Arrivals — horizontal rail, distinct from the grid above ── */}
+      {/* ── New Arrivals ──────────────────────────────────── */}
+      {/* Same grid as Popular Items above. This was an edge-bleed scroll rail,
+          which made it the only product section on the page that behaved
+          differently — the horizontal scroll also hid most of its items until
+          you flicked, so the newest stock was the least visible. */}
       {newArrivals.length > 0 && (
         <section className="border-t border-hairline-light bg-paper py-14 lg:py-20 dark:border-hairline-dark dark:bg-ink">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -276,19 +280,14 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
                 {t('viewAll')} <ArrowRight className="h-4 w-4" />
               </Link>
             </Reveal>
-          </div>
 
-          {/* Edge-bleed scroll rail — flick through breadth without a wall of cards.
-              The rail aligns to the max-w-7xl gutter via scroll-padding rather than a
-              spacer element: a `100vw`-sized spacer overshoots by the scrollbar width,
-              and snap-mandatory then jumps the rail forward and clips the first card.
-              `snap-proximity` keeps the flick feel without fighting the resting position. */}
-          <div className="flex snap-x snap-proximity gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-4 scroll-px-4 sm:scroll-px-6 lg:scroll-px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {newArrivals.map((product) => (
-              <div key={product.id} className="snap-start shrink-0 w-44 sm:w-52 lg:w-60">
-                <ProductCard product={product} />
-              </div>
-            ))}
+            <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+              {newArrivals.map((product, i) => (
+                <Reveal key={product.id} delay={Math.min(i, 3) * 0.06}>
+                  <ProductCard product={product} />
+                </Reveal>
+              ))}
+            </div>
           </div>
         </section>
       )}
