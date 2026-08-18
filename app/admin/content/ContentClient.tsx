@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { FileText, Plus, Trash2, Loader2, Save, ArrowUp, ArrowDown, HelpCircle, ChevronDown, Navigation, PanelBottom } from 'lucide-react';
+import { FileText, Plus, Trash2, Loader2, Save, ArrowUp, ArrowDown, HelpCircle, ChevronDown, Navigation, PanelBottom, Video } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,15 @@ interface FaqItem {
   questionKa: string;
   answerEn: string;
   answerKa: string;
+}
+
+// One TikTok video in the home page's social section. Mirrors SocialVideo in
+// lib/theme.ts; `id` is local-only, for stable React keys and reordering.
+interface SocialVideoRow {
+  id: string;
+  url: string;
+  captionEn: string;
+  captionKa: string;
 }
 
 function newFaqId(): string {
@@ -172,6 +181,12 @@ export function ContentClient() {
   const [loadingFaq, setLoadingFaq] = useState(true);
   const [savingFaq, setSavingFaq] = useState(false);
 
+  const [socialVideos, setSocialVideos] = useState<SocialVideoRow[]>([]);
+  const [socialHandle, setSocialHandle] = useState('');
+  const [socialProfileUrl, setSocialProfileUrl] = useState('');
+  const [loadingSocial, setLoadingSocial] = useState(true);
+  const [savingSocial, setSavingSocial] = useState(false);
+
   const [navLinks, setNavLinks] = useState<NavLinkRow[]>([]);
   const [loadingNav, setLoadingNav] = useState(true);
   const [savingNav, setSavingNav] = useState(false);
@@ -225,6 +240,25 @@ export function ContentClient() {
       toast.error(e instanceof Error ? e.message : 'Failed to load FAQ');
     } finally {
       setLoadingFaq(false);
+    }
+  }, []);
+
+  const loadSocial = useCallback(async () => {
+    setLoadingSocial(true);
+    try {
+      const data = await apiFetch<{ settings: Record<string, unknown> }>(
+        '/api/admin/settings'
+      );
+      const raw = data.settings?.social_videos as
+        | { handle?: string; profileUrl?: string; videos?: SocialVideoRow[] }
+        | undefined;
+      setSocialHandle(typeof raw?.handle === 'string' ? raw.handle : '');
+      setSocialProfileUrl(typeof raw?.profileUrl === 'string' ? raw.profileUrl : '');
+      setSocialVideos(Array.isArray(raw?.videos) ? raw!.videos! : []);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to load social videos');
+    } finally {
+      setLoadingSocial(false);
     }
   }, []);
 
@@ -285,9 +319,10 @@ export function ContentClient() {
   useEffect(() => {
     loadList();
     loadFaq();
+    loadSocial();
     loadNav();
     loadFooter();
-  }, [loadList, loadFaq, loadNav, loadFooter]);
+  }, [loadList, loadFaq, loadSocial, loadNav, loadFooter]);
 
   useEffect(() => {
     loadPage(selected);
@@ -450,6 +485,74 @@ export function ContentClient() {
       toast.error(e instanceof Error ? e.message : 'Failed to save FAQ');
     } finally {
       setSavingFaq(false);
+    }
+  }
+
+  // --- Social videos (home page TikTok section) ---
+
+  function updateSocialVideo<K extends keyof Omit<SocialVideoRow, 'id'>>(
+    index: number,
+    key: K,
+    val: SocialVideoRow[K]
+  ) {
+    setSocialVideos((prev) => prev.map((v, i) => (i === index ? { ...v, [key]: val } : v)));
+  }
+
+  function addSocialVideo() {
+    setSocialVideos((prev) => [
+      ...prev,
+      { id: newFaqId(), url: '', captionEn: '', captionKa: '' },
+    ]);
+  }
+
+  function removeSocialVideo(index: number) {
+    setSocialVideos((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function moveSocialVideo(index: number, dir: -1 | 1) {
+    setSocialVideos((prev) => {
+      const next = [...prev];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
+  async function handleSaveSocial() {
+    // The URL must be a tiktok.com link — the storefront renders it as a
+    // third-party embed, so the API enforces the same rule. Checking here
+    // keeps the error next to the field the admin is editing.
+    for (let i = 0; i < socialVideos.length; i++) {
+      const url = socialVideos[i].url.trim();
+      if (!url) {
+        toast.error(`Video #${i + 1}: URL is required`);
+        return;
+      }
+      if (!/^https:\/\/([a-z0-9-]+\.)?tiktok\.com\//i.test(url)) {
+        toast.error(`Video #${i + 1}: must be a https://www.tiktok.com/... link`);
+        return;
+      }
+    }
+
+    setSavingSocial(true);
+    try {
+      await apiFetch('/api/admin/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          social_videos: {
+            handle: socialHandle.trim(),
+            profileUrl: socialProfileUrl.trim(),
+            videos: socialVideos.map((v) => ({ ...v, url: v.url.trim() })),
+          },
+        }),
+      });
+      toast.success('Social videos saved');
+      loadSocial();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save social videos');
+    } finally {
+      setSavingSocial(false);
     }
   }
 
@@ -912,6 +1015,141 @@ export function ContentClient() {
                       value={f.answerKa}
                       onChange={(e) => updateFaq(i, 'answerKa', e.target.value)}
                       placeholder="ქართული პასუხი"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Home social videos (TikTok) ───────────────────── */}
+      <Card className="mt-6">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="flex items-center gap-2">
+            <Video className="h-5 w-5" /> Home TikTok videos
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1" onClick={addSocialVideo}>
+              <Plus className="h-4 w-4" /> Add video
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1"
+              onClick={handleSaveSocial}
+              disabled={savingSocial || loadingSocial}
+            >
+              {savingSocial ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save videos
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-neutral-500">
+            Videos shown in the social section near the bottom of the home page.
+            Order here is the display order. The section is hidden entirely while
+            this list is empty.
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="social-handle">Handle — optional</Label>
+              <Input
+                id="social-handle"
+                value={socialHandle}
+                onChange={(e) => setSocialHandle(e.target.value)}
+                placeholder="@mobax.ge"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="social-profile">Profile URL — optional</Label>
+              <Input
+                id="social-profile"
+                value={socialProfileUrl}
+                onChange={(e) => setSocialProfileUrl(e.target.value)}
+                placeholder="https://www.tiktok.com/@mobax.ge"
+              />
+            </div>
+          </div>
+
+          {loadingSocial ? (
+            <div className="flex items-center justify-center py-10 text-neutral-400">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : socialVideos.length === 0 ? (
+            <p className="py-6 text-center text-sm text-neutral-500">
+              No videos yet. Add one — until then the home page skips the section.
+            </p>
+          ) : (
+            socialVideos.map((v, i) => (
+              <div
+                key={v.id}
+                className="space-y-3 rounded-lg border border-border-light p-4 dark:border-border-dark"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-neutral-500">#{i + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Move up"
+                      disabled={i === 0}
+                      onClick={() => moveSocialVideo(i, -1)}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Move down"
+                      disabled={i === socialVideos.length - 1}
+                      onClick={() => moveSocialVideo(i, 1)}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Remove video"
+                      onClick={() => removeSocialVideo(i)}
+                    >
+                      <Trash2 className="h-4 w-4 text-error" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Video URL</Label>
+                  <Input
+                    value={v.url}
+                    onChange={(e) => updateSocialVideo(i, 'url', e.target.value)}
+                    placeholder="https://www.tiktok.com/@mobax.ge/video/1234567890"
+                  />
+                  <p className="text-[11px] text-neutral-500">
+                    Open the video on TikTok and copy the address bar URL. Short
+                    vm.tiktok.com share links can&apos;t be embedded — they render as
+                    a link instead of a player.
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Caption (EN) — optional</Label>
+                    <Input
+                      value={v.captionEn}
+                      onChange={(e) => updateSocialVideo(i, 'captionEn', e.target.value)}
+                      placeholder="English caption"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Caption (KA) — optional</Label>
+                    <Input
+                      value={v.captionKa}
+                      onChange={(e) => updateSocialVideo(i, 'captionKa', e.target.value)}
+                      placeholder="ქართული წარწერა"
                     />
                   </div>
                 </div>

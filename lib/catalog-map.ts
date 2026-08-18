@@ -44,6 +44,7 @@ interface LeanBrand {
   name: string;
   type?: 'device' | 'maker';
   compatTerms?: string[];
+  logoUrl?: string;
 }
 
 function specsToObject(specs: SpecSource): Record<string, string> {
@@ -116,5 +117,8 @@ export function mapBrand(doc: LeanBrand): Brand {
     name: doc.name,
     type: doc.type ?? 'maker',
     compatTerms: doc.compatTerms ?? [],
+    // Empty string and undefined both mean "no logo" to callers; normalise to
+    // undefined so a blank admin field doesn't render a broken <Image>.
+    logoUrl: doc.logoUrl?.trim() || undefined,
   };
 }

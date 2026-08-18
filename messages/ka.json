@@ -49,7 +49,11 @@
     "categoriesSubtitle": "ყველაფერი შენი მოწყობილობისთვის",
     "productsCount": "{count}+ პროდუქტი",
     "viewAll": "ყველა",
-    "browseAll": "ყველა პროდუქტი"
+    "browseAll": "ყველა პროდუქტი",
+    "brandsTitle": "ყველა ბრენდი",
+    "socialTitle": "ჩვენი TikTok-იდან",
+    "socialFollow": "გამოგვიწერე",
+    "socialWatch": "ნახე TikTok-ზე"
   },
   "products": {
     "title": "ყველა პროდუქტი",

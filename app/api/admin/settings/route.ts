@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { requireAdmin, AdminAuthError } from '@/lib/admin-auth';
 import { ok, fail } from '@/lib/api';
 import { logActivity } from '@/lib/activity';
-import { UpdateSettingsSchema, FaqItemsSchema, NavSettingsSchema, FooterSettingsSchema, TypographySchema } from '@/lib/validations';
+import { UpdateSettingsSchema, FaqItemsSchema, NavSettingsSchema, FooterSettingsSchema, TypographySchema, SocialVideoSettingsSchema } from '@/lib/validations';
 import Setting, { SETTING_KEYS } from '@/models/Setting';
 import { revalidateStorefront } from '@/lib/revalidate';
 
@@ -62,6 +62,15 @@ async function applyUpdate(req: NextRequest) {
     }
     parsed.data[SETTING_KEYS.FOOTER] = footerParsed.data;
   }
+  if (SETTING_KEYS.SOCIAL_VIDEOS in parsed.data) {
+    const socialParsed = SocialVideoSettingsSchema.safeParse(
+      parsed.data[SETTING_KEYS.SOCIAL_VIDEOS]
+    );
+    if (!socialParsed.success) {
+      return fail(socialParsed.error.issues[0]?.message ?? 'Invalid social video data', 422);
+    }
+    parsed.data[SETTING_KEYS.SOCIAL_VIDEOS] = socialParsed.data;
+  }
   if (SETTING_KEYS.TYPOGRAPHY in parsed.data) {
     const typographyParsed = TypographySchema.safeParse(parsed.data[SETTING_KEYS.TYPOGRAPHY]);
     if (!typographyParsed.success) {
@@ -89,7 +98,12 @@ async function applyUpdate(req: NextRequest) {
   // it so a save appears on the storefront immediately instead of after the
   // 60s ISR window.
   const keys = entries.map(([k]) => k);
-  const contentKeys: string[] = [SETTING_KEYS.NAV, SETTING_KEYS.FOOTER, SETTING_KEYS.FAQ];
+  const contentKeys: string[] = [
+    SETTING_KEYS.NAV,
+    SETTING_KEYS.FOOTER,
+    SETTING_KEYS.FAQ,
+    SETTING_KEYS.SOCIAL_VIDEOS,
+  ];
   if (keys.some((k) => contentKeys.includes(k))) {
     revalidateStorefront('content');
   }

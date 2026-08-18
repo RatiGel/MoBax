@@ -49,7 +49,11 @@
     "categoriesSubtitle": "Everything for your device, organized",
     "productsCount": "{count}+ products",
     "viewAll": "View all",
-    "browseAll": "Browse all products"
+    "browseAll": "Browse all products",
+    "brandsTitle": "All Brands",
+    "socialTitle": "From our TikTok",
+    "socialFollow": "Follow us",
+    "socialWatch": "Watch on TikTok"
   },
   "products": {
     "title": "All Products",

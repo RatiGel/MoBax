@@ -187,9 +187,12 @@ export async function getBrandProductCounts(): Promise<Record<string, number>> {
  * children's leaf counts, computed here rather than stored, so this can
  * never drift from the product table the way the old field did.
  *
- * "most-popular" is a /products listing filter, not a real category with
- * members of its own — it has no children, so it always resolves to 0. Both
- * call sites already exclude it from what they render.
+ * A category's count is its children's counts plus any products filed directly
+ * against its own slug — both happen in this catalogue.
+ *
+ * "most-popular" is a /products listing filter rather than a real category, so
+ * its count is meaningless; both call sites already exclude it from what they
+ * render.
  */
 export async function getCategoryProductCounts(): Promise<Record<string, number>> {
   await connectDB();
@@ -210,10 +213,18 @@ export async function getCategoryProductCounts(): Promise<Record<string, number>
   }
   for (const cat of allCategories) {
     if (!cat.parentSlug) {
-      // Parent category: sum of its children's leaf counts, not its own
-      // (parents are never a product's categorySlug).
+      // Parent category: its children's counts PLUS any products filed
+      // directly against the parent slug.
+      //
+      // An earlier version summed only the children, on the assumption that a
+      // parent is never a product's `categorySlug`. That isn't true of the
+      // live data — roughly half the catalogue sits directly on `chargers`,
+      // `original`, and `phone-protection` — so those products were invisible
+      // in every count and the home page advertised "0+ products" for
+      // categories that were full.
       const children = allCategories.filter((c) => c.parentSlug === cat.slug);
-      counts[cat.slug] = children.reduce((sum, child) => sum + (counts[child.slug] ?? 0), 0);
+      const childSum = children.reduce((sum, child) => sum + (counts[child.slug] ?? 0), 0);
+      counts[cat.slug] = childSum + (leafMap.get(cat.slug) ?? 0);
     }
   }
   return counts;

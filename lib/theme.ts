@@ -67,6 +67,30 @@ export const FOOTER_DEFAULTS: FooterSettings = {
   contact: { phone: '', email: '', addressEn: '', addressKa: '' },
 };
 
+/** One TikTok (or other) video featured in the home page's social section. */
+export interface SocialVideo {
+  id: string;
+  url: string;
+  /** Optional caption; falls back to nothing rather than a placeholder. */
+  captionEn: string;
+  captionKa: string;
+}
+
+export interface SocialVideoSettings {
+  /** Handle shown next to the section's follow link, e.g. "@mobax.ge". */
+  handle: string;
+  /** Profile URL for the follow link. */
+  profileUrl: string;
+  videos: SocialVideo[];
+}
+
+/** Empty by default — the home page skips the section entirely until videos exist. */
+export const SOCIAL_VIDEO_DEFAULTS: SocialVideoSettings = {
+  handle: '',
+  profileUrl: '',
+  videos: [],
+};
+
 /**
  * Only Inter and Space Grotesk are actually loaded by this app (see
  * app/globals.css's Google Fonts @import and the [lang='en'] font-family
@@ -295,6 +319,38 @@ export async function getFooterSettings(): Promise<FooterSettings> {
     console.error('[getFooterSettings]', err);
   }
   return { ...FOOTER_DEFAULTS, contact: { ...FOOTER_DEFAULTS.contact } };
+}
+
+/**
+ * Saved social videos for the home page's TikTok section. Never throws — a DB
+ * hiccup returns no videos and the section is skipped, rather than rendering an
+ * empty shell.
+ *
+ * Entries with an unusable URL are dropped here rather than at render time, so
+ * the embed component can assume every video it receives is displayable.
+ */
+export async function getSocialVideos(): Promise<SocialVideoSettings> {
+  try {
+    await connectDB();
+    const setting = await Setting.findOne({ key: SETTING_KEYS.SOCIAL_VIDEOS }).lean();
+    const value = setting?.value as Partial<SocialVideoSettings> | undefined;
+    if (value && typeof value === 'object') {
+      const videos = Array.isArray(value.videos)
+        ? value.videos.filter(
+            (v): v is SocialVideo =>
+              !!v && typeof v.url === 'string' && v.url.trim().length > 0
+          )
+        : [];
+      return {
+        handle: typeof value.handle === 'string' ? value.handle.trim() : '',
+        profileUrl: typeof value.profileUrl === 'string' ? value.profileUrl.trim() : '',
+        videos,
+      };
+    }
+  } catch (err) {
+    console.error('[getSocialVideos]', err);
+  }
+  return { ...SOCIAL_VIDEO_DEFAULTS, videos: [] };
 }
 
 /**

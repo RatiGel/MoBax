@@ -37,4 +37,5 @@ export const SETTING_KEYS = {
   NAV: 'nav',
   FOOTER: 'footer',
   TYPOGRAPHY: 'typography',
+  SOCIAL_VIDEOS: 'social_videos',
 } as const;

@@ -6,12 +6,17 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { HeroProduct } from '@/components/shop/HeroProduct';
 import { Reveal } from '@/components/shop/Reveal';
 import { FaqSection } from '@/components/shop/FaqSection';
+import { BrandStrip } from '@/components/shop/BrandStrip';
+import { SocialVideos } from '@/components/shop/SocialVideos';
 import {
   getFeaturedProducts,
   getNewArrivals,
+  getPopularProducts,
   getParentCategories,
   getCategoryProductCounts,
+  getBrands,
 } from '@/lib/catalog';
+import { getSocialVideos } from '@/lib/theme';
 import { getPageSection, getPageSeo, pickLocalized, pickPlain } from '@/lib/page-content';
 
 interface HomePageProps {
@@ -36,13 +41,31 @@ export const revalidate = 60;
 export default async function HomePage({ params: { locale } }: HomePageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('home');
-  const [featured, newArrivals, allParents, categoryCounts, heroContent] = await Promise.all([
+  const [
+    featured,
+    popular,
+    newArrivals,
+    allParents,
+    categoryCounts,
+    brands,
+    socialVideos,
+    heroContent,
+  ] = await Promise.all([
     getFeaturedProducts(),
+    getPopularProducts(),
     getNewArrivals(),
     getParentCategories(),
     getCategoryProductCounts(),
+    getBrands(),
+    getSocialVideos(),
     getPageSection('home', 'hero'),
   ]);
+
+  // "Popular" ranks by review volume then rating. Most of the catalogue has no
+  // reviews yet, so that ordering is near-arbitrary today and improves on its
+  // own as reviews arrive; falling back to the featured set keeps the section
+  // from looking randomly assembled in the meantime.
+  const popularItems = popular.length > 0 ? popular : featured;
 
   // Hero copy is admin-editable (Admin → Content → Home → Hero section). Every
   // field falls back to the i18n default, so an unsaved or partly-filled hero
@@ -135,10 +158,11 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
       </section>
 
       {/* ── Shop by category — lets buyers self-segment ──── */}
-      {/* Rhythm note: sections deliberately don't share one uniform pad. This
-          one rides tight under the hero (which carries its own bottom space);
-          the tinted product sections below open up, and the FAQ gets the most
-          air as the page's resting point. */}
+      {/* Rhythm note: this section rides tight under the hero, which carries
+          its own bottom space. Sections below alternate paper/raised and are
+          separated by hairline rules rather than by large pad differences, so
+          the page reads as a sequence of bands. Order is fixed here rather
+          than admin-sortable — see the note on the page-level comment. */}
       {categories.length > 0 && (
         <section className="pt-4 pb-16 lg:pt-6 lg:pb-24 bg-paper dark:bg-ink">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -202,13 +226,21 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
         </section>
       )}
 
-      {/* ── Featured Products ─────────────────────────────── */}
-      {featured.length > 0 && (
-        <section className="py-20 lg:py-28 bg-cloud-light/40 dark:bg-cloud-dark/40">
+      {/* ── All Brands ────────────────────────────────────── */}
+      <BrandStrip
+        brands={brands}
+        locale={locale}
+        title={t('brandsTitle')}
+        viewAllLabel={t('viewAll')}
+      />
+
+      {/* ── Popular Items ─────────────────────────────────── */}
+      {popularItems.length > 0 && (
+        <section className="border-t border-hairline-light bg-raised-light py-14 lg:py-20 dark:border-hairline-dark dark:bg-raised-dark">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Reveal className="flex items-end justify-between mb-10">
-              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
-                {t('featuredTitle')}
+            <Reveal className="mb-8 flex items-end justify-between gap-4">
+              <h2 className="font-display text-2xl font-semibold tracking-display text-ink sm:text-3xl dark:text-white">
+                {t('popularTitle')}
               </h2>
               <Link
                 href={`/${locale}/products`}
@@ -219,7 +251,7 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
             </Reveal>
 
             <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-              {featured.map((product, i) => (
+              {popularItems.map((product, i) => (
                 <Reveal key={product.id} delay={Math.min(i, 3) * 0.06}>
                   <ProductCard product={product} />
                 </Reveal>
@@ -231,10 +263,10 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
 
       {/* ── New Arrivals — horizontal rail, distinct from the grid above ── */}
       {newArrivals.length > 0 && (
-        <section className="py-20 lg:py-28 bg-paper dark:bg-ink">
+        <section className="border-t border-hairline-light bg-paper py-14 lg:py-20 dark:border-hairline-dark dark:bg-ink">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Reveal className="flex items-end justify-between mb-10">
-              <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white tracking-display">
+            <Reveal className="mb-8 flex items-end justify-between gap-4">
+              <h2 className="font-display text-2xl font-semibold tracking-display text-ink sm:text-3xl dark:text-white">
                 {t('newArrivalsTitle')}
               </h2>
               <Link
@@ -263,6 +295,18 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
 
       {/* ── FAQ — admin-managed, falls back to i18n defaults ─ */}
       <FaqSection locale={locale} />
+
+      {/* ── Social — TikTok videos, admin-managed. Renders nothing until
+             videos are saved (Admin → Settings → Social videos). ─────── */}
+      <SocialVideos
+        videos={socialVideos.videos}
+        handle={socialVideos.handle}
+        profileUrl={socialVideos.profileUrl}
+        locale={locale}
+        title={t('socialTitle')}
+        followLabel={t('socialFollow')}
+        watchLabel={t('socialWatch')}
+      />
 
       {/* ── Trust badges ─────────────────────────────────── */}
       <section className="py-16 lg:py-20 bg-paper dark:bg-ink border-t border-border-light dark:border-border-dark">

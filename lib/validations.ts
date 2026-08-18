@@ -358,6 +358,35 @@ export const FooterSettingsSchema = z.object({
   }),
 });
 
+// Social videos stored under the `social_videos` setting key. Powers the home
+// page's TikTok section. URLs are constrained to TikTok hosts: the section
+// renders a third-party embed, so accepting an arbitrary URL here would let an
+// admin-entered value load a script-bearing iframe from any origin.
+const TIKTOK_URL = /^https:\/\/([a-z0-9-]+\.)?tiktok\.com\//i;
+
+export const SocialVideoSchema = z.object({
+  id: z.string().min(1),
+  url: z
+    .string()
+    .min(1, 'Video URL is required')
+    .max(500)
+    .regex(TIKTOK_URL, 'Must be a https://www.tiktok.com/... URL'),
+  captionEn: z.string().max(200).default(''),
+  captionKa: z.string().max(200).default(''),
+});
+
+export const SocialVideoSettingsSchema = z.object({
+  handle: z.string().max(60).default(''),
+  profileUrl: z
+    .string()
+    .max(500)
+    .refine((v) => v === '' || TIKTOK_URL.test(v), 'Must be a https://www.tiktok.com/... URL')
+    .default(''),
+  videos: z.array(SocialVideoSchema).max(12),
+});
+
+export type SocialVideoSettingsInput = z.infer<typeof SocialVideoSettingsSchema>;
+
 // Typography stored under the `typography` setting key. Only Inter and Space
 // Grotesk are actually loaded by this app (see lib/theme.ts) — the enum is
 // deliberately narrower than fonts that were once considered but never

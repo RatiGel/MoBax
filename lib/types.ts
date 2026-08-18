@@ -84,6 +84,8 @@ export interface Brand {
   type: 'device' | 'maker';
   /** Extra terms (besides `name`) to look for in specs.Compatibility. */
   compatTerms?: string[];
+  /** Admin-uploaded logo. Absent until one is set; callers fall back to type. */
+  logoUrl?: string;
 }
 
 export interface ProductFilter {
