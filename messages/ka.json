@@ -113,7 +113,8 @@
     "totalCost": "საერთო ღირებულება",
     "totalDiscount": "სულ ფასდაკლება",
     "orderTotal": "შეკვეთის ჯამი",
-    "selectItemsToCheckout": "გადასახდელად აირჩიეთ მინიმუმ ერთი ნივთი"
+    "selectItemsToCheckout": "გადასახდელად აირჩიეთ მინიმუმ ერთი ნივთი",
+    "itemsSingular": "{count} ცალი"
   },
   "checkout": {
     "title": "შეკვეთის გაფორმება",

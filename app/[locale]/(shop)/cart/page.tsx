@@ -88,7 +88,9 @@ export default function CartPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="font-display font-semibold tracking-display text-3xl text-ink dark:text-white mb-8">
         {t('title')}{' '}
-        <span className="text-graphite text-xl font-normal">({t('items', { count: items.length })})</span>
+        <span className="text-graphite text-xl font-normal">
+          ({t(items.length === 1 ? 'itemsSingular' : 'items', { count: items.length })})
+        </span>
       </h1>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Cart Items */}

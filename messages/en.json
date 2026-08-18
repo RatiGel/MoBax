@@ -113,7 +113,8 @@
     "totalCost": "Total cost",
     "totalDiscount": "Total discount",
     "orderTotal": "Order Total",
-    "selectItemsToCheckout": "Select at least one item to checkout"
+    "selectItemsToCheckout": "Select at least one item to checkout",
+    "itemsSingular": "{count} item"
   },
   "checkout": {
     "title": "Checkout",
