@@ -730,6 +730,9 @@ export function ContentClient() {
       <Tabs defaultValue="pages">
         <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="pages">Pages</TabsTrigger>
+          <TabsTrigger value="social" className="gap-1.5">
+            <Video className="h-3.5 w-3.5" /> TikTok
+          </TabsTrigger>
           <TabsTrigger value="nav" className="gap-1.5">
             <Navigation className="h-3.5 w-3.5" /> Navigation
           </TabsTrigger>
@@ -1024,6 +1027,9 @@ export function ContentClient() {
         </CardContent>
       </Card>
 
+        </TabsContent>
+
+        <TabsContent value="social">
       {/* ── Home social videos (TikTok) ───────────────────── */}
       <Card className="mt-6">
         <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -1052,9 +1058,21 @@ export function ContentClient() {
         <CardContent className="space-y-4">
           <p className="text-xs text-neutral-500">
             Videos shown in the social section near the bottom of the home page.
-            Order here is the display order. The section is hidden entirely while
-            this list is empty.
+            Order here is the display order.
           </p>
+          {!loadingSocial && (
+            <p
+              className={
+                socialVideos.length > 0
+                  ? 'rounded-md bg-success/10 px-3 py-2 text-xs font-medium text-success'
+                  : 'rounded-md bg-raised-light px-3 py-2 text-xs font-medium text-graphite dark:bg-raised-dark'
+              }
+            >
+              {socialVideos.length > 0
+                ? `Live on the home page — ${socialVideos.length} video${socialVideos.length === 1 ? '' : 's'}.`
+                : 'Not on the home page yet. The section stays hidden until you add at least one video and save.'}
+            </p>
+          )}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">

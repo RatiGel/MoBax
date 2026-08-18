@@ -121,10 +121,15 @@ export function SocialVideos({
 
         {/* `items-start` matters: TikTok's iframe sizes itself after load, and a
             stretched grid row would leave every shorter card padded out to the
-            tallest embed. Aligning to the top keeps each card its own height. */}
+            tallest embed. Aligning to the top keeps each card its own height.
+
+            Columns are capped rather than `auto-fit, 1fr`: with one or two
+            videos saved, auto-fit stretched a single portrait clip to the full
+            1216px content width. A fixed max column width keeps a lone video at
+            a sensible size and lets the row start from the left instead. */}
         <div
           ref={containerRef}
-          className="grid grid-cols-1 items-start gap-5 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))]"
+          className="grid grid-cols-1 items-start justify-start gap-5 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(280px,340px))]"
         >
           {videos.map((video) => {
             const id = parseTikTokId(video.url);
@@ -163,8 +168,8 @@ export function SocialVideos({
                   /* TikTok's embed has no Georgian locale, so the player chrome
                      ("Watch now", the share labels) stays English in both
                      locales. Set explicitly rather than left to the script's
-                     default so the choice is visible here; our own caption and
-                     link text around it are still fully localised. */
+                     default so the choice is visible here; our own caption
+                     below it is fully localised. */
                   lang="en-US"
                   style={{ maxWidth: '100%', minWidth: 0 }}
                 >
@@ -180,6 +185,14 @@ export function SocialVideos({
                     </a>
                   </section>
                 </blockquote>
+                {/* Caption sits OUTSIDE the blockquote. embed.js replaces that
+                    whole element with an iframe once it loads, so anything
+                    inside it is discarded — a caption placed there renders
+                    only in the pre-script fallback and then vanishes, which
+                    made the admin's caption fields look broken. */}
+                {caption && (
+                  <p className="mt-2 text-sm leading-snug text-graphite">{caption}</p>
+                )}
               </div>
             );
           })}
