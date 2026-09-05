@@ -33,6 +33,16 @@ export function Footer({
     { slug: 'original', nameEn: 'Genuine Products', nameKa: 'ორიგინალი პროდუქცია' },
   ];
 
+  // Company links point at the admin-authored content pages
+  // (app/[locale]/(shop)/[pageKey]), whose slugs are the `Page` model's
+  // pageKeys — keep these in sync with CONTENT_PAGES in that route.
+  const companyLinks = [
+    { slug: 'about', label: t('about') },
+    { slug: 'contact', label: t('contact') },
+    { slug: 'privacy', label: t('privacy') },
+    { slug: 'terms', label: t('terms') },
+  ];
+
   // Saved settings win when present; nothing may disappear before the
   // settings are first saved, so every field falls back independently to
   // today's hardcoded content rather than the whole footer flipping at once.
@@ -138,9 +148,14 @@ export function Footer({
               {t('company')}
             </h3>
             <ul className="space-y-3">
-              {[t('about'), t('contact'), t('privacy'), t('terms')].map((item) => (
-                <li key={item}>
-                  <span className="text-sm cursor-default hover:text-white transition-colors">{item}</span>
+              {companyLinks.map((item) => (
+                <li key={item.slug}>
+                  <Link
+                    href={`/${locale}/${item.slug}`}
+                    className="text-sm hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
