@@ -10,7 +10,14 @@ export const STORE_LOCATION = {
   hoursKa: 'ღიაა ყოველდღე 11:00–20:00, კვირის გარდა',
   // Pinned embed for the MOBAX place (from Google Maps "share → embed").
   embedSrc:
-    'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d4818.313510523969!2d44.817771!3d41.792753!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40446d0060083acf%3A0x7925389d80f40bdd!2sMOBAX%20-%20phone%20accessories!5e1!3m2!1sen!2sge!4v1783374630976!5m2!1sen!2sge',
-  // "Open in Maps" → same place by lat/lng so it matches the embedded pin.
-  mapsLink: 'https://www.google.com/maps/search/?api=1&query=41.792753,44.817771',
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d739.4505030139288!2d44.81725649222725!3d41.79288076341631!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40446d0060083acf%3A0x7925389d80f40bdd!2sMOBAX%20-%20phone%20accessories!5e1!3m2!1sen!2sge!4v1788636153410!5m2!1sen!2sge',
+  // "Open in Maps" → the MOBAX listing itself, by Google's cid (the place's
+  // numeric id, 0x7925389d80f40bdd from the embed URL above, in decimal).
+  // Searching the address text resolves to a neighbouring building, which is
+  // why this is not an address query. Coordinates below are the same pin, kept
+  // as the fallback link for anything that cannot follow a cid redirect.
+  mapsLink: 'https://maps.google.com/?cid=8729445701852072925',
+  /** Same pin by lat/lng — matches `embedSrc` exactly. */
+  mapsLinkCoords:
+    'https://www.google.com/maps/search/?api=1&query=41.79288076341631%2C44.81725649222725',
 } as const;

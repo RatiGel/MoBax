@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Instagram, Facebook } from 'lucide-react';
 import type { FooterSettings } from '@/lib/theme';
+import { STORE_LOCATION } from '@/lib/store-location';
 import type { NavbarBranding } from './Navbar';
 
 export function Footer({
@@ -56,10 +57,11 @@ export function Footer({
   const addressEn = contact?.addressEn?.trim() || 'Tbilisi, Georgia';
   const addressKa = contact?.addressKa?.trim() || 'თბილისი, საქართველო';
   const address = locale === 'ka' ? addressKa : addressEn;
-  // Search by address rather than a hardcoded place id, so an admin editing the
-  // address in Setting: footer moves the pin with it. The English address is
-  // the query even in KA — Maps resolves it more reliably.
-  const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressEn)}`;
+  // Link to the pinned MOBAX place, not an address search — searching the
+  // address text lands on a neighbouring building. STORE_LOCATION is the same
+  // source the checkout pickup card and order confirmation use, so every map
+  // link on the site points at one pin.
+  const directionsHref = STORE_LOCATION.mapsLink;
 
   return (
     <footer className="bg-ink text-neutral-400">
