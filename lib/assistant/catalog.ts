@@ -1,4 +1,5 @@
 import { getProducts, getCategories, getSubcategories } from '@/lib/catalog';
+import { categoryMatchSlugs } from '@/lib/catalog-map';
 import type { CategorySlug, Product } from '@/lib/types';
 
 /**
@@ -125,14 +126,11 @@ function contradictsDevice(product: Product, device: string): boolean {
   return !compatNums.includes(deviceNums[0]);
 }
 
-/** Expand a parent category to its children, matching storefront behaviour. */
+/** Expand a parent category to itself + its children, matching storefront behaviour. */
 async function categoryPool(slug: CategorySlug, products: Product[]): Promise<Product[]> {
   const subs = await getSubcategories(slug);
-  if (subs.length > 0) {
-    const subSlugs = subs.map((s) => s.slug);
-    return products.filter((p) => subSlugs.includes(p.category));
-  }
-  return products.filter((p) => p.category === slug);
+  const slugs = categoryMatchSlugs(slug, [{ slug, parentSlug: undefined }, ...subs]);
+  return products.filter((p) => slugs.includes(p.category));
 }
 
 function sortPool(pool: Product[], sort: AssistantQuery['sort']): Product[] {

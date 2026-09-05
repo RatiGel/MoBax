@@ -737,12 +737,10 @@ export function getProductsByBrand(slug: string): Product[] {
 }
 
 export function getProductsByCategory(slug: CategorySlug): Product[] {
-  const sub = getSubcategories(slug);
-  if (sub.length > 0) {
-    const subSlugs = sub.map((s) => s.slug);
-    return products.filter((p) => subSlugs.includes(p.category));
-  }
-  return products.filter((p) => p.category === slug);
+  // A parent matches its own slug as well as its children's; products are
+  // routinely filed directly against a parent.
+  const slugs = [slug, ...getSubcategories(slug).map((s) => s.slug)];
+  return products.filter((p) => slugs.includes(p.category));
 }
 
 export function getFeaturedProducts(): Product[] {
@@ -768,13 +766,8 @@ export function searchProducts(query: ProductSearchQuery, limit = 6): Product[] 
   let pool = [...products];
 
   if (query.category) {
-    const subs = getSubcategories(query.category);
-    if (subs.length > 0) {
-      const subSlugs = subs.map((s) => s.slug);
-      pool = pool.filter((p) => subSlugs.includes(p.category));
-    } else {
-      pool = pool.filter((p) => p.category === query.category);
-    }
+    const slugs = [query.category, ...getSubcategories(query.category).map((s) => s.slug)];
+    pool = pool.filter((p) => slugs.includes(p.category));
   }
   if (typeof query.maxPrice === 'number') pool = pool.filter((p) => p.price <= query.maxPrice!);
   if (typeof query.minPrice === 'number') pool = pool.filter((p) => p.price >= query.minPrice!);
