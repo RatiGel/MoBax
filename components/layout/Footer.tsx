@@ -36,9 +36,12 @@ export function Footer({
   // Company links point at the admin-authored content pages
   // (app/[locale]/(shop)/[pageKey]), whose slugs are the `Page` model's
   // pageKeys — keep these in sync with CONTENT_PAGES in that route.
+  //
+  // `contact` is deliberately absent here: the Contact column beside this one
+  // shows the address, phone and email directly, and its heading links to the
+  // /contact page, so listing it twice was redundant.
   const companyLinks = [
     { slug: 'about', label: t('about') },
-    { slug: 'contact', label: t('contact') },
     { slug: 'privacy', label: t('privacy') },
     { slug: 'terms', label: t('terms') },
   ];
@@ -164,8 +167,12 @@ export function Footer({
           {/* Contact — saved contact fields win per-field; unset fields keep
               today's hardcoded value rather than the whole block disappearing. */}
           <div>
+            {/* The heading is the only remaining route to /contact now that the
+                Company column no longer lists it. */}
             <h3 className="text-sm font-semibold uppercase tracking-[0.15em] text-white mb-5">
-              {locale === 'ka' ? 'კონტაქტი' : 'Contact'}
+              <Link href={`/${locale}/contact`} className="hover:text-cobalt-dark transition-colors">
+                {t('contact')}
+              </Link>
             </h3>
             <ul className="space-y-3 text-sm">
               <li>{locale === 'ka' ? addressKa : addressEn}</li>
@@ -179,7 +186,11 @@ export function Footer({
                   {email}
                 </a>
               </li>
-              <li className="text-neutral-400 text-xs">10:00 – 22:00</li>
+              {/* Mirrors lib/support-hours.ts (Mon–Sat 11:00–20:00), which is
+                  the source of truth and what the /contact page states. */}
+              <li className="text-neutral-400 text-xs">
+                {locale === 'ka' ? 'ორშ–შაბ 11:00–20:00' : 'Mon–Sat 11:00–20:00'}
+              </li>
             </ul>
           </div>
 
