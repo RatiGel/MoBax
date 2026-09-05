@@ -95,7 +95,18 @@ export function ProductDetailClient({ product, related }: ProductDetailClientPro
                       : 'border-border-light dark:border-border-dark hover:border-cobalt/50'
                   }`}
                 >
-                  <Image src={img} alt={`${name} ${i + 1}`} fill className="object-cover" />
+                  {/* "name 2" describes nothing to a screen reader or to image
+                      search; say which view of the product this is. */}
+                  <Image
+                    src={img}
+                    alt={
+                      locale === 'ka'
+                        ? `${name} — ფოტო ${i + 1} / ${product.images.length}`
+                        : `${name} — view ${i + 1} of ${product.images.length}`
+                    }
+                    fill
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>

@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { ChevronDown } from 'lucide-react';
 import { getStoreFaq } from '@/lib/faq';
+import { JsonLd } from '@/components/JsonLd';
+import { faqJsonLd } from '@/lib/seo';
 
 interface FaqSectionProps {
   locale: string;
@@ -27,6 +29,10 @@ export async function FaqSection({ locale }: FaqSectionProps) {
 
   return (
     <section className="py-16 lg:py-20 bg-cloud-light/40 dark:bg-cloud-dark/40">
+      {/* The FAQ was already on the page but carried no markup, so it couldn't
+          earn the FAQ rich result it qualifies for. Only real, visible Q&A is
+          emitted — the schema and the rendered list are the same content. */}
+      <JsonLd data={faqJsonLd(faqs.map((f) => ({ question: f.q, answer: f.a })))} />
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <h2 className="font-display text-3xl sm:text-4xl font-semibold text-ink dark:text-white mb-10 text-center tracking-display">
           {isKa ? 'ხშირად დასმული კითხვები' : 'Frequently Asked Questions'}

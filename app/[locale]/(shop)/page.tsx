@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,20 +19,38 @@ import {
 } from '@/lib/catalog';
 import { getSocialVideos } from '@/lib/theme';
 import { getPageSection, getPageSeo, pickLocalized, pickPlain } from '@/lib/page-content';
+import { JsonLd } from '@/components/JsonLd';
+import {
+  pageMetadata,
+  organizationJsonLd,
+  websiteJsonLd,
+  type Locale,
+} from '@/lib/seo';
 
 interface HomePageProps {
   params: { locale: string };
 }
 
-export async function generateMetadata({ params: { locale } }: HomePageProps) {
+export async function generateMetadata({ params: { locale } }: HomePageProps): Promise<Metadata> {
   // SEO title/description are admin-editable (Admin → Content → Home → SEO).
-  // Blank or unsaved falls back to the built-in default.
+  // Blank or unsaved falls back to the built-in default, which now leads with
+  // the terms this market actually searches rather than a generic tagline.
   const seo = await getPageSeo('home');
-  const fallback = `MoBax — ${locale === 'ka' ? 'პრემიუმ მობილური აქსესუარები' : 'Premium Mobile Accessories'}`;
-  return {
-    title: seo?.title || fallback,
-    ...(seo?.description ? { description: seo.description } : {}),
-  };
+  const isKa = locale === 'ka';
+
+  const fallbackTitle = isKa
+    ? 'მობილურის აქსესუარები — დამტენი, კაბელი, ქეისი'
+    : 'Mobile Accessories in Georgia — Chargers, Cables, Cases';
+  const fallbackDescription = isKa
+    ? 'ტელეფონის ქეისი, სწრაფი დამტენი, Type-C კაბელი, პაუერ ბანკი და უსადენო ყურსასმენები. ორიგინალი, გარანტიით. მიტანა თბილისში.'
+    : 'Phone cases, fast chargers, Type-C cables, power banks and wireless earbuds. Original with warranty. Delivery in Tbilisi.';
+
+  return pageMetadata({
+    title: seo?.title || fallbackTitle,
+    description: seo?.description || fallbackDescription,
+    path: '/',
+    locale: locale as Locale,
+  });
 }
 
 // Storefront reads the DB; ISR keeps it cheap. Admin catalog writes call
@@ -96,6 +115,8 @@ export default async function HomePage({ params: { locale } }: HomePageProps) {
 
   return (
     <>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd(locale as Locale)]} />
+
       {/* ── Hero — copy + proof left, product right ──────── */}
       <section className="relative overflow-hidden border-b border-hairline-light bg-paper dark:border-hairline-dark dark:bg-ink">
         <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 lg:px-8 lg:pb-14 lg:pt-12">

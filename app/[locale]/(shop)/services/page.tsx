@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import Image from 'next/image';
 import {
@@ -11,6 +12,7 @@ import {
   BadgeCheck,
 } from 'lucide-react';
 import { getActiveServices, getServicePage, getActiveCatalogProducts } from '@/lib/services-data';
+import { pageMetadata, SITE_NAME, type Locale } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +20,20 @@ interface Props {
   params: { locale: string };
 }
 
-export async function generateMetadata({ params: { locale } }: Props) {
-  return { title: `MoBax — ${locale === 'ka' ? 'სერვისები' : 'Services'}` };
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  const isKa = locale === 'ka';
+  // This page targets service queries ("დამცავი მინის დაკვრა") that the shop
+  // can satisfy in store today without holding the matching stock.
+  return pageMetadata({
+    title: isKa
+      ? `ეკრანის დამცავის დაკვრა და სერვისები | ${SITE_NAME}`
+      : `Screen Protector Fitting & Services | ${SITE_NAME}`,
+    description: isKa
+      ? 'ეკრანის დამცავი მინის დაკვრა და ტელეფონის სერვისები ადგილზე, თბილისში. სწრაფად, გარანტიით.'
+      : 'Screen protector fitting and phone services in store in Tbilisi. Fast, with warranty.',
+    path: '/services',
+    locale: locale as Locale,
+  });
 }
 
 // Curated fallback imagery (Unsplash, allowed in next.config) used when a

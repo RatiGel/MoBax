@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/seo';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'MoBax — Mobile Accessories',
+  metadataBase: new URL(SITE_URL),
+  // Per-page titles come from each route's generateMetadata(). This template
+  // only applies to routes that set no title of their own (/admin), so the
+  // storefront's researched titles are never suffixed twice.
+  title: {
+    default: 'MoBax — მობილურის აქსესუარები',
+    template: '%s',
+  },
   description: 'Premium mobile accessories in Georgia',
   // The mark is the amber bolt from the MoBax logo on brand navy — the wordmark
   // is unreadable below ~64px. app/icon.png and app/apple-icon.png are picked up

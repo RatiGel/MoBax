@@ -24,10 +24,10 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export const metadata: Metadata = {
-  title: 'MoBax — Mobile Accessories',
-  description: 'Premium mobile accessories in Georgia — cases, chargers, cables and more',
-};
+// No static metadata here on purpose. This layout previously exported one
+// title and description for the entire storefront, so every product and
+// category page inherited the same duplicated <head>. Each route now owns its
+// metadata via generateMetadata() (see lib/seo.ts).
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
