@@ -7,6 +7,7 @@ import { SlidersHorizontal, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProductCard } from '@/components/shop/ProductCard';
+import { categoryMatchSlugs } from '@/lib/catalog-map';
 import type { Product, Category, Brand, CategorySlug } from '@/lib/types';
 
 interface ProductsPageClientProps {
@@ -81,13 +82,10 @@ function ProductsPageInner({ products, categories, brands: brandRegistry, brandP
       const popularIds = new Set(popular.map((p) => p.id));
       result = result.filter((p) => popularIds.has(p.id));
     } else if (selectedCategory !== 'all') {
-      const subs = categories.filter((c) => c.parentSlug === selectedCategory);
-      if (subs.length > 0) {
-        const subSlugs = subs.map((s) => s.slug);
-        result = result.filter((p) => subSlugs.includes(p.category));
-      } else {
-        result = result.filter((p) => p.category === selectedCategory);
-      }
+      // A parent matches its own slug as well as its children's — products are
+      // routinely filed directly against a parent from admin.
+      const slugs = categoryMatchSlugs(selectedCategory, categories);
+      result = result.filter((p) => slugs.includes(p.category));
     }
 
     // Case-insensitive to match the deduped `brands` list above: an exact

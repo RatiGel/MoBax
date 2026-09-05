@@ -111,6 +111,26 @@ export function mapCategory(doc: LeanCategory): Category {
   };
 }
 
+/**
+ * The set of category slugs a category filter should match.
+ *
+ * A parent matches its own slug AND every child's, never children alone. The
+ * children-only version shipped as a real bug: products are routinely filed
+ * directly against a parent slug from admin (8 of the 9 "original" products
+ * were, and 4 of the "chargers" ones), so selecting the parent hid them and
+ * the listing showed 1 product where the catalogue held 9. This mirrors the
+ * rule getCategoryProductCounts() in lib/catalog.ts already uses for counts —
+ * if the two disagree, a category card advertises a count its own page can't
+ * show.
+ */
+export function categoryMatchSlugs(
+  slug: CategorySlug,
+  categories: Pick<Category, 'slug' | 'parentSlug'>[],
+): CategorySlug[] {
+  const children = categories.filter((c) => c.parentSlug === slug).map((c) => c.slug);
+  return [slug, ...children];
+}
+
 export function mapBrand(doc: LeanBrand): Brand {
   return {
     slug: doc.slug,

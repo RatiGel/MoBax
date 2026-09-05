@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapProduct, mapCategory, mapBrand, isOnSale, discountPercent } from '@/lib/catalog-map';
+import { mapProduct, mapCategory, mapBrand, isOnSale, discountPercent, categoryMatchSlugs } from '@/lib/catalog-map';
 
 const baseDoc = {
   _id: '1',
@@ -116,5 +116,30 @@ describe('mapCategory / mapBrand', () => {
   it('maps a brand', () => {
     const b = mapBrand({ slug: 'apple', name: 'Apple', type: 'device', compatTerms: ['iPhone'] } as never);
     expect(b).toEqual({ slug: 'apple', name: 'Apple', type: 'device', compatTerms: ['iPhone'] });
+  });
+});
+
+describe('categoryMatchSlugs', () => {
+  const categories = [
+    { slug: 'original' as const, parentSlug: undefined },
+    { slug: 'apple' as const, parentSlug: 'original' as const },
+    { slug: 'samsung' as const, parentSlug: 'original' as const },
+    { slug: 'cables' as const, parentSlug: 'chargers' as const },
+  ];
+
+  it('includes the parent slug itself, not only its children', () => {
+    // Products filed directly on the parent slug are the majority of the
+    // "original" catalogue; excluding them showed 1 product instead of 9.
+    expect(categoryMatchSlugs('original', categories).sort()).toEqual(
+      ['apple', 'original', 'samsung'],
+    );
+  });
+
+  it('returns just the slug for a leaf category', () => {
+    expect(categoryMatchSlugs('apple', categories)).toEqual(['apple']);
+  });
+
+  it('returns just the slug for a category with no rows at all', () => {
+    expect(categoryMatchSlugs('mouse', categories)).toEqual(['mouse']);
   });
 });
