@@ -81,7 +81,17 @@ export function Navbar({
 
   // Branding from the admin Theme page (falls back to the built-in MoBax brand).
   const storeName = branding?.storeName?.trim() || 'MoBax';
-  const logoUrl = branding?.logoUrl?.trim() || '/images/logo.png';
+  // An admin-set logo wins and is used in both themes; otherwise the built-in
+  // MoBax wordmark ships as a pair — navy on light, white on dark — and the two
+  // are swapped with CSS so there is no theme-dependent render (no hydration
+  // mismatch, and no flash before next-themes resolves).
+  const customLogoUrl = branding?.logoUrl?.trim() || '';
+  const logoLight = customLogoUrl || '/images/logo-light.png';
+  const logoDark = customLogoUrl || '/images/logo-dark.png';
+  // The bundled logo is the MoBax wordmark, so it can only stand in for the
+  // store name while the store is still called MoBax. Renamed in admin with no
+  // logo uploaded → fall through to the text wordmark below.
+  const useLogoImage = Boolean(customLogoUrl) || storeName.toLowerCase() === 'mobax';
   // Split the wordmark so the trailing syllable picks up the accent color
   // (e.g. "Mo" + "Bax"). Used only when no logo image is set.
   const logoHead = storeName.length > 2 ? storeName.slice(0, -3) : storeName;
@@ -124,9 +134,22 @@ export function Navbar({
 
             {/* Logo — admin logo image if set, else the wordmark */}
             <Link href={`/${locale}`} className="flex-shrink-0 flex items-center group">
-              {logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoUrl} alt={storeName} className="h-8 w-auto max-w-[160px] object-contain" />
+              {useLogoImage ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoLight}
+                    alt={storeName}
+                    className="h-8 w-auto max-w-[160px] object-contain dark:hidden"
+                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoDark}
+                    alt=""
+                    aria-hidden="true"
+                    className="hidden h-8 w-auto max-w-[160px] object-contain dark:block"
+                  />
+                </>
               ) : (
                 <span className="font-display text-2xl font-semibold tracking-display">
                   <span className="text-ink dark:text-white">{logoHead}</span>

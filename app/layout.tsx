@@ -4,6 +4,20 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'MoBax — Mobile Accessories',
   description: 'Premium mobile accessories in Georgia',
+  // The mark is the amber bolt from the MoBax logo on brand navy — the wordmark
+  // is unreadable below ~64px. app/icon.png and app/apple-icon.png are picked up
+  // by convention; these entries add the legacy .ico and the sized PNGs.
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+  },
+  manifest: '/site.webmanifest',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
