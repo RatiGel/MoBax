@@ -2,10 +2,27 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Instagram, Facebook } from 'lucide-react';
 import type { FooterSettings } from '@/lib/theme';
+import type { NavbarBranding } from './Navbar';
 
-export function Footer({ footerSettings }: { footerSettings?: FooterSettings }) {
+export function Footer({
+  footerSettings,
+  branding,
+}: {
+  footerSettings?: FooterSettings;
+  branding?: NavbarBranding;
+}) {
   const locale = useLocale();
   const t = useTranslations('footer');
+
+  // The footer sits on `bg-ink` in both themes, so unlike the Navbar it does
+  // not swap logos — the white wordmark is the only legible one here. An
+  // admin-uploaded logo still wins, and a renamed store with no logo of its
+  // own falls through to the text wordmark below (matched case-insensitively;
+  // the seeded name is "MOBAX").
+  const storeName = branding?.storeName?.trim() || 'MoBax';
+  const customLogoUrl = branding?.logoUrl?.trim() || '';
+  const logoUrl = customLogoUrl || '/images/logo-dark.png';
+  const useLogoImage = Boolean(customLogoUrl) || storeName.toLowerCase() === 'mobax';
 
   const shopLinks = [
     { slug: 'phone-protection', nameEn: 'Phone Protection', nameKa: 'ტელეფონის დაცვა' },
@@ -35,8 +52,15 @@ export function Footer({ footerSettings }: { footerSettings?: FooterSettings }) 
           {/* Brand column */}
           <div className="col-span-2 lg:col-span-2">
             <Link href={`/${locale}`} className="inline-flex items-center mb-5">
-              <span className="font-display text-2xl font-semibold text-white tracking-display">Mo</span>
-              <span className="font-display text-2xl font-semibold text-cobalt-dark tracking-display">Bax</span>
+              {useLogoImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt={storeName} className="h-9 w-auto max-w-[180px] object-contain" />
+              ) : (
+                <>
+                  <span className="font-display text-2xl font-semibold text-white tracking-display">Mo</span>
+                  <span className="font-display text-2xl font-semibold text-cobalt-dark tracking-display">Bax</span>
+                </>
+              )}
             </Link>
             <p className="text-sm leading-relaxed text-neutral-400 max-w-xs">{t('tagline')}</p>
 

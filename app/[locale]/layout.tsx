@@ -101,7 +101,7 @@ export default async function LocaleLayout({ children, params: { locale } }: Loc
               navLinks={navSettings.links}
             />
             <main className="flex-1">{children}</main>
-            <Footer footerSettings={footerSettings} />
+            <Footer footerSettings={footerSettings} branding={branding} />
           </div>
           <CartDrawer />
           <ChatAssistant />
