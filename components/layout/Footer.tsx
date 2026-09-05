@@ -38,7 +38,7 @@ export function Footer({
   // pageKeys — keep these in sync with CONTENT_PAGES in that route.
   //
   // `contact` is deliberately absent here: the Contact column beside this one
-  // shows the address, phone and email directly, and its heading links to the
+  // shows the address, email and hours directly, and its heading links to the
   // /contact page, so listing it twice was redundant.
   const companyLinks = [
     { slug: 'about', label: t('about') },
@@ -52,10 +52,14 @@ export function Footer({
   const savedColumns = footerSettings?.columns ?? [];
   const savedSocial = footerSettings?.social ?? [];
   const contact = footerSettings?.contact;
-  const phone = contact?.phone?.trim() || '+995 555 123 456';
   const email = contact?.email?.trim() || 'hello@mobax.ge';
   const addressEn = contact?.addressEn?.trim() || 'Tbilisi, Georgia';
   const addressKa = contact?.addressKa?.trim() || 'თბილისი, საქართველო';
+  const address = locale === 'ka' ? addressKa : addressEn;
+  // Search by address rather than a hardcoded place id, so an admin editing the
+  // address in Setting: footer moves the pin with it. The English address is
+  // the query even in KA — Maps resolves it more reliably.
+  const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressEn)}`;
 
   return (
     <footer className="bg-ink text-neutral-400">
@@ -175,10 +179,17 @@ export function Footer({
               </Link>
             </h3>
             <ul className="space-y-3 text-sm">
-              <li>{locale === 'ka' ? addressKa : addressEn}</li>
+              {/* Address opens Google Maps directions rather than embedding an
+                  iframe — the footer renders on every page, and a third-party
+                  frame there would cost far more than the link it replaces. */}
               <li>
-                <a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-white transition-colors">
-                  {phone}
+                <a
+                  href={directionsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  {address}
                 </a>
               </li>
               <li>
